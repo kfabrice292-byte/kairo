@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - Kaïro</title>
+    <link rel="icon" type="image/png" href="assets/img/Favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="assets/css/base.css">
+</head>
+<body class="bg-slate-50 flex flex-col min-h-screen text-slate-800 font-sans relative">
+
+    <div class="absolute inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-100 via-slate-50 to-slate-50 pointer-events-none"></div>
+
+    <header class="w-full sticky top-0 bg-slate-900 text-white shadow-md z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="dashboard.html" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <img src="assets/img/logo.png" alt="Kaïro" class="h-8 object-contain filter brightness-0 invert">
+                <span class="px-2 py-1 bg-red-500 text-white text-[10px] font-bold rounded uppercase">Admin</span>
+            </a>
+            <nav class="flex items-center gap-6">
+                <a href="dashboard.html" class="text-sm font-medium px-4 py-2 rounded-lg border border-slate-700 hover:bg-slate-800 transition-all">
+                    Retour au site
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-8 animate-[slideUpFade_0.4s_ease-out]">
+        
+        <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 font-outfit">Panel d'Administration</h1>
+                <p class="text-slate-500">Gérez les utilisateurs et publiez des opportunités.</p>
+            </div>
+            <div class="flex gap-4">
+                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center gap-4 min-w-[160px]">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl"><i class="ph-fill ph-users"></i></div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Utilisateurs</p>
+                        <p class="text-2xl font-black text-slate-800" id="totalUsers">0</p>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center gap-4 min-w-[160px]">
+                    <div class="w-12 h-12 rounded-full bg-orange-100 text-[#F97316] flex items-center justify-center text-xl"><i class="ph-fill ph-briefcase"></i></div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Offres</p>
+                        <p class="text-2xl font-black text-slate-800" id="totalOpps">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Add Opportunity Form -->
+            <div class="lg:col-span-1">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm sticky top-24">
+                    <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2"><i class="ph-fill ph-plus-circle text-[#F97316]"></i> Publier une offre</h3>
+                    <form id="oppForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Titre de l'offre *</label>
+                            <input type="text" id="oppTitle" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all" required placeholder="Ex: Développeur Backend">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Entreprise *</label>
+                            <input type="text" id="oppCompany" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all" required placeholder="Ex: Kaïro SA">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Type d'offre *</label>
+                            <select id="oppType" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all" required>
+                                <option value="Stage">Stage</option>
+                                <option value="Emploi">Emploi</option>
+                                <option value="Bourse">Bourse</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Localisation *</label>
+                            <input type="text" id="oppLocation" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all" required placeholder="Ex: Ouagadougou">
+                        </div>
+                        <div id="oppMessage" class="hidden text-emerald-500 font-medium text-sm pt-2 flex items-center gap-1">
+                            <i class="ph-fill ph-check-circle"></i> Offre publiée avec succès !
+                        </div>
+                        <button type="submit" class="w-full mt-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all">
+                            Publier
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Users List -->
+            <div class="lg:col-span-2">
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2"><i class="ph-fill ph-users-three text-[#F97316]"></i> Utilisateurs Inscrits</h3>
+                        <div class="relative">
+                            <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" placeholder="Rechercher..." class="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-slate-300">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th class="px-6 py-4">Nom</th>
+                                    <th class="px-6 py-4">Email</th>
+                                    <th class="px-6 py-4">Points</th>
+                                    <th class="px-6 py-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody" class="divide-y divide-slate-100">
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4 font-medium text-slate-800">Fabrice Kaboré</td>
+                                    <td class="px-6 py-4">fabrice@example.com</td>
+                                    <td class="px-6 py-4"><span class="px-2 py-1 bg-orange-100 text-[#F97316] font-bold rounded-md text-xs">150 pts</span></td>
+                                    <td class="px-6 py-4">
+                                        <button class="text-slate-400 hover:text-slate-800 transition-colors"><i class="ph-bold ph-pencil-simple"></i></button>
+                                        <button class="text-slate-400 hover:text-red-500 transition-colors ml-2"><i class="ph-bold ph-trash"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script type="module">
+        import API from './assets/js/api.js';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const oppForm = document.getElementById('oppForm');
+            const totalUsers = document.getElementById('totalUsers');
+            const totalOpps = document.getElementById('totalOpps');
+            const usersTableBody = document.getElementById('usersTableBody');
+
+            // Load initial data
+            const loadData = async () => {
+                const users = await API.getAllUsers();
+                const opps = await API.getOpportunities();
+
+                totalUsers.textContent = users.length;
+                totalOpps.textContent = opps.length;
+
+                usersTableBody.innerHTML = users.map(user => `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 font-medium text-slate-800">${user.name || 'N/A'}</td>
+                        <td class="px-6 py-4">${user.email}</td>
+                        <td class="px-6 py-4"><span class="px-2 py-1 bg-orange-100 text-[#F97316] font-bold rounded-md text-xs">${user.points || 0} pts</span></td>
+                        <td class="px-6 py-4">
+                            <button class="text-slate-400 hover:text-slate-800 transition-colors"><i class="ph-bold ph-pencil-simple"></i></button>
+                            <button class="text-slate-400 hover:text-red-500 transition-colors ml-2"><i class="ph-bold ph-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            };
+
+            await loadData();
+
+            oppForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const title = document.getElementById('oppTitle').value;
+                const company = document.getElementById('oppCompany').value;
+                const type = document.getElementById('oppType').value;
+                const location = document.getElementById('oppLocation').value;
+
+                try {
+                    await API.publishOpportunity({ title, company, type, location });
+                    const msg = document.getElementById('oppMessage');
+                    msg.classList.remove('hidden');
+                    setTimeout(() => msg.classList.add('hidden'), 3000);
+                    
+                    oppForm.reset();
+                    await loadData(); // Refresh counts
+                } catch (error) {
+                    alert(error.message);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

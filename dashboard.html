@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord - Kaïro</title>
+    <link rel="icon" type="image/png" href="assets/img/Favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="assets/css/base.css">
+    <style>
+        .option-card.selected {
+            border-color: #F97316;
+            background-color: rgba(249, 115, 22, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1);
+        }
+        .option-card.selected .option-checkbox {
+            background-color: #F97316;
+            border-color: #F97316;
+        }
+        .option-card.selected .option-checkbox::after {
+            content: '\2713';
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+</head>
+<body class="bg-slate-50 flex flex-col min-h-screen text-slate-800 font-sans relative">
+
+    <!-- Decorative Background -->
+    <div class="absolute inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-100/30 via-white to-white pointer-events-none"></div>
+
+    <!-- Header -->
+    <header class="w-full sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-200 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="dashboard.html" class="flex items-center gap-1 hover:opacity-80 transition-opacity">
+                <img src="assets/img/logo.png" alt="Kaïro" class="h-8 object-contain">
+            </a>
+            
+            <nav class="hidden md:flex items-center gap-6">
+                <a href="opportunities.html" class="flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-[#F97316] transition-colors">
+                    <i class="ph-bold ph-target text-lg"></i> Opportunités
+                </a>
+                <div class="h-6 w-px bg-slate-200"></div>
+                <a href="profile.html" id="userNameDisplay" class="text-sm font-bold text-slate-900 hover:text-[#F97316] transition-colors"></a>
+                <a href="#" id="logoutBtn" class="text-sm font-medium px-4 py-2 rounded-full border border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all">
+                    Se déconnecter
+                </a>
+            </nav>
+            <button class="md:hidden text-2xl text-slate-600"><i class="ph ph-list"></i></button>
+        </div>
+    </header>
+
+    <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-12">
+        <div class="text-center mb-12 animate-[slideUpFade_0.4s_ease-out]">
+            <h1 class="text-4xl font-extrabold text-slate-900 mb-3 font-outfit">
+                Bonjour <span id="welcomeName" class="text-[#F97316]"></span> <i class="ph-fill ph-hand-waving text-[#F97316]"></i>
+            </h1>
+            <p class="text-lg text-slate-500 max-w-2xl mx-auto">Que veux-tu créer aujourd'hui ? Sélectionne les documents dont tu as besoin.</p>
+        </div>
+
+                <!-- ==================== UPLOAD SECTION ==================== -->
+        <div class="mb-10 w-full animate-[slideUpFade_0.5s_ease-out]">
+            <div class="bg-white border-2 border-dashed border-slate-300 rounded-3xl p-10 text-center hover:border-[#F97316] hover:bg-orange-50/50 transition-all cursor-pointer relative" id="uploadZone">
+                <input type="file" id="cvUpload" accept=".pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                <div class="flex justify-center mb-4">
+                    <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center">
+                        <i class="ph-fill ph-upload-simple text-3xl text-[#F97316]"></i>
+                    </div>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Tu as déjà un CV ?</h2>
+                <p class="text-slate-500 mb-4 max-w-md mx-auto">Importe-le en PDF pour que notre IA l'analyse et le sublime avec l'un de nos designs premium.</p>
+                <span class="inline-flex items-center gap-2 text-[#F97316] font-semibold text-sm bg-white px-4 py-2 rounded-full border border-orange-200 shadow-sm">
+                    Importer un PDF
+                </span>
+                <div id="uploadLoader" class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm z-20 flex-col items-center justify-center rounded-3xl">
+                    <div class="w-10 h-10 border-4 border-slate-200 border-t-[#F97316] rounded-full animate-spin mb-3"></div>
+                    <p class="text-slate-800 font-bold" id="uploadStatus">Analyse de ton CV en cours...</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4 my-8">
+                <div class="h-px bg-slate-200 flex-1"></div>
+                <span class="text-slate-400 font-medium text-sm">OU CRÉER DE ZÉRO</span>
+                <div class="h-px bg-slate-200 flex-1"></div>
+            </div>
+        </div>
+
+        <form id="funnelForm" class="space-y-8 animate-[slideUpFade_0.6s_ease-out]">
+            <div class="flex justify-center">
+                <button type="button" id="selectAllBtn" class="flex items-center gap-2 bg-slate-800 text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-slate-700 transition-all shadow-md">
+                    <i class="ph-bold ph-rocket text-lg"></i> Je veux tout (CV + Lettre + Stage)
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Option 1 -->
+                <label class="option-card relative cursor-pointer flex flex-col items-center text-center p-8 bg-white border-2 border-slate-100 rounded-2xl shadow-sm hover:border-slate-300 transition-all">
+                    <input type="checkbox" name="docType" value="cv" class="hidden-input hidden">
+                    <div class="option-checkbox absolute top-4 right-4 w-5 h-5 border-2 border-slate-300 rounded-md transition-colors"></div>
+                    <div class="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center mb-4">
+                        <i class="ph-fill ph-file-text text-3xl text-[#F97316]"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">CV Professionnel</h3>
+                    <p class="text-sm text-slate-500">Optimisé pour le poste que tu vises avec les bons mots-clés.</p>
+                </label>
+
+                <!-- Option 2 -->
+                <label class="option-card relative cursor-pointer flex flex-col items-center text-center p-8 bg-white border-2 border-slate-100 rounded-2xl shadow-sm hover:border-slate-300 transition-all">
+                    <input type="checkbox" name="docType" value="motivation" class="hidden-input hidden">
+                    <div class="option-checkbox absolute top-4 right-4 w-5 h-5 border-2 border-slate-300 rounded-md transition-colors"></div>
+                    <div class="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
+                        <i class="ph-fill ph-envelope-simple text-3xl text-blue-500"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Lettre de motivation</h3>
+                    <p class="text-sm text-slate-500">Rédigée sur mesure selon l'offre d'emploi ou de stage.</p>
+                </label>
+
+                <!-- Option 3 -->
+                <label class="option-card relative cursor-pointer flex flex-col items-center text-center p-8 bg-white border-2 border-slate-100 rounded-2xl shadow-sm hover:border-slate-300 transition-all">
+                    <input type="checkbox" name="docType" value="stage" class="hidden-input hidden">
+                    <div class="option-checkbox absolute top-4 right-4 w-5 h-5 border-2 border-slate-300 rounded-md transition-colors"></div>
+                    <div class="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
+                        <i class="ph-fill ph-graduation-cap text-3xl text-emerald-500"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Demande de stage</h3>
+                    <p class="text-sm text-slate-500">Le document formel parfait pour ton école ou l'entreprise.</p>
+                </label>
+            </div>
+
+            <div class="flex justify-center pt-6">
+                <button type="submit" id="continueBtn" class="flex items-center justify-center gap-2 px-8 py-4 bg-[#F97316] text-white font-bold rounded-xl shadow-lg shadow-[#F97316]/20 hover:bg-[#EA580C] disabled:opacity-50 disabled:cursor-not-allowed transition-all w-full max-w-sm text-lg" disabled>
+                    Continuer <i class="ph-bold ph-arrow-right"></i>
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <script type="module">
+        import API from './assets/js/api.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await API.getCurrentUser();
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            document.getElementById('userNameDisplay').textContent = user.name || 'Candidat';
+            document.getElementById('welcomeName').textContent = (user.name || 'User').split(' ')[0];
+            
+            // Check if there is a photo URL and update the avatar
+            if (user.photoURL) {
+                const avatarImg = document.getElementById('avatarImage');
+                if (avatarImg) avatarImg.src = user.photoURL;
+            }
+
+            document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+                e.preventDefault();
+                await API.logout();
+                window.location.href = 'index.html';
+            });
+
+            // Logic for checkboxes
+            
+            // --- PDF UPLOAD LOGIC ---
+            const cvUpload = document.getElementById('cvUpload');
+            const uploadZone = document.getElementById('uploadZone');
+            const uploadLoader = document.getElementById('uploadLoader');
+            const uploadStatus = document.getElementById('uploadStatus');
+
+            cvUpload.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file || file.type !== 'application/pdf') {
+                    alert('Veuillez sélectionner un fichier PDF valide.');
+                    return;
+                }
+
+                uploadLoader.classList.remove('hidden');
+                uploadLoader.classList.add('flex');
+                
+                try {
+                    // Set up pdf.js
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+                    
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                    let fullText = '';
+                    
+                    uploadStatus.innerText = "Extraction du texte...";
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        const strings = textContent.items.map(item => item.str);
+                        fullText += strings.join(' ') + '\n';
+                    }
+                    
+                    if (fullText.trim().length < 50) {
+                        throw new Error("Impossible de lire le texte du PDF (Peut-être qu'il s'agit d'une image ?)");
+                    }
+
+                    // Save to local storage
+                    localStorage.setItem('kairo_uploaded_cv_text', fullText);
+                    // Also set docType to CV automatically
+                    localStorage.setItem('kairo_selected_docs', JSON.stringify(['cv']));
+                    
+                    uploadStatus.innerText = "Redirection...";
+                    window.location.href = 'builder.html';
+
+                } catch (error) {
+                    console.error("Erreur PDF:", error);
+                    alert("Une erreur est survenue lors de l'analyse du PDF : " + error.message);
+                    uploadLoader.classList.add('hidden');
+                    uploadLoader.classList.remove('flex');
+                    cvUpload.value = "";
+                }
+            });
+            // --- END PDF UPLOAD LOGIC ---
+
+            const cards = document.querySelectorAll('.option-card');
+            const checkboxes = document.querySelectorAll('.hidden-input');
+            const selectAllBtn = document.getElementById('selectAllBtn');
+            const continueBtn = document.getElementById('continueBtn');
+            const form = document.getElementById('funnelForm');
+
+            const updateState = () => {
+                let anyChecked = false;
+                cards.forEach((card, index) => {
+                    const cb = checkboxes[index];
+                    if (cb.checked) {
+                        card.classList.add('selected');
+                        anyChecked = true;
+                    } else {
+                        card.classList.remove('selected');
+                    }
+                });
+                continueBtn.disabled = !anyChecked;
+            };
+
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', updateState);
+            });
+
+            selectAllBtn.addEventListener('click', () => {
+                checkboxes.forEach(cb => cb.checked = true);
+                updateState();
+            });
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const selectedDocs = Array.from(checkboxes)
+                                        .filter(cb => cb.checked)
+                                        .map(cb => cb.value);
+                
+                localStorage.setItem('kairo_selected_docs', JSON.stringify(selectedDocs));
+                window.location.href = 'builder.html'; // Assuming builder.html exists
+            });
+        });
+    </script>
+</body>
+</html>

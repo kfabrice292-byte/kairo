@@ -1,0 +1,393 @@
+/* ATS-Compliant Document Styles */
+
+/* Common A4 Page Rules */
+.a4-document {
+    background: #fff;
+    width: 100%;
+    max-width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 2rem;
+    box-sizing: border-box;
+    font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: #111827;
+    line-height: 1.5;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    position: relative;
+    text-align: left;
+}
+
+/* Base Typographic Standards */
+.a4-document h1, .a4-document h2, .a4-document h3 {
+    margin: 0;
+    padding: 0;
+    color: #111827;
+}
+
+.a4-document p {
+    margin: 0 0 0.5rem 0;
+}
+
+.a4-document ul {
+    margin: 0 0 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.a4-document li {
+    margin-bottom: 0.25rem;
+}
+
+.a4-document header {
+    margin-bottom: 2rem;
+}
+
+.a4-document section {
+    margin-bottom: 1.5rem;
+}
+
+/* -------------------------------------
+   Template 1: Modern Clean (Minimaliste, Structuré)
+-------------------------------------- */
+.template-clean {
+    color: #374151;
+}
+
+.template-clean .doc-header {
+    border-bottom: 2px solid #E5E7EB;
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.template-clean .doc-name {
+    font-size: 28pt;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 0.5rem;
+    color: #111827;
+}
+
+.template-clean .doc-contact {
+    font-size: 10pt;
+    color: #6B7280;
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.template-clean .doc-contact span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.template-clean .section-title {
+    font-size: 13pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 1rem;
+    color: #F97316; /* Accent color */
+}
+
+.template-clean .item {
+    margin-bottom: 1.25rem;
+    position: relative;
+    padding-left: 1rem;
+    border-left: 2px solid #E5E7EB;
+}
+
+.template-clean .item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.25rem;
+}
+
+.template-clean .item-title {
+    font-weight: 700;
+    font-size: 12pt;
+    color: #111827;
+}
+
+.template-clean .item-subtitle {
+    font-weight: 600;
+    font-size: 11pt;
+    color: #4B5563;
+}
+
+.template-clean .item-date {
+    font-size: 10pt;
+    font-weight: 600;
+    color: #9CA3AF;
+}
+
+/* -------------------------------------
+   Template 2: Corporate Classique
+-------------------------------------- */
+.template-corporate {
+    font-family: 'Georgia', 'Times New Roman', serif;
+}
+
+.template-corporate .doc-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.template-corporate .doc-name {
+    font-size: 26pt;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #111827;
+    padding-bottom: 1rem;
+    display: inline-block;
+}
+
+.template-corporate .doc-contact {
+    font-size: 10pt;
+    color: #374151;
+    font-family: 'Inter', sans-serif;
+    margin-top: 0.5rem;
+}
+
+.template-corporate .section-title {
+    font-size: 14pt;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 0.25rem;
+    margin-bottom: 1rem;
+    color: #000;
+}
+
+.template-corporate .item {
+    margin-bottom: 1.5rem;
+}
+
+.template-corporate .item-header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.template-corporate .item-title {
+    font-size: 12pt;
+    font-weight: bold;
+}
+
+.template-corporate .item-date {
+    font-family: 'Inter', sans-serif;
+    font-size: 10pt;
+    color: #4B5563;
+}
+
+/* -------------------------------------
+   Template 3: Tech / Startup (Grid Layout)
+-------------------------------------- */
+.template-tech {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 2rem;
+    padding: 0; /* Removing default padding for full bleed header */
+}
+
+/* Header spans both columns */
+.template-tech .doc-header {
+    grid-column: 1 / -1;
+    background: #1E3A8A; /* Kaïro Dark Blue */
+    color: white;
+    padding: 20mm;
+    margin-bottom: 0;
+}
+
+.template-tech .doc-name {
+    font-size: 32pt;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -1px;
+    margin-bottom: 0.5rem;
+}
+
+.template-tech .doc-contact {
+    color: #DBEAFE;
+    font-size: 10pt;
+    display: flex;
+    gap: 1.5rem;
+}
+
+/* Left Column (Skills & Profile) */
+.template-tech .sidebar {
+    grid-column: 1 / 2;
+    background: #F3F4F6;
+    padding: 20mm;
+    min-height: calc(297mm - 120px);
+}
+
+/* Right Column (Experience & Education) */
+.template-tech .main-content {
+    grid-column: 2 / 3;
+    padding: 2rem 2rem 2rem 0;
+}
+
+@media (max-width: 768px) {
+    .template-tech {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    .template-tech .sidebar {
+        grid-column: 1 / -1;
+        min-height: auto;
+        padding: 1.5rem;
+    }
+    .template-tech .main-content {
+        grid-column: 1 / -1;
+        padding: 1.5rem;
+    }
+    .template-tech .doc-header {
+        padding: 1.5rem;
+    }
+    .template-tech .doc-contact {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+.template-tech .section-title {
+    font-size: 14pt;
+    font-weight: 800;
+    color: #1E3A8A; 
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+}
+
+.template-tech .item {
+    margin-bottom: 1.5rem;
+}
+
+.template-tech .item-title {
+    font-weight: 800;
+    font-size: 12pt;
+    color: #111827;
+}
+
+.template-tech .item-subtitle {
+    color: #F97316;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.template-tech .skills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.template-tech .skill-badge {
+    background: #E0E7FF;
+    color: #4338CA;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 9pt;
+    font-weight: 600;
+}
+
+/* -------------------------------------
+   Letter Templates (Motivation / Stage)
+-------------------------------------- */
+.letter-document {
+    font-size: 11pt;
+    line-height: 1.6;
+}
+
+.letter-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 3rem;
+}
+
+.letter-sender {
+    max-width: 50%;
+}
+
+.letter-recipient {
+    text-align: right;
+    max-width: 50%;
+    margin-top: 2rem;
+}
+
+.letter-date {
+    text-align: right;
+    margin-bottom: 2rem;
+}
+
+.letter-subject {
+    font-weight: 700;
+    margin-bottom: 2rem;
+}
+
+.letter-body p {
+    margin-bottom: 1.5rem;
+}
+
+.letter-signature {
+    margin-top: 3rem;
+    text-align: right;
+    font-weight: 700;
+}
+
+/* Print Specifics for ATS PDF */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    
+    #previewView, #previewView * {
+        visibility: visible;
+    }
+    
+    #previewView {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .a4-document {
+        box-shadow: none;
+        margin: 0;
+        padding: 20mm;
+        width: 210mm;
+        max-width: 210mm;
+        page-break-after: always;
+    }
+    
+    .template-tech {
+        padding: 0;
+        grid-template-columns: 1fr 2fr; /* Restore 2 columns for print */
+    }
+
+    .template-tech .sidebar {
+        grid-column: 1 / 2;
+        padding: 20mm;
+    }
+
+    .template-tech .main-content {
+        grid-column: 2 / 3;
+        padding: 20mm 20mm 20mm 0;
+    }
+
+    /* Hide tabs that are not active during print */
+    .tab-content:not(.active) {
+        display: none !important;
+    }
+
+    /* Hide preview UI buttons */
+    .preview-header {
+        display: none !important;
+    }
+}

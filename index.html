@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaïro - Ton Assistant Carrière IA</title>
+    <link rel="icon" type="image/png" href="assets/img/Favicon.png">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="assets/css/base.css">
+</head>
+<body class="bg-slate-50 flex flex-col min-h-screen text-slate-800 font-sans">
+    
+    <!-- Navbar -->
+    <div class="w-full fixed top-6 left-0 z-50">
+        <div class="w-[90%] sm:w-[85%] lg:max-w-4xl xl:max-w-6xl mx-auto">
+            <div class="bg-white/80 backdrop-blur-md border border-slate-200 shadow-[0_6px_20px_rgba(0,0,0,0.05)] rounded-full px-6 py-3 flex items-center justify-between">
+                
+                <!-- Logo -->
+                <a href="index.html" class="flex items-center gap-1 hover:cursor-pointer">
+                    <img src="assets/img/logo.png" alt="Kaïro" class="h-10 w-auto">
+                </a>
+
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex items-center gap-6">
+                    <a href="#" class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Modèles</a>
+                    <a href="#" class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Ressources</a>
+                    <a href="#" class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Tarifs</a>
+                </nav>
+
+                <!-- Auth Actions -->
+                <div class="flex items-center gap-3">
+                    <a href="login.html" class="hidden md:inline-flex items-center justify-center text-sm font-medium h-10 px-6 rounded-full border border-[#F97316] text-[#F97316] hover:bg-slate-50 transition-all">
+                        Connexion
+                    </a>
+                    <a href="register.html" class="inline-flex items-center justify-center text-sm font-medium h-10 px-6 rounded-full bg-[#F97316] text-white hover:bg-[#F97316]/90 transition-all">
+                        Démarrer
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col justify-center relative pt-40 pb-20 overflow-hidden">
+        
+        <!-- Decorative Background -->
+        <div class="absolute inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-100/50 via-white to-white"></div>
+
+        <div class="w-full max-w-5xl mx-auto px-4 flex flex-col items-center text-center">
+            
+            <!-- Badge -->
+            <div class="mb-8 inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-1 shadow-sm transition-all hover:bg-slate-50 cursor-pointer group">
+                <div class="flex items-center gap-2 text-sm font-medium text-slate-600">
+                    <span class="flex items-center justify-center rounded-full bg-slate-900 text-white text-[10px] uppercase font-bold px-2 py-0.5">Nouveau</span>
+                    Créer une lettre de motivation professionnelle
+                    <i class="ph ph-chevron-right text-[#F97316] group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </div>
+
+            <!-- Avatars / Social Proof -->
+            <div class="mb-6 flex flex-col sm:flex-row items-center gap-4">
+                <div class="flex -space-x-3">
+                    <img class="w-10 h-10 rounded-full border-2 border-white object-cover bg-slate-200" src="https://i.pravatar.cc/100?img=1" alt="User">
+                    <img class="w-10 h-10 rounded-full border-2 border-white object-cover bg-slate-200" src="https://i.pravatar.cc/100?img=2" alt="User">
+                    <img class="w-10 h-10 rounded-full border-2 border-white object-cover bg-slate-200" src="https://i.pravatar.cc/100?img=3" alt="User">
+                    <img class="w-10 h-10 rounded-full border-2 border-white object-cover bg-slate-200" src="https://i.pravatar.cc/100?img=4" alt="User">
+                    <div class="w-10 h-10 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600">+</div>
+                </div>
+                <div class="flex flex-col items-center sm:items-start text-sm text-slate-500">
+                    <div class="flex items-center gap-1 text-[#F4BC1C]">
+                        <i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i>
+                    </div>
+                    <span>Plus de 2000+ professionnels</span>
+                </div>
+            </div>
+
+            <!-- Hero Headline -->
+            <h1 class="text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-800 mb-6 leading-[1.1]">
+                Crée ton meilleur CV <br> en quelques minutes <br>
+                <span class="text-[#F97316]">pour partager ton potentiel</span>
+            </h1>
+
+            <!-- Hero Subtitle -->
+            <p class="text-lg lg:text-xl text-slate-500 font-medium max-w-2xl mx-auto mb-10">
+                Construis gratuitement ton CV professionnel avec l'IA en quelques clics et accède à des opportunités d'emploi partout dans le monde.
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row items-center gap-4 w-full max-w-md mx-auto">
+                <a href="register.html" class="w-full sm:w-1/2 flex items-center justify-center h-14 rounded-xl bg-[#F97316] text-white font-semibold text-base shadow-lg shadow-[#F97316]/20 hover:bg-[#EA580C] transition-colors">
+                    Créer mon CV
+                </a>
+                <a href="register.html" class="w-full sm:w-1/2 flex items-center justify-center h-14 rounded-xl bg-white border border-[#F97316] text-[#F97316] font-semibold text-base hover:bg-slate-50 transition-colors">
+                    Créer ma lettre
+                </a>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script type="module" src="/assets/js/navbar.js"></script>
+</body>
+</html>

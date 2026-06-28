@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opportunités - Kaïro</title>
+    <link rel="icon" type="image/png" href="assets/img/Favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="assets/css/base.css">
+</head>
+<body class="bg-slate-50 flex flex-col min-h-screen text-slate-800 font-sans relative">
+
+    <div class="absolute inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-100/30 via-white to-white pointer-events-none"></div>
+
+    <header class="w-full sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-200 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="dashboard.html" class="flex items-center gap-1 hover:opacity-80 transition-opacity">
+                <img src="assets/img/logo.png" alt="Kaïro" class="h-8 object-contain">
+            </a>
+            
+            <nav class="flex items-center gap-6">
+                <a href="dashboard.html" class="text-sm font-medium px-5 py-2.5 rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all">
+                    Retour
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-1 w-full max-w-6xl mx-auto px-4 py-12 animate-[slideUpFade_0.4s_ease-out]">
+        <div class="flex items-center gap-4 mb-8">
+            <a href="dashboard.html" class="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors">
+                <i class="ph-bold ph-arrow-left"></i>
+            </a>
+            <h1 class="text-3xl font-extrabold text-slate-900 font-outfit">Opportunités Récentes</h1>
+        </div>
+
+        <div class="flex flex-wrap gap-3 mb-10" id="filters">
+            <button class="px-5 py-2 rounded-full border border-[#F97316] bg-[#F97316] text-white font-medium text-sm transition-all" data-filter="all">Tout</button>
+            <button class="px-5 py-2 rounded-full border border-slate-200 bg-white text-slate-600 font-medium text-sm hover:border-slate-300 transition-all" data-filter="Stage">Stages</button>
+            <button class="px-5 py-2 rounded-full border border-slate-200 bg-white text-slate-600 font-medium text-sm hover:border-slate-300 transition-all" data-filter="Emploi">Emplois</button>
+            <button class="px-5 py-2 rounded-full border border-slate-200 bg-white text-slate-600 font-medium text-sm hover:border-slate-300 transition-all" data-filter="Bourse">Bourses</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="opportunitiesList">
+            <!-- Simulated injected HTML via opportunities.js for design completeness -->
+            <!-- The actual JS might override this -->
+        </div>
+    </main>
+
+    <script type="module">
+        import API from './assets/js/api.js';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const list = document.getElementById('opportunitiesList');
+            const opps = await API.getOpportunities();
+            
+            const renderOpps = (filter = 'all') => {
+                list.innerHTML = '';
+                const filtered = opps.filter(o => filter === 'all' || o.type === filter);
+                if (filtered.length === 0) {
+                    list.innerHTML = '<p class="text-slate-500">Aucune opportunité trouvée pour ce filtre.</p>';
+                    return;
+                }
+                filtered.forEach(opp => {
+                    list.innerHTML += `
+                        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col gap-4 cursor-pointer">
+                            <span class="self-start px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-[#F97316] uppercase tracking-wider">${opp.type}</span>
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-900 mb-1">${opp.title}</h3>
+                                <p class="text-sm font-medium text-slate-500 flex items-center gap-2">
+                                    <i class="ph-fill ph-buildings"></i> ${opp.company}
+                                </p>
+                            </div>
+                            <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+                                <span class="text-sm text-slate-500 flex items-center gap-1"><i class="ph-bold ph-map-pin"></i> ${opp.location}</span>
+                                <i class="ph-bold ph-arrow-right text-[#F97316]"></i>
+                            </div>
+                        </div>
+                    `;
+                });
+            };
+
+            renderOpps();
+
+            document.querySelectorAll('#filters button').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('#filters button').forEach(b => {
+                        b.className = "px-5 py-2 rounded-full border border-slate-200 bg-white text-slate-600 font-medium text-sm hover:border-slate-300 transition-all";
+                    });
+                    e.target.className = "px-5 py-2 rounded-full border border-[#F97316] bg-[#F97316] text-white font-medium text-sm transition-all";
+                    renderOpps(e.target.dataset.filter);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

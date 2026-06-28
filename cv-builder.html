@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crée ton CV - Kaïro</title>
+    <link rel="icon" type="image/png" href="assets/img/Favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="assets/css/base.css">
+</head>
+<body class="bg-slate-50 flex flex-col min-h-screen text-slate-800 font-sans relative">
+
+    <div class="absolute inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-100/30 via-white to-white pointer-events-none"></div>
+
+    <header class="w-full sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-200 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="dashboard.html" class="flex items-center gap-1 hover:opacity-80 transition-opacity">
+                <img src="assets/img/logo.png" alt="Kaïro" class="h-8 object-contain">
+            </a>
+            <nav class="flex items-center gap-6">
+                <a href="dashboard.html" class="text-sm font-medium px-5 py-2.5 rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all text-red-500 hover:text-red-600">
+                    Quitter l'éditeur
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8 h-[calc(100vh-80px)]">
+        
+        <!-- Chat Section -->
+        <div class="lg:w-1/3 flex flex-col bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden animate-[slideUpFade_0.4s_ease-out]">
+            <div class="px-6 py-4 bg-slate-900 text-white flex items-center gap-3">
+                <i class="ph-fill ph-robot text-2xl text-[#F97316]"></i>
+                <h2 class="font-bold">Assistant CV</h2>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-4 bg-slate-50" id="chatMessages">
+                <div class="self-start max-w-[85%] bg-white border border-slate-200 text-slate-700 p-4 rounded-2xl rounded-tl-sm shadow-sm text-sm">
+                    Salut ! Quels sont les éléments que tu veux ajouter à ton CV aujourd'hui ?
+                </div>
+            </div>
+            <div class="p-4 bg-white border-t border-slate-100">
+                <div class="flex items-center gap-2 relative">
+                    <input type="text" id="chatInput" class="w-full pl-4 pr-12 py-3 bg-slate-100 border-none rounded-xl focus:ring-2 focus:ring-[#F97316]/50 transition-all text-sm" placeholder="Réponds ici...">
+                    <button id="sendBtn" class="absolute right-1 w-10 h-10 rounded-lg bg-[#F97316] text-white flex items-center justify-center hover:bg-[#EA580C] transition-colors">
+                        <i class="ph-bold ph-paper-plane-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="lg:w-2/3 flex flex-col bg-slate-100 rounded-3xl border border-slate-200 overflow-hidden relative">
+            <div class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-100">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="ph-fill ph-eye text-[#F97316]"></i> Aperçu en direct</h3>
+                <button id="downloadPdfBtn" class="px-4 py-2 bg-slate-800 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors flex items-center gap-2">
+                    <i class="ph-bold ph-download-simple"></i> Télécharger PDF
+                </button>
+            </div>
+            <div class="flex-1 bg-slate-200/50 p-6 flex justify-center items-start overflow-y-auto" id="cvSheet">
+                <div class="w-full max-w-[210mm] min-h-[297mm] bg-white shadow-md p-10 text-slate-800 flex flex-col justify-center items-center text-center">
+                    <i class="ph-thin ph-file-text text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-slate-400 font-medium">Ton CV prendra forme ici au fur et à mesure.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</body>
+</html>
