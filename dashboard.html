@@ -50,7 +50,17 @@
                     <i class="ph-bold ph-target text-lg"></i> Opportunités
                 </a>
                 <div class="h-6 w-px bg-slate-200"></div>
-                <a href="profile.html" id="userNameDisplay" class="text-sm font-bold text-slate-900 hover:text-[#F97316] transition-colors"></a>
+                <div class="relative group cursor-pointer flex items-center gap-3">
+                    <input type="file" id="profilePhotoInput" accept="image/*" class="hidden">
+                    <div class="text-right hidden sm:block">
+                        <div id="userNameDisplay" class="text-sm font-bold text-slate-900 leading-tight"></div>
+                        <div class="text-[11px] text-slate-500 font-medium">Modifier la photo</div>
+                    </div>
+                    <div id="navAvatar" class="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center overflow-hidden" onclick="document.getElementById('profilePhotoInput').click()">
+                        <i class="ph-fill ph-user text-slate-400 text-xl" id="navAvatarIcon"></i>
+                        <img id="navAvatarImg" src="" class="w-full h-full object-cover hidden">
+                    </div>
+                </div>
                 <a href="#" id="logoutBtn" class="text-sm font-medium px-4 py-2 rounded-full border border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all">
                     Se déconnecter
                 </a>
@@ -158,6 +168,30 @@
             document.getElementById('welcomeName').textContent = (user.name || 'User').split(' ')[0];
             
             // Check if there is a photo URL and update the avatar
+            const savedPhoto = localStorage.getItem('kairo_user_photo');
+            const navAvatarImg = document.getElementById('navAvatarImg');
+            const navAvatarIcon = document.getElementById('navAvatarIcon');
+            
+            if (savedPhoto) {
+                navAvatarImg.src = savedPhoto;
+                navAvatarImg.classList.remove('hidden');
+                navAvatarIcon.classList.add('hidden');
+            }
+
+            document.getElementById('profilePhotoInput')?.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const base64 = event.target.result;
+                        localStorage.setItem('kairo_user_photo', base64);
+                        navAvatarImg.src = base64;
+                        navAvatarImg.classList.remove('hidden');
+                        navAvatarIcon.classList.add('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
             if (user.photoURL) {
                 const avatarImg = document.getElementById('avatarImage');
                 if (avatarImg) avatarImg.src = user.photoURL;

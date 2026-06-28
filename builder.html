@@ -467,9 +467,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                         htmlCode = await AI.generateFromForm(typeToGen, user, formData);
                     }
                     
+                    
                     documentSheet.innerHTML = htmlCode;
                     documentSheet.setAttribute('contenteditable', 'true');
                     window.setTemplate(window.selectedTemplateId); // Apply selected template
+                    
+                    // Appliquer la photo de profil si elle existe
+                    const savedPhoto = localStorage.getItem('kairo_user_photo');
+                    if (savedPhoto) {
+                        const profilePics = documentSheet.querySelectorAll('.cv-profile-pic');
+                        profilePics.forEach(pic => {
+                            pic.style.backgroundImage = `url(${savedPhoto})`;
+                            pic.style.backgroundSize = 'cover';
+                            pic.style.backgroundPosition = 'center';
+                            pic.innerHTML = ''; // Retirer les initiales
+                        });
+                    }
+
                     loadingOverlay.classList.add('view-hidden');
                 } catch (error) {
                     documentSheet.innerHTML = `<div class="p-12 text-center"><i class="ph-fill ph-warning text-4xl text-red-500 mb-4"></i><p class="text-red-600 font-bold">${error.message}</p></div>`;
