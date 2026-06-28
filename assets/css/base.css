@@ -1,9 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;600;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 @import "tailwindcss";
 
 /* =========================================
    THÈMES DE CV PREMIUM (KAIRO V2)
    ========================================= */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;600;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 
 /* Typography Resets */
 .cv-container p, .letter-container p { margin-bottom: 12px; line-height: 1.7; font-size: 0.95rem; }
