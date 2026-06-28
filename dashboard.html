@@ -45,14 +45,22 @@
                 <img src="assets/img/logo.png" alt="Kaïro" class="h-8 object-contain">
             </a>
             
+            <!-- Desktop Nav -->
             <nav class="hidden md:flex items-center gap-6">
                 <a href="opportunities.html" class="flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-[#F97316] transition-colors">
                     <i class="ph-bold ph-target text-lg"></i> Opportunités
                 </a>
                 <div class="h-6 w-px bg-slate-200"></div>
+                <a href="#" id="logoutBtn" class="text-sm font-medium px-4 py-2 rounded-full border border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all">
+                    Se déconnecter
+                </a>
+            </nav>
+            
+            <!-- Always visible Avatar + Mobile Toggle -->
+            <div class="flex items-center gap-4">
                 <div class="relative group cursor-pointer flex items-center gap-3">
                     <input type="file" id="profilePhotoInput" accept="image/*" class="hidden">
-                    <div class="text-right hidden sm:block">
+                    <div class="text-right hidden md:block">
                         <div id="userNameDisplay" class="text-sm font-bold text-slate-900 leading-tight"></div>
                         <div class="text-[11px] text-slate-500 font-medium">Modifier la photo</div>
                     </div>
@@ -61,11 +69,19 @@
                         <img id="navAvatarImg" src="" class="w-full h-full object-cover hidden">
                     </div>
                 </div>
-                <a href="#" id="logoutBtn" class="text-sm font-medium px-4 py-2 rounded-full border border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all">
-                    Se déconnecter
-                </a>
-            </nav>
-            <button class="md:hidden text-2xl text-slate-600"><i class="ph ph-list"></i></button>
+                <button id="mobileMenuBtn" class="md:hidden text-2xl text-slate-600"><i class="ph ph-list"></i></button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobileMenu" class="hidden md:hidden w-full bg-white border-t border-slate-200 px-6 py-4 flex flex-col gap-4 shadow-lg absolute top-full left-0">
+            <a href="opportunities.html" class="flex items-center gap-2 text-base font-semibold text-slate-700 hover:text-[#F97316]">
+                <i class="ph-bold ph-target text-lg"></i> Opportunités
+            </a>
+            <a href="#" id="logoutBtnMobile" class="flex items-center gap-2 text-base font-semibold text-red-500 hover:text-red-600">
+                <i class="ph-bold ph-sign-out text-lg"></i> Se déconnecter
+            </a>
+        </div>
         </div>
     </header>
 
@@ -164,8 +180,28 @@
                 return;
             }
             
-            document.getElementById('userNameDisplay').textContent = user.name || 'Candidat';
+            const uNames = document.querySelectorAll('#userNameDisplay'); uNames.forEach(el => el.textContent = user.name || 'Candidat');
             document.getElementById('welcomeName').textContent = (user.name || 'User').split(' ')[0];
+
+            // Mobile Menu Toggle
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            if(mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+            
+            // Mobile Logout
+            const logoutBtnMobile = document.getElementById('logoutBtnMobile');
+            if(logoutBtnMobile) {
+                logoutBtnMobile.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    await API.logout();
+                    window.location.href = 'index.html';
+                });
+            }
+
             
             // Check if there is a photo URL and update the avatar
             const savedPhoto = localStorage.getItem('kairo_user_photo');
