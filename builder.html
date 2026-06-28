@@ -88,7 +88,7 @@
         </div>
 
         <!-- ==================== VIEW 2 : CHAT ==================== -->
-        <div id="chatView" class="w-full flex justify-center items-center p-6 canvas-bg relative view-hidden absolute inset-0 z-10">
+        <div id="chatView" class="w-full flex justify-center items-center p-2 sm:p-6 canvas-bg relative view-hidden absolute inset-0 z-10 overflow-y-auto">
             <div class="w-full max-w-3xl h-[85vh] flex flex-col bg-white/80 backdrop-blur-2xl border border-slate-200 rounded-3xl premium-shadow overflow-hidden">
                 <!-- Context Header -->
                 <div class="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
@@ -122,10 +122,10 @@
         </div>
 
         <!-- ==================== VIEW 3 : DASHBOARD ==================== -->
-        <div id="dashboardView" class="w-full h-full flex bg-slate-200 view-hidden absolute inset-0 z-10">
+        <div id="dashboardView" class="w-full h-full flex flex-col md:flex-row bg-slate-200 view-hidden absolute inset-0 z-10 overflow-y-auto md:overflow-hidden">
             
             <!-- Left Sidebar -->
-            <div class="w-80 bg-white border-r border-slate-200 h-full flex flex-col shadow-2xl z-20">
+            <div class="w-full md:w-80 bg-white border-b md:border-r border-slate-200 h-auto md:h-full flex flex-col shadow-2xl z-20 shrink-0">
                 <div class="p-6 border-b border-slate-100 bg-slate-50">
                     <h3 class="font-bold text-lg font-outfit text-slate-800">Espace de Travail</h3>
                     <p class="text-sm text-slate-500">Personnalisez votre document</p>
@@ -174,7 +174,7 @@
             </div>
 
             <!-- Canvas Area -->
-            <div class="flex-1 overflow-y-auto relative p-8 flex justify-center items-start pt-12 pb-24" id="previewArea">
+            <div class="flex-1 overflow-auto relative p-4 sm:p-8 flex justify-center items-start pt-12 pb-24" id="previewArea">
                 <!-- Loading -->
                 <div id="loadingOverlay" class="absolute inset-0 bg-slate-200/90 backdrop-blur-sm z-30 flex flex-col items-center justify-center view-hidden">
                     <div class="relative w-24 h-24 mb-6">
@@ -187,7 +187,7 @@
                 </div>
 
                 <!-- The Document -->
-                <div id="documentSheet" class="template-modern watermark-draft w-full max-w-[210mm] min-h-[297mm] bg-white premium-shadow text-slate-800 text-left transition-all relative overflow-hidden" contenteditable="true">
+                <div id="documentSheet" class="template-modern watermark-draft w-[210mm] min-w-[210mm] min-h-[297mm] bg-white premium-shadow text-slate-800 text-left transition-all relative overflow-hidden shrink-0" contenteditable="true">
                 </div>
             </div>
         </div>
