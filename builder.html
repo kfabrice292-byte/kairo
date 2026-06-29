@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            // Persistence Variables
+            const documentSheet = document.getElementById('documentSheet');\n            // Persistence Variables
             window.currentDocId = new URLSearchParams(window.location.search).get('docId');
             window.currentDocType = 'cv'; // Default
             
