@@ -195,25 +195,59 @@
 
     <!-- PAYWALL MODAL -->
     <div id="paywallModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center">
-        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="document.getElementById('paywallModal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700">
                 <i class="ph ph-x text-2xl"></i>
             </button>
-            <div class="w-16 h-16 bg-orange-100 text-[#F97316] rounded-full flex items-center justify-center text-3xl mb-6 mx-auto">
-                <i class="ph-fill ph-lock-key"></i>
-            </div>
-            <h3 class="text-2xl font-bold text-center text-slate-800 mb-2 font-outfit">Débloquez votre document</h3>
-            <p class="text-center text-slate-500 mb-6">Obtenez votre CV ou Lettre finalisé, sans filigrane, en PDF HD prêt à être envoyé.</p>
             
-            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-8 flex justify-between items-center">
-                <span class="font-medium text-slate-700">Exportation PDF Haute Qualité</span>
-                <span class="text-xl font-black text-[#F97316]">1000 FCFA</span>
+            <div id="paywallStep1">
+                <div class="w-16 h-16 bg-orange-100 text-[#F97316] rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">
+                    <i class="ph-fill ph-lock-key"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-center text-slate-800 mb-2 font-outfit">Débloquez votre CV</h3>
+                <p class="text-center text-slate-500 mb-6 text-sm">Paiement sécurisé via Mobile Money (AshtechPay)</p>
+                
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-6 flex justify-between items-center">
+                    <span class="font-medium text-slate-700">PDF Haute Qualité (Sans filigrane)</span>
+                    <span class="text-xl font-black text-[#F97316]">1000 FCFA</span>
+                </div>
+                
+                <form id="ashtechForm" class="space-y-4 text-left">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Pays</label>
+                        <select id="payCountry" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#F97316] focus:ring-1 focus:ring-[#F97316] outline-none transition-all text-slate-700 bg-white">
+                            <option value="CM">Cameroun</option>
+                            <option value="CI">Côte d'Ivoire</option>
+                            <option value="SN">Sénégal</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Opérateur</label>
+                        <select id="payOperator" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#F97316] focus:ring-1 focus:ring-[#F97316] outline-none transition-all text-slate-700 bg-white">
+                            <option value="MTN Mobile Money">MTN Mobile Money</option>
+                            <option value="Orange Money">Orange Money</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Numéro Mobile Money</label>
+                        <input type="tel" id="payPhone" placeholder="Ex: 670000000" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#F97316] focus:ring-1 focus:ring-[#F97316] outline-none transition-all text-slate-700 placeholder-slate-400">
+                    </div>
+                    <button type="submit" id="paySubmitBtn" class="w-full py-4 mt-2 bg-[#F97316] text-white rounded-xl font-bold shadow-lg hover:bg-[#EA580C] transition-all flex justify-center items-center gap-2 text-lg">
+                        Payer 1000 FCFA
+                    </button>
+                </form>
             </div>
             
-            <button onclick="payAndDownload()" class="w-full py-4 bg-[#F97316] text-white rounded-xl font-bold shadow-lg hover:bg-[#EA580C] transition-all flex justify-center items-center gap-2 text-lg">
-                <i class="ph-bold ph-credit-card"></i> Payer et Télécharger
-            </button>
-            <p class="text-xs text-center text-slate-400 mt-4"><i class="ph-bold ph-lock"></i> Paiement 100% sécurisé</p>
+            <div id="paywallStep2" class="hidden py-8">
+                <div class="relative w-24 h-24 mb-6 mx-auto">
+                    <div class="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
+                    <div class="absolute inset-0 border-4 border-[#F97316] rounded-full border-t-transparent animate-spin"></div>
+                    <i class="ph-fill ph-device-mobile text-3xl text-[#F97316] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-center text-slate-800 mb-4 font-outfit">Validation en cours...</h3>
+                <p class="text-center text-slate-600">Veuillez consulter votre téléphone et valider le paiement (Code secret / PIN).</p>
+                <p class="text-center text-sm text-slate-400 mt-4">Le téléchargement se lancera automatiquement dès le paiement réussi.</p>
+            </div>
         </div>
     </div>
 
@@ -239,18 +273,70 @@
             window.selectedTemplateId = themeName; // update global
         };
 
-                window.payAndDownload = () => {
-            // Fake redirection vers Ashtechpay
-            const btn = document.querySelector('#paywallModal button:last-of-type');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Connexion sécurisée...';
+                window.initAshtechPayment = async (e) => {
+            e.preventDefault();
+            const phone = document.getElementById('payPhone').value;
+            const operator = document.getElementById('payOperator').value;
+            const country = document.getElementById('payCountry').value;
+            
+            if (!phone) return alert("Veuillez entrer votre numéro.");
+            
+            const btn = document.getElementById('paySubmitBtn');
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Initialisation...';
             btn.disabled = true;
 
-            setTimeout(() => {
-                // Redirection fictive vers nous-même avec payment=success
-                window.location.href = window.location.pathname + "?docId=" + window.currentDocId + "&payment=success";
-            }, 1000);
+            try {
+                const user = await API.getCurrentUser();
+                
+                // APPEL A LA CLOUD FUNCTION DE PAIEMENT
+                // NOTE: En dev local sans serveur, on simule l'appel après 2s
+                const functionUrl = "https://us-central1-kairo-projet.cloudfunctions.net/initiatePayment";
+                
+                // MOCK : Simulation de l'appel pour le front
+                setTimeout(() => {
+                    document.getElementById('paywallStep1').classList.add('hidden');
+                    document.getElementById('paywallStep2').classList.remove('hidden');
+                    
+                    // MOCK Webhook (simulation du succès après 5 secondes)
+                    setTimeout(async () => {
+                        await API.unlockPremium();
+                        window.location.href = window.location.pathname + "?docId=" + window.currentDocId + "&payment=success";
+                    }, 5000);
+                }, 2000);
+
+                /* VRAI CODE COMMENTÉ POUR LA PRODUCTION
+                const res = await fetch(functionUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid: user.uid, phone, operator, country_code: country })
+                });
+                const data = await res.json();
+                
+                if (res.status === 202) {
+                    document.getElementById('paywallStep1').classList.add('hidden');
+                    document.getElementById('paywallStep2').classList.remove('hidden');
+                    // On écoute Firebase via onSnapshot dans le vrai code pour déclencher le téléchargement
+                } else {
+                    alert("Erreur: " + data.message);
+                    btn.innerHTML = 'Payer 1000 FCFA';
+                    btn.disabled = false;
+                }
+                */
+
+            } catch (err) {
+                console.error(err);
+                btn.innerHTML = 'Payer 1000 FCFA';
+                btn.disabled = false;
+            }
         };
+
+        // Attach event listener to form after load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const form = document.getElementById('ashtechForm');
+                if(form) form.addEventListener('submit', window.initAshtechPayment);
+            }, 500);
+        });
 
         window.downloadFinalPDF = () => {
             const btn = document.getElementById('downloadPdfBtn');
