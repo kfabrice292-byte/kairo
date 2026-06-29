@@ -168,12 +168,81 @@
                 </button>
             </div>
         </form>
+
+        <!-- Historique des Documents -->
+        <div class="mt-20 animate-[slideUpFade_0.8s_ease-out]">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl font-extrabold text-slate-900 font-outfit">Mes Récents Documents</h2>
+            </div>
+            
+            <div id="historyLoader" class="flex justify-center py-12">
+                <div class="w-8 h-8 border-4 border-slate-200 border-t-[#F97316] rounded-full animate-spin"></div>
+            </div>
+
+            <div id="historyEmpty" class="hidden text-center py-12 bg-white border border-slate-200 rounded-2xl border-dashed">
+                <div class="w-16 h-16 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                    <i class="ph-fill ph-folder-open"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 mb-1">Aucun document</h3>
+                <p class="text-slate-500 text-sm">Créez votre premier CV ou lettre ci-dessus.</p>
+            </div>
+
+            <div id="historyGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
     </main>
 
     <script type="module">
         import API from './assets/js/api.js';
         
         document.addEventListener('DOMContentLoaded', async () => {
+            const loadHistory = async () => {
+                const docs = await API.getDocuments();
+                const loader = document.getElementById('historyLoader');
+                const empty = document.getElementById('historyEmpty');
+                const grid = document.getElementById('historyGrid');
+                
+                loader.classList.add('hidden');
+                
+                if (!docs || docs.length === 0) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+                
+                grid.classList.remove('hidden');
+                grid.innerHTML = '';
+                
+                docs.forEach(doc => {
+                    const icon = doc.type === 'cv' ? 'ph-file-text text-[#F97316]' : (doc.type === 'motivation' ? 'ph-envelope-simple text-blue-500' : 'ph-graduation-cap text-emerald-500');
+                    const bg = doc.type === 'cv' ? 'bg-orange-50' : (doc.type === 'motivation' ? 'bg-blue-50' : 'bg-emerald-50');
+                    
+                    let dateStr = "Récemment";
+                    if(doc.updatedAt) {
+                        const d = new Date(doc.updatedAt);
+                        dateStr = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+                    }
+                    
+                    grid.innerHTML += `
+                        <a href="builder.html?docId=${doc.id}" class="group bg-white border border-slate-200 rounded-2xl p-6 hover:border-[#F97316] hover:shadow-lg transition-all flex items-start gap-4 cursor-pointer relative overflow-hidden">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${bg}">
+                                <i class="ph-fill ${icon} text-2xl"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-bold text-slate-800 text-lg truncate mb-1 group-hover:text-[#F97316] transition-colors">${doc.title || 'Document sans titre'}</h4>
+                                <div class="flex items-center gap-3 text-sm text-slate-500">
+                                    <span class="flex items-center gap-1"><i class="ph ph-clock"></i> ${dateStr}</span>
+                                </div>
+                            </div>
+                            <div class="absolute top-1/2 -translate-y-1/2 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-[#F97316]">
+                                <i class="ph-bold ph-arrow-right text-xl"></i>
+                            </div>
+                        </a>
+                    `;
+                });
+            };
+            loadHistory();
+
             const user = await API.getCurrentUser();
             if (!user) {
                 window.location.href = 'login.html';

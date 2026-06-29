@@ -155,32 +155,65 @@ const API = {
         }
     },
 
-    async addHistoryItem(documentType, title) {
+    // --- DOCUMENTS (HISTORY & PERSISTENCE) ---
+    async saveDocument(docData, docId = null) {
         const user = auth.currentUser;
-        if (!user) return;
+        if (!user) throw new Error("Non autorisé");
 
         try {
-            const userRef = doc(db, "users", user.uid);
-            const userDoc = await getDoc(userRef);
+            const docsRef = collection(db, "users", user.uid, "documents");
+            const dataToSave = {
+                ...docData,
+                updatedAt: new Date().toISOString()
+            };
             
-            if (userDoc.exists()) {
-                const userData = userDoc.data();
-                const history = userData.history || [];
-                let points = userData.points || 0;
-                
-                history.unshift({
-                    type: documentType,
-                    title: title,
-                    date: new Date().toLocaleDateString('fr-FR')
-                });
-                
-                if (points >= 100) points -= 100;
-                
-                await updateDoc(userRef, { history, points });
-                return { uid: user.uid, ...userData, history, points };
+            if (docId) {
+                await setDoc(doc(docsRef, docId), dataToSave, { merge: true });
+                return docId;
+            } else {
+                dataToSave.createdAt = new Date().toISOString();
+                const newDocRef = await addDoc(docsRef, dataToSave);
+                return newDocRef.id;
             }
         } catch (error) {
-            console.error("History update error:", error);
+            console.error("Save document error:", error);
+            throw new Error("Impossible de sauvegarder le document.");
+        }
+    },
+
+    async getDocuments() {
+        const user = auth.currentUser;
+        if (!user) return [];
+
+        try {
+            const docsRef = collection(db, "users", user.uid, "documents");
+            const snapshot = await getDocs(docsRef);
+            const docs = [];
+            snapshot.forEach(doc => {
+                docs.push({ id: doc.id, ...doc.data() });
+            });
+            // Sort by updatedAt descending
+            return docs.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        } catch (error) {
+            console.error("Get documents error:", error);
+            return [];
+        }
+    },
+
+    async getDocument(docId) {
+        const user = auth.currentUser;
+        if (!user) return null;
+
+        try {
+            const docRef = doc(db, "users", user.uid, "documents", docId);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                return { id: docSnap.id, ...docSnap.data() };
+            }
+            return null;
+        } catch (error) {
+            console.error("Get document error:", error);
+            return null;
         }
     },
 
