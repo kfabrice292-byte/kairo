@@ -121,6 +121,15 @@ const API = {
     },
 
     // --- USERS & PROFILE ---
+    async unlockPremium() {
+        try {
+            return await this.updateProfile({ hasPaid: true });
+        } catch (error) {
+            console.error("Unlock error:", error);
+            throw new Error("Impossible de valider le paiement.");
+        }
+    },
+
     async updateProfile(updates) {
         const user = auth.currentUser;
         if (!user) throw new Error("Non autorisé");

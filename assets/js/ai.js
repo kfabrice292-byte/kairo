@@ -22,7 +22,6 @@ const AI = {
      */
     async generateFromForm(type, userProfile, formData) {
         let prompt = "";
-
         if (type === "CV") {
             prompt = `
 Tu es un expert en recrutement et un designer de CV de renommée mondiale.
@@ -33,7 +32,7 @@ Tu DOIS IMPÉRATIVEMENT utiliser EXACTEMENT cette structure sémantique :
 <div class="cv-container">
     <div class="cv-sidebar">
         <div class="cv-profile-pic"></div>
-        <h1 class="cv-name">${userProfile.name || 'Nom Candidat'}</h1>
+        <h1 class="cv-name">${userProfile.name || 'Nom'}</h1>
         <p class="cv-title">${formData.objectif || userProfile.specialty || 'Titre Professionnel'}</p>
         
         <div class="cv-contact">
@@ -50,14 +49,14 @@ Tu DOIS IMPÉRATIVEMENT utiliser EXACTEMENT cette structure sémantique :
                     <span class="cv-skill-name">Nom Compétence</span>
                     <div class="cv-skill-bar"><div class="cv-skill-level" style="width: 80%"></div></div>
                 </div>
-                <!-- Ajoute jusqu'à 6 compétences techniques pertinentes avec des pourcentages logiques (ex: 90%, 75%) -->
+                <!-- Ajoute jusqu'à 6 compétences avec pourcentages -->
             </div>
         </div>
         
         <div class="cv-section">
             <h2 class="cv-section-title">Soft Skills</h2>
             <div class="cv-badges">
-                <!-- 3 à 4 Soft Skills (ex: Leadership, Résolution de problèmes) -->
+                <!-- 3 à 4 Soft Skills (ex: Leadership) -->
                 <span class="cv-badge">Exemple 1</span>
             </div>
         </div>
@@ -76,17 +75,16 @@ Tu DOIS IMPÉRATIVEMENT utiliser EXACTEMENT cette structure sémantique :
     <div class="cv-main">
         <div class="cv-section">
             <h2 class="cv-section-title">Profil Professionnel</h2>
-            <p class="cv-text"><!-- Rédige un profil percutant (3-4 phrases) mettant en valeur l'expérience, les points forts et l'objectif. Utilise des verbes d'action. --></p>
+            <p class="cv-text"><!-- Rédige un profil percutant (3-4 phrases). --></p>
         </div>
 
         <div class="cv-section">
             <h2 class="cv-section-title">Expériences Professionnelles</h2>
-            <!-- Pour CHAQUE expérience, utilise cette structure. -->
-            <!-- TRÈS IMPORTANT : Utilise la méthode STAR (Situation, Tâche, Action, Résultat). Inclus des chiffres, pourcentages ou metrics concrets (ex: "+20%", "budget de 50K€"). -->
+            <!-- TRÈS IMPORTANT : Utilise la méthode STAR (Situation, Tâche, Action, Résultat). Inclus des metrics concrets. -->
             <div class="cv-item">
                 <div class="cv-item-header">
                     <h3 class="cv-item-title">Titre du Poste | Entreprise</h3>
-                    <span class="cv-item-date">Mois Année - Mois Année</span>
+                    <span class="cv-item-date">Dates</span>
                 </div>
                 <ul class="cv-item-desc">
                     <li><strong>Action et Résultat :</strong> Description détaillée de ce qui a été accompli et comment.</li>
@@ -108,12 +106,12 @@ Tu DOIS IMPÉRATIVEMENT utiliser EXACTEMENT cette structure sémantique :
 
         <div class="cv-section">
             <h2 class="cv-section-title">Centres d'intérêt</h2>
-            <p class="cv-text"><!-- Hobbies, engagements associatifs, sports... --></p>
+            <p class="cv-text"><!-- Hobbies, engagements... --></p>
         </div>
     </div>
 </div>
 
-REGLE D'OR ABSOLUE : N'invente AUCUNE expérience totalement fausse. Utilise UNIQUEMENT les informations fournies ci-dessous, mais SUBLIME-LES (reformule de manière très professionnelle, ajoute le contexte implicite pour rendre ça orienté Résultat). Si une info manque, adapte la section.
+REGLE D'OR ABSOLUE : N'invente AUCUNE expérience totalement fausse. Utilise UNIQUEMENT les informations fournies ci-dessous, mais SUBLIME-LES (reformule de manière très professionnelle).
 
 --- RÉPONSES AU QUESTIONNAIRE ---
 Objectif visé : ${formData.objectif}
@@ -129,7 +127,6 @@ Références : ${formData.references}
 Tu es un expert en recrutement.
 Génère une Lettre de Motivation percutante en code HTML strict.
 N'utilise AUCUN style CSS inline. N'utilise AUCUNE classe Tailwind.
-
 Tu DOIS utiliser la structure argumentaire "Vous, Moi, Nous".
 
 <div class="letter-container">
@@ -152,13 +149,13 @@ Tu DOIS utiliser la structure argumentaire "Vous, Moi, Nous".
     <div class="letter-body">
         <p class="letter-salutation">Madame, Monsieur,</p>
         
-        <!-- PARAGRAPHE 1 : VOUS (L'entreprise, ses enjeux, pourquoi elle attire) -->
-        <p class="letter-paragraph"><!-- Rédige le paragraphe VOUS avec force et pertinence. --></p>
+        <!-- PARAGRAPHE 1 : VOUS -->
+        <p class="letter-paragraph"><!-- Rédige le paragraphe VOUS. --></p>
 
-        <!-- PARAGRAPHE 2 : MOI (Le candidat, ses expériences clés, ce qu'il apporte) -->
-        <p class="letter-paragraph"><!-- Rédige le paragraphe MOI en valorisant les points forts tirés des expériences ci-dessous. --></p>
+        <!-- PARAGRAPHE 2 : MOI -->
+        <p class="letter-paragraph"><!-- Rédige le paragraphe MOI. --></p>
 
-        <!-- PARAGRAPHE 3 : NOUS (La projection, l'avenir commun) -->
+        <!-- PARAGRAPHE 3 : NOUS -->
         <p class="letter-paragraph"><!-- Rédige le paragraphe NOUS. --></p>
         
         <p class="letter-paragraph">Je me tiens à votre entière disposition pour un entretien afin de vous détailler de vive voix ma motivation.</p>
@@ -175,171 +172,6 @@ Expériences : ${formData.experiences}
 Compétences : ${formData.competences}
 `;
         }
- GoogleGenerativeAI } from '@google/generative-ai';
-
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-
-if (!apiKey || apiKey === "votre_api_key_gemini") {
-    console.error("Clé API Gemini manquante ou invalide. Vérifiez votre fichier .env");
-}
-
-const genAI = new GoogleGenerativeAI(apiKey);
-
-// Modèle pour la génération du document
-const generationModel = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-});
-
-const AI = {
-    /**
-     * Génère le HTML d'un document (CV ou Lettre) à partir du profil et d'un formulaire rempli
-     * @param {string} type - "CV" ou "Lettre"
-     * @param {Object} userProfile - Données de Firebase (nom, email, tel, etc.)
-     * @param {Object} formData - Les réponses du questionnaire
-     */
-    async generateFromForm(type, userProfile, formData) {
-        let prompt = "";
-
-        if (type === "CV") {
-            prompt = `
-Tu es un expert en recrutement et un designer de CV de renommée mondiale.
-Génère un CV ultra-professionnel en code HTML strict.
-N'utilise AUCUN style CSS inline. N'utilise AUCUNE classe Tailwind.
-Tu DOIS IMPÉRATIVEMENT utiliser EXACTEMENT cette structure sémantique :
-
-<div class="cv-container">
-    <div class="cv-sidebar">
-        <div class="cv-profile-pic">${userProfile.name ? userProfile.name.charAt(0).toUpperCase() : 'CV'}</div>
-        <h1 class="cv-name">${userProfile.name || 'Nom'}</h1>
-        <p class="cv-title">${formData.objectif || userProfile.specialty || 'Professionnel'}</p>
-        
-        <div class="cv-contact">
-            <p>📞 ${userProfile.phone || 'Non renseigné'}</p>
-            <p>✉️ ${userProfile.email || 'Non renseigné'}</p>
-            <p>📍 ${userProfile.city || 'Non renseigné'}</p>
-            <p>🔗 ${userProfile.linkedin || ''}</p>
-        </div>
-
-        <div class="cv-section">
-            <h2 class="cv-section-title">Compétences</h2>
-            <div class="cv-badges">
-                <span class="cv-badge">Exemple 1</span>
-            </div>
-        </div>
-        
-        <div class="cv-section">
-            <h2 class="cv-section-title">Langues & Hobbies</h2>
-            <p class="cv-text"><!-- Langues parlées, hobbies, etc. --></p>
-        </div>
-    </div>
-
-    <div class="cv-main">
-        <div class="cv-section">
-            <h2 class="cv-section-title">Profil & Objectif</h2>
-            <p class="cv-text"><!-- Rédige un profil percutant --></p>
-        </div>
-
-        <div class="cv-section">
-            <h2 class="cv-section-title">Expériences Professionnelles</h2>
-            <div class="cv-item">
-                <div class="cv-item-header">
-                    <h3 class="cv-item-title">Titre | Entreprise</h3>
-                    <span class="cv-item-date">Dates</span>
-                </div>
-                <ul class="cv-item-desc">
-                    <li>Détail</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="cv-section">
-            <h2 class="cv-section-title">Formations & Certifications</h2>
-            <div class="cv-item">
-                <div class="cv-item-header">
-                    <h3 class="cv-item-title">Diplôme | École</h3>
-                    <span class="cv-item-date">Année</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="cv-section">
-            <h2 class="cv-section-title">Engagements & Distinctions</h2>
-            <p class="cv-text"><!-- Engagements associatifs, etc. --></p>
-        </div>
-
-        <div class="cv-section">
-            <h2 class="cv-section-title">Références</h2>
-            <p class="cv-text"><!-- Références --></p>
-        </div>
-    </div>
-</div>
-
-REGLE D'OR ABSOLUE : N'invente AUCUNE information. Utilise UNIQUEMENT les informations fournies ci-dessous. Remplis la structure intelligemment. Ne mets pas de sections vides.
-
-Le HTML généré doit être un bloc <div> complet. N'inclus AUCUN marqueur Markdown.
-
---- RÉPONSES AU QUESTIONNAIRE (À UTILISER STRICTEMENT) ---
-Objectif visé : ${formData.objectif}
-Formations et Diplômes : ${formData.formations}
-Expériences et accomplissements : ${formData.experiences}
-Compétences clés : ${formData.competences}
-Engagements & Distinctions : ${formData.engagements}
-Langues & Centres d'intérêt : ${formData.langues}
-Références : ${formData.references}
-`;
-        } else if (type === "Lettre") {
-            prompt = `
-Tu es un expert en recrutement et en rédaction de lettre de motivation.
-Génère une Lettre de Motivation complète et convaincante en code HTML strict.
-N'utilise AUCUN style CSS inline. N'utilise AUCUNE classe Tailwind.
-
-Tu DOIS IMPÉRATIVEMENT utiliser EXACTEMENT cette structure sémantique :
-<div class="letter-container">
-    <div class="letter-header">
-        <div class="letter-sender">
-            <h1 class="letter-name">${userProfile.name || 'Nom'}</h1>
-            <p>${userProfile.phone || 'Téléphone'}</p>
-            <p>${userProfile.email || 'Email'}</p>
-        </div>
-        <div class="letter-recipient">
-            <p><strong>À l'attention du Responsable Recrutement</strong></p>
-            <p>Date : Aujoud'hui</p>
-        </div>
-    </div>
-    
-    <div class="letter-subject">
-        <p><strong>Objet : </strong>Candidature pour le poste de ${formData.objectif || 'Professionnel'}</p>
-    </div>
-
-    <div class="letter-body">
-        <p class="letter-salutation">Madame, Monsieur,</p>
-        <!-- Paragraphe 1 : L'accroche (Vous) -->
-        <p class="letter-paragraph">...</p>
-        <!-- Paragraphe 2 : L'expérience (Moi) -->
-        <p class="letter-paragraph">...</p>
-        <!-- Paragraphe 3 : La collaboration (Nous) -->
-        <p class="letter-paragraph">...</p>
-        
-        <p class="letter-signoff">Dans l'attente de vous rencontrer, je vous prie d'agréer, Madame, Monsieur, mes salutations distinguées.</p>
-    </div>
-
-    <div class="letter-signature">
-        <p class="letter-name">${userProfile.name || 'Nom'}</p>
-    </div>
-</div>
-
-REGLE D'OR ABSOLUE : N'invente AUCUNE information. Utilise UNIQUEMENT les informations fournies. Le HTML généré doit être un bloc <div> complet. N'inclus AUCUN marqueur Markdown.
-
---- RÉPONSES AU QUESTIONNAIRE ---
-Objectif visé : ${formData.objectif}
-Formations : ${formData.formations}
-Expériences : ${formData.experiences}
-Compétences : ${formData.competences}
-Engagements/Motivation : ${formData.engagements}
-Détails : ${formData.langues}
-`;
-        }
-
 
         try {
             const result = await generationModel.generateContent(prompt);
