@@ -480,3 +480,21 @@
 .template-creative .letter-sender { margin-bottom: 40px; }
 .template-creative .letter-sender .letter-name { font-size: 3rem; letter-spacing: -1px; }
 .template-creative .letter-recipient { text-align: left; background: #FFF7ED; border-left: 4px solid var(--primary-color); }
+
+/* =========================================
+   PRINT & PDF EXPORT OPTIMIZATIONS
+   ========================================= */
+.cv-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.cv-experience-item {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.cv-skill-group {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}

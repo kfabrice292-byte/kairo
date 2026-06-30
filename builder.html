@@ -433,29 +433,38 @@
             }, 500);
         });
 
-        window.downloadFinalPDF = () => {
+        window.downloadFinalPDF = async () => {
             const btn = document.getElementById('downloadPdfBtn');
             if(btn) {
                 const originalText = btn.innerHTML;
-                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Génération...';
+                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Génération HD...';
                 btn.disabled = true;
+
+                // Cacher la barre d'outils flottante si elle est active
+                const tb = document.getElementById('floatingToolbar');
+                if(tb) tb.classList.remove('visible');
+
+                // Attendre que les polices soient chargées pour éviter les bugs de typo
+                await document.fonts.ready;
 
                 setTimeout(() => {
                     const sheet = document.getElementById('documentSheet');
-                    // Options html2pdf pour un rendu parfait
+                    
+                    // Options html2pdf pour un rendu parfait A4
                     const opt = {
-                        margin:       0,
+                        margin:       [0, 0, 0, 0], // Top, Left, Bottom, Right
                         filename:     'Kairo_Document_Pro.pdf',
-                        image:        { type: 'jpeg', quality: 0.98 },
-                        html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
-                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                        image:        { type: 'jpeg', quality: 1 },
+                        html2canvas:  { scale: 3, useCORS: true, letterRendering: true, logging: false },
+                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
                     };
 
                     html2pdf().set(opt).from(sheet).save().then(() => {
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                     });
-                }, 500);
+                }, 800);
             }
         };
 document.addEventListener('DOMContentLoaded', async () => {
