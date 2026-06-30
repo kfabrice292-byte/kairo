@@ -13,6 +13,32 @@ const generationModel = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
 });
 
+async function callGeminiWithRetry(prompt, retries = 2) {
+    try {
+        const result = await generationModel.generateContent(prompt);
+        return result.response.text();
+    } catch (error) {
+        if (error.message && error.message.includes('503') && retries > 0) {
+            console.warn("Gemini 503 high demand, retrying in 2s...", retries);
+            await new Promise(r => setTimeout(r, 2000));
+            return callGeminiWithRetry(prompt, retries - 1);
+        }
+        // Fallback to gemini-1.5-flash
+        if (error.message && error.message.includes('503') && retries === 0) {
+            console.warn("Falling back to gemini-1.5-flash due to high demand...");
+            const fallbackModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const result = await fallbackModel.generateContent(prompt);
+            return result.response.text();
+        }
+        
+        // Improve error message for user
+        if (error.message && error.message.includes('503')) {
+            throw new Error("L'intelligence artificielle est actuellement surchargée. Veuillez réessayer dans quelques instants.");
+        }
+        throw error;
+    }
+}
+
 const AI = {
     /**
      * Améliore un texte sélectionné via l'IA
@@ -28,8 +54,8 @@ N'inclus AUCUN formatage Markdown, juste le texte pur.
 
 Texte original : "${text}"
 Texte amélioré :`;
-            const result = await generationModel.generateContent(prompt);
-            return result.response.text().trim();
+            const textResponse = await callGeminiWithRetry(prompt);
+            return textResponse.trim();
         } catch (error) {
             console.error("AI Enhance error:", error);
             throw new Error("Impossible d'améliorer le texte.");
@@ -238,16 +264,16 @@ Compétences : ${formData.competences}
         }
 
         try {
-            const result = await generationModel.generateContent(prompt);
-            const response = await result.response;
-            let htmlContent = response.text();
-            
-            // Nettoyer les marqueurs markdown au cas où l'IA les ajoute quand même
+            let htmlContent = await callGeminiWithRetry(prompt);
+            // Nettoyer les marqueurs markdown
             htmlContent = htmlContent.replace(/```html/gi, '').replace(/```/g, '').trim();
-            
             return htmlContent;
         } catch (error) {
             console.error("Erreur de génération :", error);
+            // Don't prefix with "Erreur de l'IA :" if it's already a friendly message
+            if (error.message.includes("surchargée")) {
+                throw error;
+            }
             throw new Error("Erreur de l'IA : " + error.message);
         }
     },
@@ -326,13 +352,14 @@ ${chatUpdates}
         }
 
         try {
-            const result = await generationModel.generateContent(prompt);
-            const response = await result.response;
-            let htmlContent = response.text();
+            let htmlContent = await callGeminiWithRetry(prompt);
             htmlContent = htmlContent.replace(/```html/gi, '').replace(/```/g, '').trim();
             return htmlContent;
         } catch (error) {
             console.error("Erreur de génération :", error);
+            if (error.message.includes("surchargée")) {
+                throw error;
+            }
             throw new Error("Erreur de l'IA : " + error.message);
         }
     }
