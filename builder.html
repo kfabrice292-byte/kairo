@@ -135,10 +135,11 @@
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-3 uppercase tracking-wide">Photo de Profil</label>
                         <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200">
+                            <div id="sidebarPicPreview" class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 overflow-hidden">
                                 <i class="ph ph-camera text-2xl"></i>
                             </div>
-                            <button onclick="alert('Fonctionnalité upload à venir !')" class="px-4 py-2 bg-white text-slate-700 text-sm font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 shadow-sm">
+                            <input type="file" id="profilePicInput" accept="image/png, image/jpeg" class="hidden">
+                            <button onclick="document.getElementById('profilePicInput').click()" class="px-4 py-2 bg-white text-slate-700 text-sm font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 shadow-sm">
                                 Importer
                             </button>
                         </div>
@@ -367,6 +368,38 @@
             sheet.classList.add('template-' + themeName);
             window.selectedTemplateId = themeName; // update global
         };
+
+        // --- PHOTO UPLOAD LOGIC ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileInput = document.getElementById('profilePicInput');
+            if(fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const base64Img = event.target.result;
+                        
+                        // Update sidebar preview
+                        const sidebarPreview = document.getElementById('sidebarPicPreview');
+                        if(sidebarPreview) {
+                            sidebarPreview.innerHTML = `<img src="${base64Img}" class="w-full h-full object-cover">`;
+                        }
+                        
+                        // Update CV preview
+                        const cvPic = document.querySelector('.cv-profile-pic');
+                        if (cvPic) {
+                            cvPic.style.backgroundImage = `url(${base64Img})`;
+                            cvPic.style.backgroundSize = 'cover';
+                            cvPic.style.backgroundPosition = 'center';
+                            cvPic.innerHTML = ''; // Remove initials
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        });
 
                 window.initAshtechPayment = async (e) => {
             e.preventDefault();
