@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV Template 05 – Tech Terminal</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0A0E14;
+    --panel: #10151D;
+    --border: #1E2530;
+    --green: #5FE3A1;
+    --blue: #5FAEFF;
+    --purple: #B98FFF;
+    --text: #D6DCE5;
+    --muted: #6B7585;
+    --white: #FFFFFF;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #060810;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  .page {
+    width: 794px;
+    min-height: 1123px;
+    background: var(--bg);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+
+  /* Fake terminal title bar */
+  .titlebar {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot.red { background: #FF5F56; }
+  .dot.yellow { background: #FFBD2E; }
+  .dot.green { background: #27C93F; }
+  .titlebar-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: 10px;
+  }
+
+  .content { padding: 36px 44px; }
+
+  /* Header */
+  .prompt-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    margin-bottom: 4px;
+  }
+  .prompt-line .path { color: var(--blue); }
+
+  .name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--white);
+    margin: 8px 0 4px;
+    letter-spacing: -0.5px;
+  }
+  .name .bracket { color: var(--green); }
+
+  .role {
+    font-size: 14px;
+    color: var(--purple);
+    font-weight: 500;
+    margin-bottom: 18px;
+  }
+
+  /* Contact row as terminal output */
+  .contact-block {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-bottom: 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .contact-row { display: flex; gap: 10px; margin-bottom: 6px; color: var(--text); }
+  .contact-row:last-child { margin-bottom: 0; }
+  .ckey { color: var(--blue); min-width: 80px; }
+  .cval { color: var(--text); }
+
+  /* Section */
+  .section { margin-bottom: 28px; }
+  .sec-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--green);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sec-title::before { content: '$'; color: var(--muted); }
+
+  /* About */
+  .about-box {
+    background: var(--panel);
+    border-left: 2px solid var(--green);
+    padding: 14px 18px;
+    font-size: 12.5px;
+    color: var(--text);
+    line-height: 1.7;
+    border-radius: 0 6px 6px 0;
+  }
+
+  /* Experience */
+  .exp-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+  }
+  .exp-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .exp-co { font-size: 13.5px; font-weight: 700; color: var(--white); }
+  .exp-co .at { color: var(--green); font-family: 'JetBrains Mono', monospace; }
+  .exp-period {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--bg);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .exp-role { font-size: 12px; color: var(--blue); margin-top: 3px; }
+  .exp-desc { font-size: 11.5px; color: var(--text); line-height: 1.6; margin-top: 8px; }
+  .exp-list { margin-top: 8px; }
+  .exp-list-item {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 3px;
+  }
+  .exp-list-item::before { content: '▸'; color: var(--purple); flex-shrink: 0; }
+
+  /* Stack grid */
+  .stack-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .stack-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--text);
+    background: var(--panel);
+  }
+  .stack-pill.lvl1 { border-color: var(--green); color: var(--green); }
+  .stack-pill.lvl2 { border-color: var(--blue); color: var(--blue); }
+  .stack-pill.lvl3 { border-color: var(--purple); color: var(--purple); }
+
+  /* Two col bottom */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+  .edu-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .edu-deg { font-size: 12px; font-weight: 600; color: var(--white); }
+  .edu-school { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .edu-yr { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--green); margin-top: 5px; }
+
+  .project-item { margin-bottom: 12px; }
+  .project-name { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--white); font-weight: 600; }
+  .project-name .ext { color: var(--green); }
+  .project-desc { font-size: 11px; color: var(--muted); line-height: 1.5; margin-top: 3px; }
+
+  /* footer command */
+  .footer-cmd {
+    margin-top: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--muted);
+  }
+  .footer-cmd .cursor {
+    display: inline-block;
+    width: 6px; height: 12px;
+    background: var(--green);
+    margin-left: 4px;
+    animation: blink 1.2s infinite;
+    vertical-align: middle;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="titlebar">
+    <div class="dot red"></div>
+    <div class="dot yellow"></div>
+    <div class="dot green"></div>
+    <div class="titlebar-text">~/cv/wendemi.json — zsh</div>
+  </div>
+
+  <div class="content">
+
+    <!-- HEADER -->
+    <div class="prompt-line"><span class="path">~/profile</span> $ whoami</div>
+    <div class="name"><span class="bracket">&lt;</span>Issouf Bamba<span class="bracket">/&gt;</span></div>
+    <div class="role">Développeur Full-Stack & Architecte Logiciel</div>
+
+    <div class="contact-block">
+      <div class="contact-row"><span class="ckey">location:</span><span class="cval">"Ouagadougou, Burkina Faso"</span></div>
+      <div class="contact-row"><span class="ckey">email:</span><span class="cval">"issouf.bamba@dev.bf"</span></div>
+      <div class="contact-row"><span class="ckey">phone:</span><span class="cval">"+226 70 00 00 00"</span></div>
+      <div class="contact-row"><span class="ckey">github:</span><span class="cval">"github.com/ibamba-dev"</span></div>
+      <div class="contact-row"><span class="ckey">website:</span><span class="cval">"ibamba.dev"</span></div>
+    </div>
+
+    <!-- ABOUT -->
+    <div class="section">
+      <div class="sec-title">cat about.md</div>
+      <div class="about-box">
+        Développeur full-stack avec 5 ans d'expérience en architecture d'applications web et mobiles. 
+        Spécialisé dans les écosystèmes JavaScript/TypeScript et les solutions cloud-native. 
+        Passionné par le mentorat de développeurs juniors et la construction de produits qui résolvent de vrais problèmes africains.
+      </div>
+    </div>
+
+    <!-- EXPERIENCE -->
+    <div class="section">
+      <div class="sec-title">ls -la experience/</div>
+
+      <div class="exp-card">
+        <div class="exp-top">
+          <div class="exp-co">DevForge Africa <span class="at">@lead</span></div>
+          <div class="exp-period">2022 — present</div>
+        </div>
+        <div class="exp-role">Lead Développeur Full-Stack</div>
+        <p class="exp-desc">Architecture et développement d'une suite SaaS B2B utilisée par +200 entreprises ouest-africaines.</p>
+        <div class="exp-list">
+          <div class="exp-list-item">Migration de l'infra vers une architecture microservices (réduction latence -60%)</div>
+          <div class="exp-list-item">Mise en place de pipelines CI/CD réduisant le temps de déploiement de 45min à 6min</div>
+          <div class="exp-list-item">Encadrement technique d'une équipe de 6 développeurs</div>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-top">
+          <div class="exp-co">FinTech Sahel <span class="at">@senior</span></div>
+          <div class="exp-period">2020 — 2022</div>
+        </div>
+        <div class="exp-role">Développeur Backend Senior</div>
+        <p class="exp-desc">Conception d'APIs de paiement mobile money intégrant 4 opérateurs télécoms régionaux.</p>
+        <div class="exp-list">
+          <div class="exp-list-item">Traitement de +50k transactions/jour avec 99.9% d'uptime</div>
+          <div class="exp-list-item">Implémentation de tests automatisés portant la couverture à 87%</div>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-top">
+          <div class="exp-co">Freelance <span class="at">@contractor</span></div>
+          <div class="exp-period">2019 — 2020</div>
+        </div>
+        <div class="exp-role">Développeur Web Junior</div>
+        <p class="exp-desc">Développement de sites vitrines et e-commerce pour PME locales sur WordPress et stack JS.</p>
+      </div>
+    </div>
+
+    <!-- STACK -->
+    <div class="section">
+      <div class="sec-title">cat package.json | grep dependencies</div>
+      <div class="stack-grid">
+        <span class="stack-pill lvl1">JavaScript</span>
+        <span class="stack-pill lvl1">TypeScript</span>
+        <span class="stack-pill lvl1">React</span>
+        <span class="stack-pill lvl1">Node.js</span>
+        <span class="stack-pill lvl2">Next.js</span>
+        <span class="stack-pill lvl2">PostgreSQL</span>
+        <span class="stack-pill lvl2">Docker</span>
+        <span class="stack-pill lvl2">AWS</span>
+        <span class="stack-pill lvl3">Firebase</span>
+        <span class="stack-pill lvl3">GraphQL</span>
+        <span class="stack-pill lvl3">Flutter</span>
+      </div>
+    </div>
+
+    <!-- TWO COL -->
+    <div class="two-col">
+      <div class="section">
+        <div class="sec-title">cat education.yaml</div>
+        <div class="edu-card">
+          <div class="edu-deg">Ingénieur en Génie Logiciel</div>
+          <div class="edu-school">2iE, Ouagadougou</div>
+          <div class="edu-yr">2016 — 2019</div>
+        </div>
+        <div class="edu-card">
+          <div class="edu-deg">AWS Certified Developer</div>
+          <div class="edu-school">Amazon Web Services</div>
+          <div class="edu-yr">2021</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-title">ls projects/</div>
+        <div class="project-item">
+          <div class="project-name">payflow<span class="ext">.api</span></div>
+          <div class="project-desc">Passerelle de paiement mobile money open-source, 800+ stars GitHub</div>
+        </div>
+        <div class="project-item">
+          <div class="project-name">sahel-ui<span class="ext">.kit</span></div>
+          <div class="project-desc">Librairie de composants React pour produits africains</div>
+        </div>
+        <div class="project-item">
+          <div class="project-name">devforge<span class="ext">.cli</span></div>
+          <div class="project-desc">Outil CLI de scaffolding pour projets full-stack</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-cmd">~/cv $ echo "Disponible pour de nouveaux défis"<span class="cursor"></span></div>
+
+  </div>
+</div>
+</body>
+</html>

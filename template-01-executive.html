@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV Template 01 – Executive</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --navy: #1C2B3A;
+    --navy-light: #243447;
+    --gold: #C9A84C;
+    --white: #FFFFFF;
+    --gray-100: #F7F8FA;
+    --gray-300: #CBD0D8;
+    --gray-500: #6B7280;
+    --gray-700: #374151;
+    --text: #1A1F2E;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #E8EBF0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  .page {
+    width: 794px;
+    min-height: 1123px;
+    background: var(--white);
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    background: var(--navy);
+    padding: 40px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .photo-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .photo {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: var(--navy-light);
+    border: 3px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .photo svg { width: 64px; height: 64px; opacity: 0.5; }
+
+  .sidebar-section { display: flex; flex-direction: column; gap: 12px; }
+
+  .sidebar-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(201, 168, 76, 0.3);
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: var(--gray-300);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .contact-item svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; fill: var(--gold); }
+
+  .edu-item { margin-bottom: 14px; }
+  .edu-degree {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1.4;
+  }
+  .edu-school { font-size: 11px; color: var(--gray-300); margin-top: 2px; }
+  .edu-year { font-size: 10px; color: var(--gold); margin-top: 3px; letter-spacing: 0.5px; }
+
+  .skill-item { margin-bottom: 12px; }
+  .skill-name { font-size: 11px; color: var(--gray-300); margin-bottom: 5px; }
+  .skill-bar { height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; }
+  .skill-fill { height: 100%; background: var(--gold); border-radius: 2px; }
+
+  .lang-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--gray-300);
+  }
+  .lang-level {
+    font-size: 10px;
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  /* ─── MAIN ─── */
+  .main { padding: 40px 36px; display: flex; flex-direction: column; gap: 28px; }
+
+  .header { border-bottom: 2px solid var(--navy); padding-bottom: 20px; }
+
+  .name {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+  }
+
+  .name span { color: var(--gold); }
+
+  .job-title {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-top: 6px;
+  }
+
+  .summary {
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--gray-700);
+    margin-top: 14px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--navy);
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--navy);
+    margin-bottom: 18px;
+  }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 20px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 5px; top: 6px; bottom: 6px;
+    width: 1px;
+    background: var(--gray-300);
+  }
+
+  .timeline-item { position: relative; margin-bottom: 22px; }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -18px; top: 5px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2px solid var(--white);
+    box-shadow: 0 0 0 1px var(--gold);
+  }
+
+  .exp-header { display: flex; justify-content: space-between; align-items: flex-start; }
+  .exp-company { font-size: 13px; font-weight: 700; color: var(--navy); }
+  .exp-period {
+    font-size: 10px;
+    color: var(--white);
+    background: var(--navy);
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .exp-position { font-size: 11.5px; font-weight: 500; color: var(--gold); margin-top: 2px; }
+  .exp-desc { font-size: 11.5px; color: var(--gray-700); line-height: 1.6; margin-top: 6px; }
+
+  .exp-list { margin-top: 6px; padding-left: 14px; }
+  .exp-list li { font-size: 11px; color: var(--gray-700); line-height: 1.5; margin-bottom: 3px; }
+  .exp-list li::marker { color: var(--gold); }
+
+  /* References */
+  .refs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .ref-item { background: var(--gray-100); padding: 14px; border-left: 3px solid var(--gold); }
+  .ref-name { font-size: 12px; font-weight: 700; color: var(--navy); }
+  .ref-pos { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+  .ref-contact { font-size: 11px; color: var(--gray-700); margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="photo-wrap">
+      <div class="photo">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="22" r="12" fill="#CBD0D8"/>
+          <path d="M8 56c0-13.255 10.745-24 24-24s24 10.745 24 24" fill="#CBD0D8"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Contact</div>
+      <div class="contact-item">
+        <svg viewBox="0 0 16 16"><path d="M8 1C5.24 1 3 3.24 3 6c0 3.75 5 9 5 9s5-5.25 5-9c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 1 1 8 4a1.5 1.5 0 0 1 0 3.5z"/></svg>
+        12 Rue de l'Innovation, Ouagadougou
+      </div>
+      <div class="contact-item">
+        <svg viewBox="0 0 16 16"><path d="M3 3h10a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm5 4.5L4.5 5H3v.5l5 3.5 5-3.5V5h-1.5L8 7.5z"/></svg>
+        votre.email@domaine.com
+      </div>
+      <div class="contact-item">
+        <svg viewBox="0 0 16 16"><path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.6 17.6 0 0 0 4.168 6.608 17.6 17.6 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328z"/></svg>
+        +226 00 00 00 00
+      </div>
+      <div class="contact-item">
+        <svg viewBox="0 0 16 16"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm7.5-6.923c-.67.204-1.335.82-1.887 1.855A7.97 7.97 0 0 0 5.145 4H7.5V1.077zM4.09 4a9.267 9.267 0 0 1 .64-1.539 6.7 6.7 0 0 1 .597-.933A7.025 7.025 0 0 0 2.255 4H4.09zm-.582 3.5c.03-.877.138-1.718.312-2.5H1.674a6.958 6.958 0 0 0-.656 2.5h2.49zM4.847 5a12.5 12.5 0 0 0-.338 2.5H7.5V5H4.847zM8.5 5v2.5h2.99a12.495 12.495 0 0 0-.337-2.5H8.5zM4.51 8.5a12.5 12.5 0 0 0 .337 2.5H7.5V8.5H4.51zm3.99 0V11h2.653c.187-.765.306-1.608.338-2.5H8.5z"/></svg>
+        www.votresite.com
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Formation</div>
+      <div class="edu-item">
+        <div class="edu-degree">Master en Management</div>
+        <div class="edu-school">Université de Ouagadougou</div>
+        <div class="edu-year">2018 – 2020</div>
+      </div>
+      <div class="edu-item">
+        <div class="edu-degree">Licence en Informatique</div>
+        <div class="edu-school">Institut Supérieur Tech</div>
+        <div class="edu-year">2015 – 2018</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Compétences</div>
+      <div class="skill-item">
+        <div class="skill-name">Design Graphique</div>
+        <div class="skill-bar"><div class="skill-fill" style="width:90%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-name">Développement Web</div>
+        <div class="skill-bar"><div class="skill-fill" style="width:80%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-name">Gestion de Projet</div>
+        <div class="skill-bar"><div class="skill-fill" style="width:75%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-name">Marketing Digital</div>
+        <div class="skill-bar"><div class="skill-fill" style="width:85%"></div></div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Langues</div>
+      <div class="lang-item"><span>Français</span><span class="lang-level">Natif</span></div>
+      <div class="lang-item" style="margin-top:8px"><span>Anglais</span><span class="lang-level">Courant</span></div>
+      <div class="lang-item" style="margin-top:8px"><span>Mooré</span><span class="lang-level">Natif</span></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="header">
+      <div class="name">JEAN-<span>BAPTISTE</span><br>OUÉDRAOGO</div>
+      <div class="job-title">Directeur Créatif & Stratège Digital</div>
+      <p class="summary">
+        Professionnel passionné avec plus de 8 ans d'expérience en communication visuelle et transformation digitale. 
+        Spécialisé dans l'accompagnement des startups et PME africaines vers une identité de marque forte et un impact global mesurable.
+      </p>
+    </div>
+
+    <section>
+      <div class="section-title">Expérience Professionnelle</div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="exp-header">
+            <div>
+              <div class="exp-company">Genio Agence Créative</div>
+              <div class="exp-position">Fondateur & Directeur Créatif</div>
+            </div>
+            <div class="exp-period">2021 – Présent</div>
+          </div>
+          <p class="exp-desc">Direction stratégique et créative d'une agence de communication digitale à Ouagadougou, accompagnant startups, PME et ONG d'Afrique de l'Ouest.</p>
+          <ul class="exp-list">
+            <li>Développement d'identités visuelles pour +30 clients en 3 ans</li>
+            <li>Lancement de 2 plateformes SaaS propriétaires (DocGen, EtudAfrik)</li>
+            <li>Management d'une équipe de 5 collaborateurs multidisciplinaires</li>
+          </ul>
+        </div>
+
+        <div class="timeline-item">
+          <div class="exp-header">
+            <div>
+              <div class="exp-company">Digital Hub Afrique</div>
+              <div class="exp-position">Responsable Communication</div>
+            </div>
+            <div class="exp-period">2019 – 2021</div>
+          </div>
+          <p class="exp-desc">Gestion de la stratégie de communication multicanal et production de contenus visuels pour un hub d'innovation basé à Ouagadougou.</p>
+          <ul class="exp-list">
+            <li>Croissance de la communauté sociale de 0 à 15 000 abonnés</li>
+            <li>Conception de 12 campagnes digitales annuelles</li>
+          </ul>
+        </div>
+
+        <div class="timeline-item">
+          <div class="exp-header">
+            <div>
+              <div class="exp-company">Agence Créa West</div>
+              <div class="exp-position">Designer Graphique Junior</div>
+            </div>
+            <div class="exp-period">2017 – 2019</div>
+          </div>
+          <p class="exp-desc">Création de supports de communication (affiches, logos, brochures) pour des clients locaux et régionaux.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">Références</div>
+      <div class="refs">
+        <div class="ref-item">
+          <div class="ref-name">Aminata Sawadogo</div>
+          <div class="ref-pos">DG, Innovatech Burkina</div>
+          <div class="ref-contact">+226 70 00 00 00<br>a.sawadogo@innovatech.bf</div>
+        </div>
+        <div class="ref-item">
+          <div class="ref-name">Dr. Kofi Mensah</div>
+          <div class="ref-pos">Directeur, Digital Hub Afrique</div>
+          <div class="ref-contact">+226 76 00 00 00<br>k.mensah@digitalhub.africa</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+</div>
+</body>
+</html>

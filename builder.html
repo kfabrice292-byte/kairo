@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/templates.css">
     <style>
         /* Custom Scrollbar for chat */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -149,11 +150,13 @@
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-3 uppercase tracking-wide">Changer de modèle</label>
                         <div class="grid grid-cols-2 gap-2">
-                            <button onclick="setTemplate('modern-photo')" class="py-2 px-2 border border-slate-200 rounded-lg text-xs font-semibold hover:text-slate-900 text-slate-600">Moderne (Ph)</button>
-                            <button onclick="setTemplate('modern-nophoto')" class="py-2 px-2 border border-slate-200 rounded-lg text-xs font-semibold hover:text-slate-900 text-slate-600">Moderne</button>
-                            <button onclick="setTemplate('classic-photo')" class="py-2 px-2 border border-slate-200 rounded-lg text-xs font-semibold hover:text-slate-900 text-slate-600">Classique (Ph)</button>
+                            <button onclick="setTemplate('executive')" class="py-2 px-2 border border-slate-200 rounded-lg text-xs font-semibold hover:text-slate-900 text-slate-600 bg-slate-800 text-white">Executive</button>
+                            <button onclick="setTemplate('minimal')" class="py-2 px-2 border border-slate-200 rounded-lg text-xs font-semibold hover:text-slate-900 text-slate-600">Minimal</button>
                             <button onclick="setTemplate('creative')" class="py-2 px-2 border border-slate-200 rounded-lg text-xs font-semibold hover:text-slate-900 text-slate-600">Créatif</button>
+                            <button onclick="setTemplate('academic')" class="py-2 px-2 border border-slate-200 rounded-lg text-xs font-semibold hover:text-slate-900 text-slate-600">Academic</button>
+                            <button onclick="setTemplate('tech')" class="py-2 px-2 border border-slate-200 rounded-lg text-xs font-semibold hover:text-slate-900 text-slate-600 col-span-2">Tech</button>
                         </div>
+                        <p class="text-xs text-slate-400 mt-2 italic">Attention : Changer de modèle va regénérer le document avec l'IA.</p>
                     </div>
 
                     <div>
@@ -275,6 +278,7 @@
         <script type="module">
         import API from './assets/js/api.js';
         import AI from './assets/js/ai.js';
+        import { TemplatesHTML } from './assets/js/templates_html.js';
         
         // Global variables
         window.selectedTemplateId = 'modern-photo';
@@ -360,13 +364,29 @@
             }
         };
 
-        window.setTemplate = (themeName) => {
-            const sheet = document.getElementById('documentSheet');
-            // Remove existing template classes
-            sheet.classList.remove('template-classic', 'template-modern', 'template-creative', 'template-classic-photo', 'template-modern-photo', 'template-modern-nophoto');
-            // Add new template class
-            sheet.classList.add('template-' + themeName);
-            window.selectedTemplateId = themeName; // update global
+        window.setTemplate = async (themeName) => {
+            window.selectedTemplateId = themeName;
+            
+            // Only re-generate if we are in dashboard view and it's a structural template
+            if (!document.getElementById('dashboardView').classList.contains('view-hidden')) {
+                if (TemplatesHTML[themeName]) {
+                    if (confirm("Changer de modèle va réécrire votre CV avec le nouveau design. Continuer ?")) {
+                        const loadingOverlay = document.getElementById('loadingOverlay');
+                        loadingOverlay.classList.remove('view-hidden');
+                        
+                        try {
+                            const userProfile = await API.getCurrentUser();
+                            // Generate again with the new template HTML!
+                            const generatedHTML = await AI.generateDocument(window._lastFormData, 'CV', userProfile, window._lastFileContent, TemplatesHTML[themeName]);
+                            document.getElementById('documentSheet').innerHTML = generatedHTML;
+                        } catch (error) {
+                            alert("Erreur lors de la génération: " + error.message);
+                        } finally {
+                            loadingOverlay.classList.add('view-hidden');
+                        }
+                    }
+                }
+            }
         };
 
         // --- PHOTO UPLOAD LOGIC ---

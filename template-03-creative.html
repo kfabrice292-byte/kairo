@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV Template 03 – Creative Bold</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0E0F14;
+    --surface: #181920;
+    --border: #2A2B35;
+    --orange: #FF6B35;
+    --orange-dim: rgba(255,107,53,0.12);
+    --white: #F0F1F5;
+    --muted: #8B8D9A;
+    --card: #1E1F2A;
+  }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: #06070A;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  .page {
+    width: 794px;
+    min-height: 1123px;
+    background: var(--bg);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Decorative geometric bg */
+  .bg-deco {
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,107,53,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Header hero */
+  .hero {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 52px 40px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: end;
+    position: relative;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--orange);
+  }
+
+  .eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--orange);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .name {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1;
+    letter-spacing: -1.5px;
+  }
+
+  .name .accent { color: var(--orange); }
+
+  .title {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-top: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .photo-box {
+    width: 100px;
+    height: 100px;
+    border: 2px solid var(--border);
+    background: var(--card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .photo-box::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; right: -4px;
+    width: 100%; height: 100%;
+    border: 1px solid var(--orange);
+    z-index: 0;
+  }
+  .photo-box svg { width: 60px; height: 60px; position: relative; z-index: 1; opacity: 0.3; }
+
+  /* Contact strip */
+  .contact-strip {
+    background: var(--orange);
+    padding: 12px 52px;
+    display: flex;
+    gap: 32px;
+  }
+  .cs-item { font-size: 11.5px; color: var(--bg); font-weight: 500; }
+
+  /* Body */
+  .body {
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 0;
+  }
+
+  /* Left main */
+  .main { padding: 36px 36px 36px 52px; border-right: 1px solid var(--border); }
+
+  /* Right sidebar */
+  .aside { padding: 36px 28px; }
+
+  /* Section */
+  .sec-head {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .sec-head::before {
+    content: '//';
+    font-family: 'Space Mono', monospace;
+    color: var(--border);
+  }
+
+  .section { margin-bottom: 32px; }
+
+  /* Bio */
+  .bio { font-size: 13px; color: var(--muted); line-height: 1.75; }
+
+  /* Experience */
+  .exp-item { margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+  .exp-item:last-child { border-bottom: none; }
+
+  .exp-row { display: flex; justify-content: space-between; align-items: flex-start; }
+  .exp-co { font-size: 14px; font-weight: 700; color: var(--white); }
+  .exp-period {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--orange);
+  }
+  .exp-pos { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .exp-desc { font-size: 12px; color: var(--muted); line-height: 1.65; margin-top: 8px; }
+
+  .bullet-list { margin-top: 8px; padding-left: 0; list-style: none; }
+  .bullet-list li {
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .bullet-list li::before {
+    content: '→';
+    color: var(--orange);
+    font-size: 11px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* Sidebar – Compétences techniques */
+  .tech-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tech-tag {
+    font-size: 10.5px;
+    color: var(--white);
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+  .tech-tag.hot { border-color: var(--orange); color: var(--orange); background: var(--orange-dim); }
+
+  /* Education */
+  .edu-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 14px;
+    margin-bottom: 10px;
+    border-left: 3px solid var(--orange);
+  }
+  .edu-deg { font-size: 12px; font-weight: 600; color: var(--white); }
+  .edu-school { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .edu-yr {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--orange);
+    margin-top: 5px;
+  }
+
+  /* Langues */
+  .lang-item { display: flex; justify-content: space-between; margin-bottom: 10px; }
+  .lang-name { font-size: 12px; color: var(--white); }
+  .lang-dots { display: flex; gap: 3px; }
+  .ld { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+  .ld.on { background: var(--orange); }
+
+  /* Interests */
+  .interest-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .interest {
+    font-size: 11px;
+    color: var(--muted);
+    padding: 5px 10px;
+    border: 1px dashed var(--border);
+    border-radius: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="bg-deco"></div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Portfolio Créatif · 2025</div>
+      <div class="name">KOFI<br><span class="accent">ANNAN JR.</span></div>
+      <div class="title">UI/UX Designer · Motion Graphic Artist · Brand Strategist</div>
+    </div>
+    <div class="photo-box">
+      <svg viewBox="0 0 64 64" fill="none">
+        <circle cx="32" cy="22" r="12" fill="#F0F1F5"/>
+        <path d="M8 56c0-13.255 10.745-24 24-24s24 10.745 24 24" fill="#F0F1F5"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- CONTACT STRIP -->
+  <div class="contact-strip">
+    <span class="cs-item">📍 Ouagadougou, BF</span>
+    <span class="cs-item">✉ kofi@design.studio</span>
+    <span class="cs-item">📱 +226 00 00 00 00</span>
+    <span class="cs-item">🌐 kofi.design</span>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+    <!-- MAIN LEFT -->
+    <div class="main">
+
+      <div class="section">
+        <div class="sec-head">À propos</div>
+        <p class="bio">Designer visuel et stratège de marque avec 6 ans d'expérience, spécialisé dans la création d'identités digitales pour les entreprises africaines ambitieuses. Je crois que le design est une langue universelle qui peut changer la perception d'un continent entier.</p>
+      </div>
+
+      <div class="section">
+        <div class="sec-head">Expériences</div>
+
+        <div class="exp-item">
+          <div class="exp-row">
+            <div>
+              <div class="exp-co">Studio Kréa Labs</div>
+              <div class="exp-pos">Lead Designer & Directeur Artistique</div>
+            </div>
+            <div class="exp-period">2022–NOW</div>
+          </div>
+          <p class="exp-desc">Direction artistique d'une équipe de 4 designers, gestion du portefeuille clients de la région UEMOA.</p>
+          <ul class="bullet-list">
+            <li>+45 identités visuelles déployées pour des startups et ONG</li>
+            <li>Mise en place d'un système de design scalable (Figma tokens)</li>
+            <li>Formation et mentorat de 3 designers juniors</li>
+          </ul>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-row">
+            <div>
+              <div class="exp-co">Agence Pixel Sahel</div>
+              <div class="exp-pos">UI/UX Designer Senior</div>
+            </div>
+            <div class="exp-period">2020–2022</div>
+          </div>
+          <p class="exp-desc">Conception d'interfaces mobiles et web pour des apps fintech et edtech à fort impact social.</p>
+          <ul class="bullet-list">
+            <li>Redesign de 2 apps mobiles → +40% de rétention utilisateurs</li>
+            <li>Création d'une librairie de composants UI africaine open-source</li>
+          </ul>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-row">
+            <div>
+              <div class="exp-co">Freelance & Projets Perso</div>
+              <div class="exp-pos">Brand Designer</div>
+            </div>
+            <div class="exp-period">2018–2020</div>
+          </div>
+          <p class="exp-desc">70+ clients servis en freelance — logos, chartes graphiques, motion design, publications social media.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR RIGHT -->
+    <div class="aside">
+
+      <div class="section">
+        <div class="sec-head">Stack</div>
+        <div class="tech-grid">
+          <span class="tech-tag hot">Figma</span>
+          <span class="tech-tag hot">Adobe XD</span>
+          <span class="tech-tag hot">After Effects</span>
+          <span class="tech-tag">Illustrator</span>
+          <span class="tech-tag">Photoshop</span>
+          <span class="tech-tag">Premiere Pro</span>
+          <span class="tech-tag">Webflow</span>
+          <span class="tech-tag">Framer</span>
+          <span class="tech-tag">Notion</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-head">Formation</div>
+        <div class="edu-card">
+          <div class="edu-deg">BTS Communication Visuelle</div>
+          <div class="edu-school">ESAC, Ouagadougou</div>
+          <div class="edu-yr">2016–2018</div>
+        </div>
+        <div class="edu-card">
+          <div class="edu-deg">Certification UX Design</div>
+          <div class="edu-school">Google / Coursera</div>
+          <div class="edu-yr">2021</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-head">Langues</div>
+        <div class="lang-item">
+          <span class="lang-name">Français</span>
+          <div class="lang-dots">
+            <div class="ld on"></div><div class="ld on"></div><div class="ld on"></div>
+            <div class="ld on"></div><div class="ld on"></div>
+          </div>
+        </div>
+        <div class="lang-item">
+          <span class="lang-name">Anglais</span>
+          <div class="lang-dots">
+            <div class="ld on"></div><div class="ld on"></div><div class="ld on"></div>
+            <div class="ld on"></div><div class="ld"></div>
+          </div>
+        </div>
+        <div class="lang-item">
+          <span class="lang-name">Twi</span>
+          <div class="lang-dots">
+            <div class="ld on"></div><div class="ld on"></div><div class="ld on"></div>
+            <div class="ld"></div><div class="ld"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-head">Centres d'intérêt</div>
+        <div class="interest-grid">
+          <span class="interest">Art africain</span>
+          <span class="interest">Typographie</span>
+          <span class="interest">Photographie</span>
+          <span class="interest">Musique</span>
+          <span class="interest">Entrepreneuriat</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

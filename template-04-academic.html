@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV Template 04 – Academic Corporate</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --burgundy: #6B1F2A;
+    --burgundy-light: #F6EBEC;
+    --ink: #1F2125;
+    --gray-600: #565A62;
+    --gray-300: #D8D9DC;
+    --gray-100: #F4F4F5;
+    --white: #FFFFFF;
+  }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: #E5E5E7;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  .page {
+    width: 794px;
+    min-height: 1123px;
+    background: var(--white);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.14);
+    padding: 56px 60px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 30px;
+    padding-bottom: 24px;
+    border-bottom: 3px double var(--burgundy);
+    margin-bottom: 28px;
+  }
+
+  .name {
+    font-family: 'Source Serif 4', serif;
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+  }
+
+  .title {
+    font-family: 'Source Serif 4', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--burgundy);
+    margin-top: 6px;
+  }
+
+  .contact-list {
+    text-align: right;
+    font-size: 11.5px;
+    color: var(--gray-600);
+    line-height: 1.9;
+  }
+
+  .photo {
+    width: 96px;
+    height: 96px;
+    border-radius: 4px;
+    background: var(--burgundy-light);
+    border: 1px solid var(--burgundy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .photo svg { width: 56px; height: 56px; opacity: 0.4; }
+
+  .header-top { display: flex; gap: 20px; align-items: flex-start; flex: 1; }
+
+  /* Summary */
+  .summary {
+    font-size: 12.5px;
+    line-height: 1.75;
+    color: var(--gray-600);
+    margin-bottom: 30px;
+    padding: 16px 20px;
+    background: var(--gray-100);
+    border-left: 3px solid var(--burgundy);
+  }
+
+  /* Section */
+  .section { margin-bottom: 28px; }
+
+  .sec-title {
+    font-family: 'Source Serif 4', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--burgundy);
+    margin-bottom: 16px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--gray-300);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sec-title .num {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--white);
+    background: var(--burgundy);
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Experience entries (table style) */
+  .entry { display: grid; grid-template-columns: 110px 1fr; gap: 18px; margin-bottom: 18px; }
+  .entry-date {
+    font-size: 11px;
+    color: var(--burgundy);
+    font-weight: 600;
+    padding-top: 2px;
+  }
+  .entry-content {}
+  .entry-title { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .entry-sub { font-size: 11.5px; color: var(--gray-600); font-style: italic; margin-top: 1px; }
+  .entry-desc { font-size: 11.5px; color: var(--gray-600); line-height: 1.6; margin-top: 6px; }
+  .entry-list { margin-top: 6px; padding-left: 16px; }
+  .entry-list li { font-size: 11px; color: var(--gray-600); line-height: 1.55; margin-bottom: 2px; }
+
+  /* Two column lower section */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+
+  /* Skills table */
+  .skill-table { width: 100%; border-collapse: collapse; }
+  .skill-table tr { border-bottom: 1px solid var(--gray-100); }
+  .skill-table td { padding: 7px 0; font-size: 11.5px; color: var(--ink); }
+  .skill-table td:last-child { text-align: right; color: var(--burgundy); font-weight: 600; font-size: 10.5px; }
+
+  /* Reference cards */
+  .ref-card { margin-bottom: 14px; padding: 12px 14px; background: var(--gray-100); border-radius: 3px; }
+  .ref-name { font-size: 12px; font-weight: 700; color: var(--ink); }
+  .ref-role { font-size: 11px; color: var(--gray-600); font-style: italic; margin-top: 2px; }
+  .ref-contact { font-size: 10.5px; color: var(--gray-600); margin-top: 6px; }
+
+  /* Publications/Certifications list */
+  .pub-item { font-size: 11.5px; color: var(--gray-600); line-height: 1.6; margin-bottom: 10px; padding-left: 14px; position: relative; }
+  .pub-item::before { content: '§'; position: absolute; left: 0; color: var(--burgundy); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div class="photo">
+        <svg viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="22" r="12" fill="#6B1F2A"/>
+          <path d="M8 56c0-13.255 10.745-24 24-24s24 10.745 24 24" fill="#6B1F2A"/>
+        </svg>
+      </div>
+      <div>
+        <div class="name">Dr. Salimata Compaoré</div>
+        <div class="title">Chercheure & Consultante en Politiques de Développement</div>
+      </div>
+    </div>
+    <div class="contact-list">
+      Ouagadougou, Burkina Faso<br>
+      s.compaore@univ-edu.bf<br>
+      +226 25 00 00 00<br>
+      ORCID: 0000-0000-0000
+    </div>
+  </div>
+
+  <p class="summary">
+    Chercheure en sciences politiques et économie du développement, avec une expertise en évaluation de politiques publiques 
+    et en gouvernance des ressources naturelles en Afrique de l'Ouest. Auteure de 12 publications scientifiques et consultante 
+    pour plusieurs institutions internationales.
+  </p>
+
+  <!-- EXPERIENCE -->
+  <div class="section">
+    <div class="sec-title"><span class="num">1</span>Expérience Professionnelle</div>
+
+    <div class="entry">
+      <div class="entry-date">2021 – Présent</div>
+      <div class="entry-content">
+        <div class="entry-title">Maître de Conférences</div>
+        <div class="entry-sub">Université Joseph Ki-Zerbo, Ouagadougou</div>
+        <p class="entry-desc">Enseignement des cours de Master en Sciences Politiques et supervision de mémoires de recherche.</p>
+        <ul class="entry-list">
+          <li>Direction de 15 mémoires de Master sur la gouvernance locale</li>
+          <li>Coordination du séminaire annuel de recherche en politiques publiques</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="entry-date">2018 – 2021</div>
+      <div class="entry-content">
+        <div class="entry-title">Consultante Senior</div>
+        <div class="entry-sub">Banque Mondiale, Bureau Afrique de l'Ouest</div>
+        <p class="entry-desc">Évaluation de programmes de décentralisation dans 5 pays du Sahel, rédaction de rapports stratégiques.</p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="entry-date">2014 – 2018</div>
+      <div class="entry-content">
+        <div class="entry-title">Chercheure Associée</div>
+        <div class="entry-sub">Institut des Sciences des Sociétés (INSS)</div>
+        <p class="entry-desc">Recherche sur les dynamiques de gouvernance foncière et publication de 6 articles scientifiques évalués par les pairs.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDUCATION -->
+  <div class="section">
+    <div class="sec-title"><span class="num">2</span>Formation</div>
+
+    <div class="entry">
+      <div class="entry-date">2010 – 2014</div>
+      <div class="entry-content">
+        <div class="entry-title">Doctorat en Sciences Politiques</div>
+        <div class="entry-sub">Université de Ouagadougou — Mention Très Honorable</div>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="entry-date">2008 – 2010</div>
+      <div class="entry-content">
+        <div class="entry-title">Master en Relations Internationales</div>
+        <div class="entry-sub">Université Cheikh Anta Diop, Dakar</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TWO COLUMN: SKILLS + REFS -->
+  <div class="two-col">
+    <div>
+      <div class="section">
+        <div class="sec-title"><span class="num">3</span>Compétences</div>
+        <table class="skill-table">
+          <tr><td>Analyse politique</td><td>EXPERT</td></tr>
+          <tr><td>Recherche qualitative</td><td>EXPERT</td></tr>
+          <tr><td>Rédaction académique</td><td>EXPERT</td></tr>
+          <tr><td>SPSS / Stata</td><td>AVANCÉ</td></tr>
+          <tr><td>Gestion de programme</td><td>AVANCÉ</td></tr>
+          <tr><td>Anglais professionnel</td><td>COURANT</td></tr>
+        </table>
+      </div>
+
+      <div class="section">
+        <div class="sec-title"><span class="num">4</span>Publications Sélectionnées</div>
+        <div class="pub-item">Compaoré, S. (2023). "Gouvernance foncière et conflits ruraux au Sahel." <em>Revue Africaine de Politique</em>.</div>
+        <div class="pub-item">Compaoré, S. (2021). "Décentralisation et participation citoyenne." <em>Cahiers du CODESRIA</em>.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section">
+        <div class="sec-title"><span class="num">5</span>Références</div>
+        <div class="ref-card">
+          <div class="ref-name">Prof. Idrissa Kaboré</div>
+          <div class="ref-role">Doyen, Faculté SJP, UJKZ</div>
+          <div class="ref-contact">i.kabore@ujkz.bf · +226 70 00 00 00</div>
+        </div>
+        <div class="ref-card">
+          <div class="ref-name">Mme. Christine N'Diaye</div>
+          <div class="ref-role">Cheffe de Mission, Banque Mondiale</div>
+          <div class="ref-contact">c.ndiaye@worldbank.org · +221 33 00 00 00</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
