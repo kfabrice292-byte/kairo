@@ -123,11 +123,20 @@
         </div>
 
         <!-- ==================== VIEW 3 : DASHBOARD ==================== -->
-        <div id="dashboardView" class="w-full h-full flex flex-col md:flex-row bg-slate-200 view-hidden absolute inset-0 z-10 overflow-y-auto md:overflow-hidden">
+        <div id="dashboardView" class="w-full h-full flex flex-col md:flex-row bg-slate-200 view-hidden absolute inset-0 z-10 overflow-hidden">
             
-            <!-- Left Sidebar -->
-            <div class="w-full md:w-80 bg-white border-b md:border-r border-slate-200 h-auto md:h-full flex flex-col shadow-2xl z-20 shrink-0">
-                <div class="p-6 border-b border-slate-100 bg-slate-50">
+            <!-- Mobile Backdrop -->
+            <div id="mobileBackdrop" class="fixed inset-0 bg-slate-900/60 z-40 hidden md:hidden transition-opacity opacity-0" onclick="toggleMobileSidebar()"></div>
+
+            <!-- Left Sidebar (Drawer on mobile) -->
+            <div id="editorSidebar" class="fixed bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-50 transform translate-y-full transition-transform duration-300 md:relative md:translate-y-0 md:w-80 md:h-full md:border-r md:border-slate-200 md:rounded-none md:flex md:flex-col shrink-0 max-h-[85vh] md:max-h-none flex flex-col">
+                
+                <!-- Mobile Handle -->
+                <div class="flex justify-center pt-4 pb-2 md:hidden cursor-pointer" onclick="toggleMobileSidebar()">
+                    <div class="w-12 h-1.5 bg-slate-300 rounded-full"></div>
+                </div>
+
+                <div class="p-6 pt-2 md:pt-6 border-b border-slate-100 bg-slate-50 md:rounded-none rounded-t-3xl">
                     <h3 class="font-bold text-lg font-outfit text-slate-800">Espace de Travail</h3>
                     <p class="text-sm text-slate-500">Personnalisez votre document</p>
                 </div>
@@ -180,7 +189,7 @@
                     </div>
                 </div>
                 
-                <div class="p-6 border-t border-slate-100 bg-white">
+                <div class="p-6 border-t border-slate-100 bg-white hidden md:block">
                     <button id="downloadPdfBtn" class="w-full py-4 bg-[#F97316] text-white rounded-xl font-bold shadow-lg shadow-[#F97316]/30 hover:bg-[#EA580C] hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2">
                         <i class="ph-bold ph-lock-key"></i> Débloquer & Exporter
                     </button>
@@ -211,7 +220,9 @@
                 </div>
 
                 <!-- The Document -->
-                <div id="documentSheet" class="template-modern watermark-draft w-[210mm] min-w-[210mm] min-h-[297mm] bg-white premium-shadow text-slate-800 text-left transition-all relative overflow-hidden shrink-0" contenteditable="true">
+                <div class="cv-wrapper transition-transform duration-300">
+                    <div id="documentSheet" class="template-modern watermark-draft w-[210mm] min-w-[210mm] min-h-[297mm] bg-white premium-shadow text-slate-800 text-left transition-all relative overflow-hidden shrink-0" contenteditable="true">
+                    </div>
                 </div>
             </div>
         </div>

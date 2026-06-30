@@ -381,3 +381,21 @@
     page-break-inside: avoid;
     break-inside: avoid;
 }
+
+/* Mobile Specific Adjustments */
+@media (max-width: 768px) {
+    #previewArea {
+        padding: 20px 10px;
+        padding-bottom: 100px; /* Space for bottom nav */
+    }
+    
+    .cv-wrapper {
+        transform: scale(calc(100vw / 820));
+        transform-origin: top center;
+        margin-bottom: calc(-100% * (1 - (100vw / 820))); /* Fix height calculation after transform */
+    }
+
+    #documentSheet {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+}
