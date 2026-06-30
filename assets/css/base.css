@@ -401,10 +401,8 @@
     
     /* PREVIEW MODE (Default on mobile) */
     body:not(.edit-mode) .document-page {
-        transform: scale(calc((100vw - 32px) / 800)); /* Shrink A4 to fit screen perfectly */
-        transform-origin: top center;
-        /* Calculate negative margin to remove the empty space left by transform: scale */
-        margin-bottom: calc(-297mm * (1 - ((100vw - 32px) / 800)) + 20px) !important;
+        zoom: calc((100vw - 32px) / 800);
+        margin: 0 auto 40px auto !important;
         pointer-events: none; /* Prevent accidental clicks/editing */
         box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important;
         border-radius: 12px; /* Slight premium rounded corners in preview */
@@ -416,8 +414,7 @@
 
     /* EDIT MODE (When user taps "Toucher pour Editer") */
     body.edit-mode .document-page {
-        transform: scale(1);
-        transform-origin: top left;
+        zoom: 1;
         margin-bottom: 40px !important;
         pointer-events: auto;
         border-radius: 0;
