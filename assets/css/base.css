@@ -390,14 +390,44 @@
     }
     
     .cv-wrapper {
-        /* Zoom supprimé. On laisse le défilement horizontal natif (comme un lecteur PDF) */
         width: 100%;
-        overflow-x: auto;
     }
     
     #previewArea {
-        padding: 20px 0px; /* Moins de padding pour que le CV prenne bien la largeur s'il faut scroller */
+        padding: 20px 0px;
+        padding-bottom: 120px;
+        scroll-behavior: smooth;
     }
+    
+    /* PREVIEW MODE (Default on mobile) */
+    body:not(.edit-mode) .document-page {
+        transform: scale(calc((100vw - 32px) / 800)); /* Shrink A4 to fit screen perfectly */
+        transform-origin: top center;
+        /* Calculate negative margin to remove the empty space left by transform: scale */
+        margin-bottom: calc(-297mm * (1 - ((100vw - 32px) / 800)) + 20px) !important;
+        pointer-events: none; /* Prevent accidental clicks/editing */
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important;
+        border-radius: 12px; /* Slight premium rounded corners in preview */
+    }
+
+    body:not(.edit-mode) #documentContainer {
+        padding-top: 60px; /* Space for the tabs */
+    }
+
+    /* EDIT MODE (When user taps "Toucher pour Editer") */
+    body.edit-mode .document-page {
+        transform: scale(1);
+        transform-origin: top left;
+        margin-bottom: 40px !important;
+        pointer-events: auto;
+        border-radius: 0;
+        margin-left: 16px; /* give some edge breathing room when scrolling */
+    }
+    
+    body.edit-mode .cv-wrapper {
+        overflow-x: auto;
+    }
+
 
 
     #documentSheet {

@@ -219,10 +219,19 @@
                     <p class="text-slate-500 font-medium text-lg text-center max-w-md">Mise en page des expériences et alignement du design.</p>
                 </div>
 
-                <!-- The Document -->
-                <div class="cv-wrapper transition-transform duration-300">
-                    <div id="documentSheet" class="template-modern watermark-draft w-[210mm] min-w-[210mm] min-h-[297mm] bg-white premium-shadow text-slate-800 text-left transition-all relative overflow-hidden shrink-0" contenteditable="true">
-                    </div>
+                <!-- Mobile Navigation Tabs (Hidden on Desktop) -->
+                <div id="mobileDocTabs" class="fixed top-20 left-0 w-full z-30 flex justify-center gap-2 p-3 md:hidden overflow-x-auto opacity-0 transition-opacity">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- Floating Edit Toggle -->
+                <button id="mobileEditToggle" class="fixed bottom-24 right-4 z-40 md:hidden bg-slate-900/90 backdrop-blur-md text-white rounded-full px-6 py-3 shadow-[0_10px_25px_rgba(0,0,0,0.3)] font-bold flex items-center gap-2 transition-transform transform scale-100 hidden" onclick="toggleMobileEditMode()">
+                    <i class="ph-bold ph-magnifying-glass-plus text-xl"></i> <span>Toucher pour Éditer</span>
+                </button>
+
+                <!-- The Documents Container -->
+                <div class="cv-wrapper transition-all duration-300 w-full flex flex-col items-center gap-8 md:gap-12" id="documentContainer" contenteditable="true">
+                    <!-- Pages will be generated here -->
                 </div>
             </div>
         </div>
@@ -316,7 +325,7 @@
 
         // --- FLOATING TOOLBAR LOGIC ---
         const toolbar = document.getElementById('floatingToolbar');
-        const sheet = document.getElementById('documentSheet');
+        const sheet = document.getElementById('documentContainer');
 
         const showToolbar = () => {
             const selection = window.getSelection();
@@ -393,7 +402,7 @@
                             const userProfile = await API.getCurrentUser();
                             // Generate again with the new template HTML!
                             const generatedHTML = await AI.generateDocument(window._lastFormData, 'CV', userProfile, window._lastFileContent, TemplatesHTML[themeName]);
-                            document.getElementById('documentSheet').innerHTML = generatedHTML;
+                            document.getElementById('documentContainer').innerHTML = generatedHTML;
                         } catch (error) {
                             alert("Erreur lors de la génération: " + error.message);
                         } finally {
@@ -516,7 +525,7 @@
                 await document.fonts.ready;
 
                 setTimeout(() => {
-                    const sheet = document.getElementById('documentSheet');
+                    const sheet = document.getElementById('documentContainer');
                     
                     // Options html2pdf pour un rendu parfait A4
                     const opt = {
@@ -542,7 +551,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            const documentSheet = document.getElementById('documentSheet');
+            const documentSheet = document.getElementById('documentContainer');
             // Persistence Variables
             const urlParams = new URLSearchParams(window.location.search);
             window.currentDocId = urlParams.get('docId');
@@ -587,7 +596,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             type: window.currentDocType,
                             title: title,
                             templateId: window.selectedTemplateId,
-                            content: documentSheet.innerHTML
+                            content: document.getElementById('documentContainer').innerHTML
                         });
                         window.currentDocId = newId;
                         // Replace state to avoid duplicate saves if user refreshes
@@ -600,13 +609,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                             type: window.currentDocType,
                             title: title,
                             templateId: window.selectedTemplateId,
-                            content: documentSheet.innerHTML
+                            content: document.getElementById('documentContainer').innerHTML
                         }, window.currentDocId);
                     } catch(e) { console.error("Auto-save error", e); }
                 }
             };
             
-            documentSheet.addEventListener('input', () => {
+            document.getElementById('documentContainer').addEventListener('input', () => {
                 clearTimeout(autoSaveTimeout);
                 autoSaveTimeout = setTimeout(saveCurrentDocument, 2000); // 2s debounce
             });
@@ -622,12 +631,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     document.getElementById('chatView').classList.add('view-hidden');
                     document.getElementById('dashboardView').classList.remove('view-hidden');
                     
-                    documentSheet.innerHTML = existingDoc.content;
+                    document.getElementById('documentContainer').innerHTML = existingDoc.content;
                     window.setTemplate(existingDoc.templateId);
                     
                     const savedPhoto = localStorage.getItem('kairo_user_photo');
                     if (savedPhoto) {
-                        const profilePics = documentSheet.querySelectorAll('.cv-profile-pic');
+                        const profilePics = document.getElementById('documentContainer').querySelectorAll('.cv-profile-pic');
                         profilePics.forEach(pic => pic.style.backgroundImage = `url(${savedPhoto})`);
                     }
                     return; // Stop execution of the rest (chat flow)
@@ -812,7 +821,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 chatView.classList.add('view-hidden');
                 dashboardView.classList.remove('view-hidden');
                 loadingOverlay.classList.remove('view-hidden');
-                documentSheet.innerHTML = ''; 
+                document.getElementById('documentContainer').innerHTML = ''; 
                 
                 try {
                     const typeToGen = selectedDocs.includes('cv') ? 'CV' : 'Lettre';
@@ -826,14 +835,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                     
                     
-                    documentSheet.innerHTML = htmlCode;
+                    document.getElementById('documentContainer').innerHTML = htmlCode;
                     documentSheet.setAttribute('contenteditable', 'true');
                     window.setTemplate(window.selectedTemplateId); // Apply selected template
                     
                     // Appliquer la photo de profil si elle existe
                     const savedPhoto = localStorage.getItem('kairo_user_photo');
                     if (savedPhoto) {
-                        const profilePics = documentSheet.querySelectorAll('.cv-profile-pic');
+                        const profilePics = document.getElementById('documentContainer').querySelectorAll('.cv-profile-pic');
                         profilePics.forEach(pic => {
                             pic.style.backgroundImage = `url(${savedPhoto})`;
                             pic.style.backgroundSize = 'cover';
@@ -848,7 +857,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     loadingOverlay.classList.add('view-hidden');
                 } catch (error) {
-                    documentSheet.innerHTML = `<div class="p-12 text-center"><i class="ph-fill ph-warning text-4xl text-red-500 mb-4"></i><p class="text-red-600 font-bold">${error.message}</p></div>`;
+                    document.getElementById('documentContainer').innerHTML = `<div class="p-12 text-center"><i class="ph-fill ph-warning text-4xl text-red-500 mb-4"></i><p class="text-red-600 font-bold">${error.message}</p></div>`;
                     loadingOverlay.classList.add('view-hidden');
                 }
             };
