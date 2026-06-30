@@ -15,6 +15,28 @@ const generationModel = genAI.getGenerativeModel({
 
 const AI = {
     /**
+     * Améliore un texte sélectionné via l'IA
+     * @param {string} text - Le texte original
+     * @returns {Promise<string>} Le texte amélioré
+     */
+    async enhanceText(text) {
+        try {
+            const prompt = `
+Tu es un expert en recrutement. Améliore le texte suivant pour le rendre très professionnel et percutant dans un CV.
+Garde le texte concis (1 ou 2 phrases maximum).
+N'inclus AUCUN formatage Markdown, juste le texte pur.
+
+Texte original : "${text}"
+Texte amélioré :`;
+            const result = await generationModel.generateContent(prompt);
+            return result.response.text().trim();
+        } catch (error) {
+            console.error("AI Enhance error:", error);
+            throw new Error("Impossible d'améliorer le texte.");
+        }
+    },
+
+    /**
      * Génère le HTML d'un document (CV ou Lettre) à partir du profil et d'un formulaire rempli
      * @param {string} type - "CV" ou "Lettre"
      * @param {Object} userProfile - Données de Firebase (nom, email, tel, etc.)
