@@ -159,7 +159,8 @@ Tu DOIS IMPÉRATIVEMENT utiliser EXACTEMENT cette structure sémantique :
     </div>
 </div>
 
-REGLE D'OR ABSOLUE : N'invente AUCUNE expérience totalement fausse. Utilise UNIQUEMENT les informations fournies ci-dessous, mais SUBLIME-LES (reformule de manière très professionnelle).
+REGLE D'OR ABSOLUE : N'invente AUCUNE expérience totalement fausse. Utilise UNIQUEMENT les informations fournies ci-dessous, mais SUBLIME-LES (reformule de manière très professionnelle, ajoute le contexte implicite pour rendre ça orienté Résultat). Si une info manque, adapte la section.
+Tu DOIS IMPÉRATIVEMENT répondre UNIQUEMENT avec le code HTML. Ne dis RIEN d'autre. N'ajoute AUCUNE phrase d'introduction comme 'Voici le CV' ni de conclusion. Le premier caractère de ta réponse doit être '<'.
 
 --- RÉPONSES AU QUESTIONNAIRE ---
 Objectif visé : ${formData.objectif}
@@ -265,6 +266,8 @@ Compétences : ${formData.competences}
 
         try {
             let htmlContent = await callGeminiWithRetry(prompt);
+            const match = htmlContent.match(/<div[\s\S]*<\/div>/);
+            if(match) htmlContent = match[0];
             // Nettoyer les marqueurs markdown
             htmlContent = htmlContent.replace(/```html/gi, '').replace(/```/g, '').trim();
             return htmlContent;
@@ -339,6 +342,7 @@ Tu DOIS IMPÉRATIVEMENT utiliser EXACTEMENT cette structure sémantique pour le 
 
 REGLE D'OR ABSOLUE : Utilise les informations de l'ancien CV, corrige-les si besoin, et ajoute IMPÉRATIVEMENT les nouveautés discutées dans le chat.
 Le HTML généré doit être un bloc <div> complet. N'inclus AUCUN marqueur Markdown.
+Tu DOIS IMPÉRATIVEMENT répondre UNIQUEMENT avec le code HTML. Ne dis RIEN d'autre. N'ajoute AUCUNE phrase d'introduction ni de conclusion.
 
 --- ANCIEN CV (TEXTE EXTRAIT) ---
 ${cvText}
@@ -353,6 +357,48 @@ ${chatUpdates}
 
         try {
             let htmlContent = await callGeminiWithRetry(prompt);
+            const match = htmlContent.match(/<div[\s\S]*<\/div>/);
+            if(match) htmlContent = match[0];
+            htmlContent = htmlContent.replace(/```html/gi, '').replace(/```/g, '').trim();
+            return htmlContent;
+        } catch (error) {
+            console.error("Erreur de génération :", error);
+            if (error.message.includes("surchargée")) {
+                throw error;
+            }
+            throw new Error("Erreur de l'IA : " + error.message);
+        }
+    },
+
+    async generateDocument(formData, type, userProfile, oldText, templateStructure) {
+        if (!generationModel) throw new Error("L'IA n'est pas initialisée.");
+
+        const prompt = `
+Tu es un expert en recrutement et designer de CV.
+Ton objectif est de générer un CV complet et professionnel au format HTML.
+Tu DOIS STRICTEMENT suivre la structure HTML suivante. N'invente pas de nouvelles classes CSS, n'utilise pas de styles inline.
+Garde exactement les mêmes balises et classes que cet exemple de structure :
+
+--- STRUCTURE REQUISE ---
+${templateStructure}
+
+--- DONNÉES DU CANDIDAT ---
+Nom : ${userProfile.name || ''}
+Email : ${userProfile.email || ''}
+Téléphone : ${userProfile.phone || ''}
+Objectif : ${formData.objectif || ''}
+Formations : ${formData.formations || ''}
+Expériences : ${formData.experiences || ''}
+Compétences : ${formData.competences || ''}
+
+Insère les données du candidat dans la structure requise. Pour les expériences, respecte la sémantique de la structure, mais crée autant d'éléments d'expérience que nécessaire.
+Tu DOIS IMPÉRATIVEMENT répondre UNIQUEMENT avec le code HTML demandé. Ne dis RIEN d'autre. Pas d'introduction, pas de conclusion.
+`;
+
+        try {
+            let htmlContent = await callGeminiWithRetry(prompt);
+            const match = htmlContent.match(/<div[\s\S]*<\/div>/);
+            if(match) htmlContent = match[0];
             htmlContent = htmlContent.replace(/```html/gi, '').replace(/```/g, '').trim();
             return htmlContent;
         } catch (error) {

@@ -237,6 +237,14 @@
         </div>
     </main>
 
+    <!-- Mobile Download Button (visible only on mobile) -->
+    <div id="mobileDownloadBar" class="fixed bottom-0 left-0 right-0 z-40 p-4 bg-white/90 backdrop-blur-xl border-t border-slate-200 md:hidden hidden">
+        <button id="downloadPdfBtnMobile" class="w-full py-4 bg-[#F97316] text-white rounded-xl font-bold shadow-lg shadow-[#F97316]/30 hover:bg-[#EA580C] transition-all flex justify-center items-center gap-2">
+            <i class="ph-bold ph-lock-key"></i> Débloquer & Exporter
+        </button>
+    </div>
+
+
     <!-- PAYWALL MODAL -->
     <div id="paywallModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center">
         <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
@@ -318,9 +326,17 @@
             document.body.classList.remove('theme-blue', 'theme-emerald', 'theme-slate');
             if (themeClass) document.body.classList.add(themeClass);
             
-            // Update active dot
+            // Update active dot — safely handle both click and programmatic calls
             document.querySelectorAll('.theme-dot').forEach(dot => dot.classList.remove('active'));
-            event.target.classList.add('active');
+            if (typeof event !== 'undefined' && event && event.target && event.target.classList) {
+                event.target.classList.add('active');
+            } else {
+                // Programmatic call: find the matching dot by theme
+                const themeColors = { '': 0, 'theme-blue': 1, 'theme-emerald': 2, 'theme-slate': 3 };
+                const dots = document.querySelectorAll('.theme-dot');
+                const idx = themeColors[themeClass] ?? 0;
+                if (dots[idx]) dots[idx].classList.add('active');
+            }
         };
 
         // --- FLOATING TOOLBAR LOGIC ---
@@ -391,6 +407,13 @@
         window.setTemplate = async (themeName) => {
             window.selectedTemplateId = themeName;
             
+            const docContainer = document.getElementById('documentContainer');
+            if (docContainer) {
+                // Nettoyer les anciennes classes de templates
+                docContainer.className = docContainer.className.replace(/\btemplate-\S+/g, '');
+                docContainer.classList.add('template-' + themeName);
+            }
+            
             // Only re-generate if we are in dashboard view and it's a structural template
             if (!document.getElementById('dashboardView').classList.contains('view-hidden')) {
                 if (TemplatesHTML[themeName]) {
@@ -401,7 +424,7 @@
                         try {
                             const userProfile = await API.getCurrentUser();
                             // Generate again with the new template HTML!
-                            const generatedHTML = await AI.generateDocument(window._lastFormData, 'CV', userProfile, window._lastFileContent, TemplatesHTML[themeName]);
+                            const generatedHTML = await AI.generateDocument(window._lastFormData || {}, 'CV', userProfile, window._lastFileContent || '', TemplatesHTML[themeName]);
                             document.getElementById('documentContainer').innerHTML = generatedHTML;
                         } catch (error) {
                             alert("Erreur lors de la génération: " + error.message);
@@ -511,38 +534,60 @@
         });
 
         window.downloadFinalPDF = async () => {
-            const btn = document.getElementById('downloadPdfBtn');
-            if(btn) {
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Génération HD...';
-                btn.disabled = true;
+            // Update both desktop and mobile buttons
+            const btns = [document.getElementById('downloadPdfBtn'), document.getElementById('downloadPdfBtnMobile')].filter(Boolean);
+            const originalTexts = btns.map(b => b.innerHTML);
+            
+            btns.forEach(b => {
+                b.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Génération HD...';
+                b.disabled = true;
+            });
 
-                // Cacher la barre d'outils flottante si elle est active
-                const tb = document.getElementById('floatingToolbar');
-                if(tb) tb.classList.remove('visible');
+            // Cacher la barre d'outils flottante si elle est active
+            const tb = document.getElementById('floatingToolbar');
+            if(tb) tb.classList.remove('visible');
 
-                // Attendre que les polices soient chargées pour éviter les bugs de typo
-                await document.fonts.ready;
+            // Attendre que les polices soient chargées pour éviter les bugs de typo
+            await document.fonts.ready;
 
-                setTimeout(() => {
-                    const sheet = document.getElementById('documentContainer');
-                    
-                    // Options html2pdf pour un rendu parfait A4
-                    const opt = {
-                        margin:       [0, 0, 0, 0], // Top, Left, Bottom, Right
-                        filename:     'Kairo_Document_Pro.pdf',
-                        image:        { type: 'jpeg', quality: 1 },
-                        html2canvas:  { scale: 3, useCORS: true, letterRendering: true, logging: false },
-                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-                    };
+            setTimeout(() => {
+                const sheet = document.getElementById('documentContainer');
+                
+                // Temporarily disable contenteditable for clean rendering
+                sheet.setAttribute('contenteditable', 'false');
+                
+                // Temporarily remove watermark for PDF
+                const hadWatermark = sheet.classList.contains('watermark-draft');
+                if (hadWatermark) sheet.classList.remove('watermark-draft');
+                
+                // Options html2pdf pour un rendu parfait A4
+                const opt = {
+                    margin:       [0, 0, 0, 0], // Top, Left, Bottom, Right
+                    filename:     'Kairo_Document_Pro.pdf',
+                    image:        { type: 'jpeg', quality: 1 },
+                    html2canvas:  { scale: 3, useCORS: true, letterRendering: true, logging: false },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+                };
 
-                    html2pdf().set(opt).from(sheet).save().then(() => {
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
+                html2pdf().set(opt).from(sheet).save().then(() => {
+                    btns.forEach((b, i) => {
+                        b.innerHTML = originalTexts[i];
+                        b.disabled = false;
                     });
-                }, 800);
-            }
+                    sheet.setAttribute('contenteditable', 'true');
+                    if (hadWatermark) sheet.classList.add('watermark-draft');
+                }).catch((err) => {
+                    console.error("Erreur export PDF:", err);
+                    alert("Une erreur est survenue lors de la création du PDF. Veuillez réessayer.");
+                    btns.forEach((b, i) => {
+                        b.innerHTML = originalTexts[i];
+                        b.disabled = false;
+                    });
+                    sheet.setAttribute('contenteditable', 'true');
+                    if (hadWatermark) sheet.classList.add('watermark-draft');
+                });
+            }, 800);
         };
 document.addEventListener('DOMContentLoaded', async () => {
             const user = await API.getCurrentUser();
@@ -572,18 +617,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Gestion du filigrane et du bouton de téléchargement
             const downloadBtn = document.getElementById('downloadPdfBtn');
+            const downloadBtnMobile = document.getElementById('downloadPdfBtnMobile');
+            const mobileDownloadBar = document.getElementById('mobileDownloadBar');
+            
+            const setupDownloadBtn = (btn) => {
+                if (!btn) return;
+                if (user.hasPaid) {
+                    btn.innerHTML = '<i class="ph-bold ph-download-simple"></i> Télécharger le PDF';
+                    btn.onclick = window.downloadFinalPDF;
+                } else {
+                    btn.onclick = () => document.getElementById('paywallModal').classList.remove('hidden');
+                }
+            };
+            
             if (user.hasPaid) {
                 documentSheet.classList.remove('watermark-draft');
-                if (downloadBtn) {
-                    downloadBtn.innerHTML = '<i class="ph-bold ph-download-simple"></i> Télécharger le PDF';
-                    downloadBtn.onclick = window.downloadFinalPDF;
-                }
             } else {
                 documentSheet.classList.add('watermark-draft');
-                if (downloadBtn) {
-                    downloadBtn.onclick = () => document.getElementById('paywallModal').classList.remove('hidden');
-                }
             }
+            
+            setupDownloadBtn(downloadBtn);
+            setupDownloadBtn(downloadBtnMobile);
 
             window.currentDocType = 'cv'; // Default
             
@@ -630,9 +684,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     document.getElementById('templateSelectionView').classList.add('view-hidden');
                     document.getElementById('chatView').classList.add('view-hidden');
                     document.getElementById('dashboardView').classList.remove('view-hidden');
+                    if (mobileDownloadBar) mobileDownloadBar.classList.remove('hidden');
                     
                     document.getElementById('documentContainer').innerHTML = existingDoc.content;
-                    window.setTemplate(existingDoc.templateId);
+                    // Only apply the CSS class, don't trigger regeneration
+                    const docContainer = document.getElementById('documentContainer');
+                    docContainer.className = docContainer.className.replace(/\btemplate-\S+/g, '');
+                    docContainer.classList.add('template-' + existingDoc.templateId);
                     
                     const savedPhoto = localStorage.getItem('kairo_user_photo');
                     if (savedPhoto) {
@@ -821,6 +879,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 chatView.classList.add('view-hidden');
                 dashboardView.classList.remove('view-hidden');
                 loadingOverlay.classList.remove('view-hidden');
+                if (mobileDownloadBar) mobileDownloadBar.classList.remove('hidden');
                 document.getElementById('documentContainer').innerHTML = ''; 
                 
                 try {
@@ -829,9 +888,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     
                     if (isUploadMode) {
                         htmlCode = await AI.generateFromUploadAndChat(uploadedCVText, formData.updates, typeToGen, user);
+                        window._lastFileContent = uploadedCVText; // Pour régénération
                         localStorage.removeItem('kairo_uploaded_cv_text'); // cleanup
                     } else {
                         htmlCode = await AI.generateFromForm(typeToGen, user, formData);
+                        window._lastFormData = formData; // Pour régénération
                     }
                     
                     
