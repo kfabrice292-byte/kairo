@@ -144,6 +144,48 @@ Engagements : ${formData.engagements}
 Langues : ${formData.langues}
 Références : ${formData.references}
 `;
+                } else if (type === "Demande") {
+            prompt = `
+Tu es un expert en recrutement.
+Génère une Demande d'Emploi percutante en code HTML strict.
+N'utilise AUCUN style CSS inline. N'utilise AUCUNE classe Tailwind.
+
+<div class="letter-container" style="padding: 40px; font-family: sans-serif;">
+    <div class="letter-header">
+        <div class="letter-sender">
+            <h1 class="letter-name">${userProfile.name || 'Nom'}</h1>
+            <p><i class="ph-fill ph-phone"></i> ${userProfile.phone || 'Téléphone'}</p>
+            <p><i class="ph-fill ph-envelope"></i> ${userProfile.email || 'Email'}</p>
+        </div>
+        <div class="letter-recipient" style="margin-top: 30px; text-align: right;">
+            <p><strong>À l'attention du Directeur / Service RH</strong></p>
+            <p>Date : ${new Date().toLocaleDateString('fr-FR')}</p>
+        </div>
+    </div>
+    
+    <div class="letter-subject" style="margin-top: 40px; margin-bottom: 30px;">
+        <p><strong>Objet : </strong>Demande d'emploi pour le poste de ${formData.objectif || 'Poste visé'}</p>
+    </div>
+
+    <div class="letter-body">
+        <p class="letter-salutation">Madame, Monsieur,</p>
+        
+        <p class="letter-paragraph" style="margin-top: 20px;">J'ai l'honneur de solliciter de votre haute bienveillance l'examen de ma candidature pour un poste de ${formData.objectif || 'Poste visé'} au sein de votre prestigieuse structure.</p>
+
+        <p class="letter-paragraph" style="margin-top: 20px;"><!-- Rédige un paragraphe de motivation basé sur les compétences. --></p>
+
+        <p class="letter-paragraph" style="margin-top: 20px;">Je me tiens à votre entière disposition pour un entretien afin de vous détailler mes motivations.</p>
+        
+        <p class="letter-closing" style="margin-top: 40px;">Veuillez agréer, Madame, Monsieur, l'expression de mes salutations distinguées.</p>
+    </div>
+</div>
+
+--- RÉPONSES AU QUESTIONNAIRE ---
+Objectif visé : ${formData.objectif}
+Formations : ${formData.formations}
+Expériences : ${formData.experiences}
+Compétences : ${formData.competences}
+`;
         } else if (type === "Lettre") {
             prompt = `
 Tu es un expert en recrutement.

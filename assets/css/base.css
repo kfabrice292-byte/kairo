@@ -390,10 +390,15 @@
     }
     
     .cv-wrapper {
-        transform: scale(calc(100vw / 820));
-        transform-origin: top center;
-        margin-bottom: calc(-100% * (1 - (100vw / 820))); /* Fix height calculation after transform */
+        /* Zoom supprimé. On laisse le défilement horizontal natif (comme un lecteur PDF) */
+        width: 100%;
+        overflow-x: auto;
     }
+    
+    #previewArea {
+        padding: 20px 0px; /* Moins de padding pour que le CV prenne bien la largeur s'il faut scroller */
+    }
+
 
     #documentSheet {
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
