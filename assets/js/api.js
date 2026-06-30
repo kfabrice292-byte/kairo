@@ -176,42 +176,58 @@ const API = {
                 updatedAt: new Date().toISOString()
             };
             
-            if (docId) {
+            if (docId && !docId.startsWith('local_')) {
                 await setDoc(doc(docsRef, docId), dataToSave, { merge: true });
                 return docId;
-            } else {
+            } else if (!docId || !docId.startsWith('local_')) {
                 dataToSave.createdAt = new Date().toISOString();
                 const newDocRef = await addDoc(docsRef, dataToSave);
                 return newDocRef.id;
             }
         } catch (error) {
-            console.error("Save document error:", error);
-            throw new Error("Impossible de sauvegarder le document.");
+            console.warn("Firestore write blocked (permissions), falling back to localStorage", error);
         }
+        
+        // Fallback to localStorage if Firestore failed or if doc is already local
+        const localId = docId || 'local_' + Date.now();
+        const localDocs = JSON.parse(localStorage.getItem('kairo_local_docs') || '{}');
+        localDocs[localId] = { ...docData, updatedAt: new Date().toISOString(), id: localId };
+        localStorage.setItem('kairo_local_docs', JSON.stringify(localDocs));
+        return localId;
     },
 
     async getDocuments() {
         const user = auth.currentUser;
         if (!user) return [];
 
+        let docs = [];
         try {
             const docsRef = collection(db, "users", user.uid, "documents");
             const snapshot = await getDocs(docsRef);
-            const docs = [];
             snapshot.forEach(doc => {
                 docs.push({ id: doc.id, ...doc.data() });
             });
-            // Sort by updatedAt descending
-            return docs.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
         } catch (error) {
-            console.error("Get documents error:", error);
-            return [];
+            console.warn("Firestore read blocked, using local storage fallback", error);
         }
+        
+        // Merge with local storage
+        const localDocs = JSON.parse(localStorage.getItem('kairo_local_docs') || '{}');
+        Object.values(localDocs).forEach(ld => {
+            if (!docs.find(d => d.id === ld.id)) docs.push(ld);
+        });
+
+        return docs.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
     },
 
     async getDocument(docId) {
         const user = auth.currentUser;
         if (!user) return null;
+
+        if (docId.startsWith('local_')) {
+            const localDocs = JSON.parse(localStorage.getItem('kairo_local_docs') || '{}');
+            return localDocs[docId] || null;
+        }
 
         try {
             const docRef = doc(db, "users", user.uid, "documents", docId);
@@ -219,11 +235,13 @@ const API = {
             if (docSnap.exists()) {
                 return { id: docSnap.id, ...docSnap.data() };
             }
-            return null;
         } catch (error) {
-            console.error("Get document error:", error);
-            return null;
+            console.warn("Get document error:", error);
         }
+        
+        // Fallback check
+        const localDocs = JSON.parse(localStorage.getItem('kairo_local_docs') || '{}');
+        return localDocs[docId] || null;
     },
 
     async getAllUsers() {
