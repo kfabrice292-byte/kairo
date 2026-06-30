@@ -267,7 +267,7 @@
   }
 .template-minimal .pill-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--emerald); flex-shrink: 0; }
 .template-minimal /* Two column body */
-  ..template-minimal { display: grid; grid-template-columns: 1fr 200px; gap: 40px; }
+  .template-minimal { display: grid; grid-template-columns: 1fr 200px; gap: 40px; }
 .template-minimal /* Sections */
   .section { margin-bottom: 30px; }
 .template-minimal .sec-label {
@@ -432,7 +432,7 @@
   }
 .template-creative .cs-item { font-size: 11.5px; color: var(--bg); font-weight: 500; }
 .template-creative /* Body */
-  ..template-creative {
+  .template-creative {
     display: grid;
     grid-template-columns: 1fr 240px;
     gap: 0;
@@ -853,4 +853,4 @@
     animation: blink 1.2s infinite;
     vertical-align: middle;
   }
-@keyframes blink { 50% { opacity: 0; }
+@keyframes blink { 50% { opacity: 0; } }
