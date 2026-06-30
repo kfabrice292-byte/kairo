@@ -215,7 +215,7 @@
                         <div class="absolute inset-0 border-4 border-[#F97316] rounded-full border-t-transparent animate-spin"></div>
                         <i class="ph-fill ph-magic-wand text-3xl text-[#F97316] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-slate-800 mb-2 font-outfit">L'IA rédige votre CV...</h3>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-2 font-outfit">L'IA rédige votre document...</h3>
                     <p class="text-slate-500 font-medium text-lg text-center max-w-md">Mise en page des expériences et alignement du design.</p>
                 </div>
 
@@ -239,21 +239,25 @@
                 <div class="w-16 h-16 bg-orange-100 text-[#F97316] rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">
                     <i class="ph-fill ph-lock-key"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-center text-slate-800 mb-2 font-outfit">Débloquez votre CV</h3>
+                <h3 class="text-2xl font-bold text-center text-slate-800 mb-2 font-outfit">Débloquez votre document</h3>
                 <p class="text-center text-slate-500 mb-6 text-sm">Paiement sécurisé via Mobile Money (AshtechPay)</p>
                 
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-6 flex justify-between items-center">
                     <span class="font-medium text-slate-700">PDF Haute Qualité (Sans filigrane)</span>
-                    <span class="text-xl font-black text-[#F97316]">1000 FCFA</span>
+                    <span class="text-xl font-black text-[#F97316]">550 FCFA</span>
                 </div>
                 
                 <form id="ashtechForm" class="space-y-4 text-left">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Pays</label>
                         <select id="payCountry" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#F97316] focus:ring-1 focus:ring-[#F97316] outline-none transition-all text-slate-700 bg-white">
-                            <option value="CM">Cameroun</option>
+                            <option value="BF">Burkina Faso</option>
                             <option value="CI">Côte d'Ivoire</option>
                             <option value="SN">Sénégal</option>
+                            <option value="TG">Togo</option>
+                            <option value="BJ">Bénin</option>
+                            <option value="ML">Mali</option>
+                            <option value="CM">Cameroun</option>
                         </select>
                     </div>
                     <div>
@@ -268,7 +272,7 @@
                         <input type="tel" id="payPhone" placeholder="Ex: 670000000" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#F97316] focus:ring-1 focus:ring-[#F97316] outline-none transition-all text-slate-700 placeholder-slate-400">
                     </div>
                     <button type="submit" id="paySubmitBtn" class="w-full py-4 mt-2 bg-[#F97316] text-white rounded-xl font-bold shadow-lg hover:bg-[#EA580C] transition-all flex justify-center items-center gap-2 text-lg">
-                        Payer 1000 FCFA
+                        Payer 550 FCFA
                     </button>
                 </form>
             </div>
@@ -477,14 +481,14 @@
                     // On écoute Firebase via onSnapshot dans le vrai code pour déclencher le téléchargement
                 } else {
                     alert("Erreur: " + data.message);
-                    btn.innerHTML = 'Payer 1000 FCFA';
+                    btn.innerHTML = 'Payer 550 FCFA';
                     btn.disabled = false;
                 }
                 */
 
             } catch (err) {
                 console.error(err);
-                btn.innerHTML = 'Payer 1000 FCFA';
+                btn.innerHTML = 'Payer 550 FCFA';
                 btn.disabled = false;
             }
         };
