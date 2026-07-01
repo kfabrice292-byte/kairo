@@ -569,14 +569,23 @@
                 const hadWatermark = sheet.classList.contains('watermark-draft');
                 if (hadWatermark) sheet.classList.remove('watermark-draft');
                 
+                // Scroll to top for better html2canvas rendering
+                window.scrollTo(0, 0);
+                
                 // Options html2pdf pour un rendu parfait A4
                 const opt = {
                     margin:       [0, 0, 0, 0], // Top, Left, Bottom, Right
                     filename:     'Kairo_Document_Pro.pdf',
-                    image:        { type: 'jpeg', quality: 1 },
-                    html2canvas:  { scale: 3, useCORS: true, letterRendering: true, logging: false },
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { 
+                        scale: 2, 
+                        useCORS: true, 
+                        allowTaint: true,
+                        logging: true,
+                        scrollY: 0 
+                    },
                     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+                    pagebreak:    { mode: 'css' }
                 };
 
                 html2pdf().set(opt).from(sheet).save().then(() => {
