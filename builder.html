@@ -569,22 +569,53 @@
                 const hadWatermark = sheet.classList.contains('watermark-draft');
                 if (hadWatermark) sheet.classList.remove('watermark-draft');
                 
-                // Utilisation de window.print() native au lieu de html2pdf
-                // car html2canvas (utilisé par html2pdf) plante sur la fonction CSS "oklch"
-                // générée par TailwindCSS v4. Le CSS d'impression (@media print) est déjà géré.
-                Toast.info("Astuce : Sélectionnez 'Enregistrer au format PDF' dans la fenêtre d'impression.", "Génération PDF");
+                // Patch CSSStyleDeclaration.getPropertyValue pour contourner le bug "oklch" de html2canvas
+                const originalGetPropertyValue = CSSStyleDeclaration.prototype.getPropertyValue;
+                CSSStyleDeclaration.prototype.getPropertyValue = function(prop) {
+                    const val = originalGetPropertyValue.call(this, prop);
+                    if (val && typeof val === 'string' && val.includes('oklch')) {
+                        return 'transparent'; // Renvoie une couleur supportée pour éviter le crash
+                    }
+                    return val;
+                };
+
+                // Scroll to top for better html2canvas rendering
+                window.scrollTo(0, 0);
                 
-                setTimeout(() => {
-                    window.print();
-                    
-                    // Restauration de l'état
+                const opt = {
+                    margin:       [0, 0, 0, 0],
+                    filename:     'Kairo_Document_Pro.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { 
+                        scale: 2, 
+                        useCORS: true, 
+                        allowTaint: true,
+                        logging: false,
+                        scrollY: 0 
+                    },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak:    { mode: 'css' }
+                };
+
+                html2pdf().set(opt).from(sheet).save().then(() => {
+                    CSSStyleDeclaration.prototype.getPropertyValue = originalGetPropertyValue; // Restauration
                     btns.forEach((b, i) => {
                         b.innerHTML = originalTexts[i];
                         b.disabled = false;
                     });
                     sheet.setAttribute('contenteditable', 'true');
                     if (hadWatermark) sheet.classList.add('watermark-draft');
-                }, 1000);
+                }).catch((err) => {
+                    CSSStyleDeclaration.prototype.getPropertyValue = originalGetPropertyValue; // Restauration
+                    console.error("Erreur export PDF:", err);
+                    Toast.error("Une erreur est survenue lors de la création du PDF. Veuillez réessayer.");
+                    btns.forEach((b, i) => {
+                        b.innerHTML = originalTexts[i];
+                        b.disabled = false;
+                    });
+                    sheet.setAttribute('contenteditable', 'true');
+                    if (hadWatermark) sheet.classList.add('watermark-draft');
+                });
             }, 800);
         };
 document.addEventListener('DOMContentLoaded', async () => {
