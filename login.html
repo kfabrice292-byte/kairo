@@ -45,7 +45,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="ph ph-envelope-simple text-slate-400 text-lg"></i>
                         </div>
-                        <input type="email" id="email" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all" placeholder="jean.dupont@email.com" required>
+                        <input type="email" id="email" autocomplete="username" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all" placeholder="jean.dupont@email.com" required>
                     </div>
                 </div>
 
@@ -58,7 +58,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="ph ph-lock text-slate-400 text-lg"></i>
                         </div>
-                        <input type="password" id="password" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all" placeholder="••••••••" required>
+                        <input type="password" id="password" autocomplete="current-password" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all" placeholder="••••••••" required>
                     </div>
                 </div>
 
@@ -86,6 +86,7 @@
 
     <script type="module">
         import API from './assets/js/api.js';
+        import Toast from './assets/js/toast.js';
         
         document.addEventListener('DOMContentLoaded', async () => {
             const user = await API.getCurrentUser();
@@ -106,7 +107,7 @@
                     await API.login(email, password);
                     window.location.href = 'dashboard.html';
                 } catch (error) {
-                    alert(error.message);
+                    Toast.error(error.message);
                     btn.disabled = false;
                     btn.innerHTML = 'Se connecter <i class="ph-bold ph-sign-in"></i>';
                 }
@@ -120,7 +121,7 @@
                     await API.loginWithGoogle();
                     window.location.href = 'dashboard.html';
                 } catch (error) {
-                    alert(error.message);
+                    Toast.error(error.message);
                     btn.disabled = false;
                     btn.innerHTML = '<img src="https://www.google.com/favicon.ico" class="w-5 h-5" alt="Google"> Continuer avec Google';
                 }

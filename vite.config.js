@@ -20,7 +20,15 @@ export default defineConfig({
         letter: resolve(__dirname, 'letter.html'),
         opportunities: resolve(__dirname, 'opportunities.html'),
         admin: resolve(__dirname, 'admin.html')
+      },
+      output: {
+        manualChunks(id) {
+          if (id.includes('firebase')) {
+            return 'firebase';
+          }
+        }
       }
-    }
+    },
+    chunkSizeWarningLimit: 800
   }
 });

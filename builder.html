@@ -311,6 +311,7 @@
         import API from './assets/js/api.js';
         import AI from './assets/js/ai.js';
         import { TemplatesHTML } from './assets/js/templates_html.js';
+        import Toast from './assets/js/toast.js';
         
         // Global variables
         window.selectedTemplateId = 'modern-photo';
@@ -396,7 +397,8 @@
                 const improvedText = await AI.enhanceText(text);
                 document.execCommand('insertText', false, improvedText);
             } catch(e) {
-                alert("Erreur de l'IA : " + e.message);
+                console.error(e);
+                Toast.error("Erreur de l'IA : " + e.message);
             } finally {
                 btn.innerHTML = originalIcon;
                 btn.disabled = false;
@@ -427,7 +429,7 @@
                             const generatedHTML = await AI.generateDocument(window._lastFormData || {}, 'CV', userProfile, window._lastFileContent || '', TemplatesHTML[themeName]);
                             document.getElementById('documentContainer').innerHTML = generatedHTML;
                         } catch (error) {
-                            alert("Erreur lors de la génération: " + error.message);
+                            Toast.error("Erreur lors de la génération: " + error.message);
                         } finally {
                             loadingOverlay.classList.add('view-hidden');
                         }
@@ -468,13 +470,16 @@
             }
         });
 
-                window.initAshtechPayment = async (e) => {
+        window.initAshtechPayment = async (e) => {
             e.preventDefault();
-            const phone = document.getElementById('payPhone').value;
+            const phone = document.getElementById('payPhone').value.trim();
             const operator = document.getElementById('payOperator').value;
             const country = document.getElementById('payCountry').value;
             
-            if (!phone) return alert("Veuillez entrer votre numéro.");
+            if (!phone) {
+                Toast.warning("Veuillez entrer votre numéro.");
+                return;
+            }
             
             const btn = document.getElementById('paySubmitBtn');
             btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Initialisation...';
@@ -510,9 +515,13 @@
                 if (res.status === 202) {
                     document.getElementById('paywallStep1').classList.add('hidden');
                     document.getElementById('paywallStep2').classList.remove('hidden');
-                    // On écoute Firebase via onSnapshot dans le vrai code pour déclencher le téléchargement
+                    if (data.status === 'success') {
+                        // Logic handled in callback or url redirect
+                    } else {
+                        Toast.error("Erreur: " + data.message);
+                    }
                 } else {
-                    alert("Erreur: " + data.message);
+                    Toast.error("Erreur: " + data.message);
                     btn.innerHTML = 'Payer 550 FCFA';
                     btn.disabled = false;
                 }
@@ -579,7 +588,7 @@
                     if (hadWatermark) sheet.classList.add('watermark-draft');
                 }).catch((err) => {
                     console.error("Erreur export PDF:", err);
-                    alert("Une erreur est survenue lors de la création du PDF. Veuillez réessayer.");
+                    Toast.error("Une erreur est survenue lors de la création du PDF. Veuillez réessayer.");
                     btns.forEach((b, i) => {
                         b.innerHTML = originalTexts[i];
                         b.disabled = false;
@@ -609,7 +618,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     user.hasPaid = true;
                     // Nettoyer l'URL
                     window.history.replaceState({}, '', `builder.html?docId=${window.currentDocId}`);
-                    setTimeout(() => alert("🎉 Paiement Ashtechpay réussi ! Vous pouvez télécharger vos CV en illimité."), 500);
+                    setTimeout(() => Toast.success("🎉 Paiement Ashtechpay réussi ! Vous pouvez télécharger vos CV en illimité."), 500);
                 } catch(e) {
                     console.error("Erreur de déblocage premium");
                 }
