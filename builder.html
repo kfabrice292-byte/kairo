@@ -208,15 +208,25 @@
                     <button onclick="enhanceSelection()" id="enhanceBtn" class="toolbar-btn magic" title="Améliorer avec l'IA"><i class="ph-fill ph-magic-wand"></i></button>
                 </div>
 
-                <!-- Loading -->
-                <div id="loadingOverlay" class="absolute inset-0 bg-slate-200/90 backdrop-blur-sm z-30 flex flex-col items-center justify-center view-hidden">
-                    <div class="relative w-24 h-24 mb-6">
-                        <div class="absolute inset-0 border-4 border-slate-300 rounded-full"></div>
-                        <div class="absolute inset-0 border-4 border-[#F97316] rounded-full border-t-transparent animate-spin"></div>
-                        <i class="ph-fill ph-magic-wand text-3xl text-[#F97316] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
+                <!-- Premium Loading -->
+                <div id="loadingOverlay" class="absolute inset-0 bg-white/60 backdrop-blur-xl z-30 flex flex-col items-center justify-center view-hidden transition-all duration-500">
+                    <div class="relative w-32 h-32 mb-8 flex items-center justify-center">
+                        <div class="absolute inset-0 bg-gradient-to-r from-[#F97316] to-[#3B82F6] rounded-full blur-xl opacity-40 animate-pulse"></div>
+                        <div class="absolute inset-2 bg-white rounded-full flex items-center justify-center border-4 border-slate-50 shadow-inner z-10">
+                            <i class="ph-fill ph-magic-wand text-4xl text-transparent bg-clip-text bg-gradient-to-r from-[#F97316] to-[#FBBF24] animate-pulse"></i>
+                        </div>
+                        <svg class="absolute inset-0 w-full h-full z-20 animate-[spin_2s_linear_infinite]" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="48" fill="none" stroke="url(#spinnerGradient)" stroke-width="4" stroke-dasharray="150" stroke-linecap="round"></circle>
+                            <defs>
+                                <linearGradient id="spinnerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#F97316" />
+                                    <stop offset="100%" stop-color="#3B82F6" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
                     </div>
-                    <h3 class="text-2xl font-bold text-slate-800 mb-2 font-outfit">L'IA rédige votre document...</h3>
-                    <p class="text-slate-500 font-medium text-lg text-center max-w-md">Mise en page des expériences et alignement du design.</p>
+                    <h3 class="text-3xl font-extrabold text-slate-800 mb-3 font-outfit tracking-tight">Création de la magie...</h3>
+                    <p class="text-slate-500 font-medium text-lg text-center max-w-sm">Notre IA analyse votre profil et bâtit le design parfait.</p>
                 </div>
 
                 <!-- Mobile Navigation Tabs (Hidden on Desktop) -->

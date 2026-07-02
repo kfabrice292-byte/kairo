@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "597307613597",
+    "project_id": "kairo-522c2",
+    "storage_bucket": "kairo-522c2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:597307613597:android:7debd4d0bf1cbaa98e8f74",
+        "android_client_info": {
+          "package_name": "com.genio.kairo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "597307613597-6hnl9le24jvv8h9mank3jf7ul2c5oltq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdVK9zAdqkjqaH0XvfSlT-Rp9yWc5Fne0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "597307613597-6hnl9le24jvv8h9mank3jf7ul2c5oltq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
