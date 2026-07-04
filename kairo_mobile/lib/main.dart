@@ -8,6 +8,10 @@ import 'core/providers/auth_provider.dart';
 import 'core/providers/feed_provider.dart';
 import 'core/providers/opportunity_provider.dart';
 import 'core/providers/project_provider.dart';
+import 'core/providers/community_provider.dart';
+import 'core/providers/chat_provider.dart';
+import 'core/providers/notification_provider.dart';
+import 'core/providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +24,10 @@ void main() async {
         ChangeNotifierProvider(create: (_) => FeedProvider()),
         ChangeNotifierProvider(create: (_) => OpportunityProvider()),
         ChangeNotifierProvider(create: (_) => ProjectProvider()),
+        ChangeNotifierProvider(create: (_) => CommunityProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: const KairoApp(),
     ),
@@ -31,10 +39,14 @@ class KairoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    
     return MaterialApp.router(
       title: 'Kaïro',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeProvider.themeMode,
       routerConfig: appRouter,
     );
   }

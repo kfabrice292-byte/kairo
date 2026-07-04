@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/post_model.dart';
+import '../models/comment_model.dart';
 
 class FeedProvider extends ChangeNotifier {
   List<PostModel> _posts = [];
@@ -46,6 +47,7 @@ class FeedProvider extends ChangeNotifier {
         final post = PostModel.fromFirestore(doc);
         if (currentUserId != null) {
           post.isLiked = post.likedBy.contains(currentUserId);
+          post.isSaved = post.savedBy.contains(currentUserId);
         }
         return post;
       }).toList();
@@ -82,6 +84,20 @@ class FeedProvider extends ChangeNotifier {
               ? FieldValue.arrayRemove([userId]) 
               : FieldValue.arrayUnion([userId]),
         });
+
+        // Add Notification
+        if (!isCurrentlyLiked && post.authorId != userId) {
+          final currentUser = FirebaseAuth.instance.currentUser;
+          await FirebaseFirestore.instance.collection('notifications').add({
+            'userId': post.authorId,
+            'title': 'Nouveau j\'aime',
+            'body': '${currentUser?.displayName ?? "Quelqu'un"} a aimé votre publication.',
+            'type': 'post',
+            'isRead': false,
+            'createdAt': FieldValue.serverTimestamp(),
+            'relatedId': postId,
+          });
+        }
       } catch (e) {
         debugPrint('Error toggling like: $e');
         // Revert optimistic update
@@ -90,6 +106,44 @@ class FeedProvider extends ChangeNotifier {
           post.likedBy.add(userId);
         } else {
           post.likedBy.remove(userId);
+        }
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> toggleSave(String postId) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+
+    final postIndex = _posts.indexWhere((p) => p.id == postId);
+    if (postIndex != -1) {
+      final post = _posts[postIndex];
+      final isCurrentlySaved = post.savedBy.contains(userId);
+
+      // Optimistic update
+      post.isSaved = !isCurrentlySaved;
+      if (isCurrentlySaved) {
+        post.savedBy.remove(userId);
+      } else {
+        post.savedBy.add(userId);
+      }
+      notifyListeners();
+      
+      try {
+        await FirebaseFirestore.instance.collection('posts').doc(postId).update({
+          'savedBy': isCurrentlySaved 
+              ? FieldValue.arrayRemove([userId]) 
+              : FieldValue.arrayUnion([userId]),
+        });
+      } catch (e) {
+        debugPrint('Error toggling save: $e');
+        // Revert optimistic update
+        post.isSaved = isCurrentlySaved;
+        if (isCurrentlySaved) {
+          post.savedBy.add(userId);
+        } else {
+          post.savedBy.remove(userId);
         }
         notifyListeners();
       }
@@ -118,10 +172,36 @@ class FeedProvider extends ChangeNotifier {
       await FirebaseFirestore.instance.collection('posts').doc(postId).update({
         'comments': FieldValue.increment(1),
       });
+
+      // Add Notification
+      final postDoc = await FirebaseFirestore.instance.collection('posts').doc(postId).get();
+      final postAuthorId = postDoc.data()?['authorId'] as String?;
+      if (postAuthorId != null && postAuthorId != user.uid) {
+        await FirebaseFirestore.instance.collection('notifications').add({
+          'userId': postAuthorId,
+          'title': 'Nouveau commentaire',
+          'body': '${user.displayName ?? "Quelqu'un"} a commenté votre publication.',
+          'type': 'post',
+          'isRead': false,
+          'createdAt': FieldValue.serverTimestamp(),
+          'relatedId': postId,
+        });
+      }
     } catch (e) {
       debugPrint('Error adding comment: $e');
       rethrow;
     }
+  }
+
+  Stream<List<CommentModel>> getComments(String postId) {
+    return FirebaseFirestore.instance
+        .collection('posts')
+        .doc(postId)
+        .collection('comments')
+        .orderBy('createdAt', descending: false)
+        .snapshots()
+        .map((snapshot) => 
+            snapshot.docs.map((doc) => CommentModel.fromFirestore(doc)).toList());
   }
 
   Future<void> addPost(String content, {List<File>? images, bool isStylized = false, int styleIndex = 0}) async {

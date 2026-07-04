@@ -58,6 +58,32 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _handleForgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      _showError("Veuillez saisir votre adresse email pour réinitialiser le mot de passe.");
+      return;
+    }
+
+    final auth = context.read<AuthProvider>();
+    final error = await auth.resetPassword(email);
+    
+    if (mounted) {
+      if (error == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Email de réinitialisation envoyé.", style: TextStyle(fontWeight: FontWeight.w500)),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      } else {
+        _showError(error);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<AuthProvider>().isLoading;
@@ -114,12 +140,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   prefixIcon: PhosphorIcons.lockKey(),
                   obscureText: true,
                 ),
-                const SizedBox(height: 32),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _handleForgotPassword,
+                    child: const Text(
+                      'Mot de passe oublié ?',
+                      style: TextStyle(
+                        color: Color(0xFFF97316),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: isLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF97316),
-                    disabledBackgroundColor: const Color(0xFFF97316).withOpacity(0.6),
+                    disabledBackgroundColor: const Color(0xFFF97316).withValues(alpha: 0.6),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     elevation: 0,
@@ -165,7 +205,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
                 OutlinedButton.icon(
                   onPressed: isLoading ? null : _handleGoogleSignIn,
-                  icon: Icon(PhosphorIcons.googleLogo(), color: Colors.black87, size: 24),
+                  icon: Image.network(
+                    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/120px-Google_%22G%22_logo.svg.png',
+                    height: 20,
+                  ),
                   label: const Text(
                     'Continuer avec Google',
                     style: TextStyle(

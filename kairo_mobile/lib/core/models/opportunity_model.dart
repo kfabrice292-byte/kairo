@@ -8,6 +8,7 @@ class OpportunityModel {
   final String type; // Stage, Emploi, Bourse, Concours
   final String description;
   final String postedBy; // User ID of the student who posted
+  final List<String> applicants; // IDs of users who applied
   final DateTime createdAt;
 
   OpportunityModel({
@@ -18,6 +19,7 @@ class OpportunityModel {
     required this.type,
     required this.description,
     required this.postedBy,
+    this.applicants = const [],
     required this.createdAt,
   });
 
@@ -31,6 +33,7 @@ class OpportunityModel {
       type: data['type'] ?? 'Stage',
       description: data['description'] ?? '',
       postedBy: data['postedBy'] ?? 'Admin',
+      applicants: List<String>.from(data['applicants'] ?? []),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
@@ -43,6 +46,7 @@ class OpportunityModel {
       'type': type,
       'description': description,
       'postedBy': postedBy,
+      'applicants': applicants,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }

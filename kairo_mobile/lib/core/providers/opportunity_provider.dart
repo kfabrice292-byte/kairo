@@ -39,4 +39,13 @@ class OpportunityProvider extends ChangeNotifier {
     
     await FirebaseFirestore.instance.collection('opportunities').add(opp.toMap());
   }
+
+  Future<void> applyToOpportunity(String oppId) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+
+    await FirebaseFirestore.instance.collection('opportunities').doc(oppId).update({
+      'applicants': FieldValue.arrayUnion([userId])
+    });
+  }
 }

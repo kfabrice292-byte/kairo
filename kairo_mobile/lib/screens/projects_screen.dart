@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../core/providers/project_provider.dart';
 import '../core/models/project_model.dart';
 import '../core/providers/auth_provider.dart';
-import '../widgets/kairo_text_field.dart';
 
 class ProjectsScreen extends StatelessWidget {
   const ProjectsScreen({super.key});
@@ -49,17 +49,9 @@ class ProjectsScreen extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) => const _CreateProjectDialog(),
-          );
-        },
-        backgroundColor: const Color(0xFFF97316),
-        icon: Icon(PhosphorIcons.plus(), color: Colors.white),
-        label: const Text('Lancer un projet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-      ),
+      // Le FAB universel de MainScaffold permet déjà de créer un projet, 
+      // mais on peut laisser un raccourci ici ou le retirer. 
+      // Puisque l'utilisateur a son FAB universel, on retire celui-ci.
     );
   }
 }
@@ -71,6 +63,11 @@ class _ProjectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUserId = context.read<AuthProvider>().userModel?.uid;
+    final isFounder = currentUserId == project.founderId;
+    final isMember = project.members.contains(currentUserId);
+    final hasRequested = project.joinRequests.contains(currentUserId);
+
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 16),
@@ -107,9 +104,20 @@ class _ProjectCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              'Par ${project.founderName}',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w500),
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 12,
+                  backgroundColor: Colors.grey.shade200,
+                  backgroundImage: project.founderPhoto.isNotEmpty ? NetworkImage(project.founderPhoto) : null,
+                  child: project.founderPhoto.isEmpty ? const Icon(Icons.person, size: 12, color: Colors.grey) : null,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  project.founderName,
+                  style: TextStyle(color: Colors.grey.shade700, fontSize: 13, fontWeight: FontWeight.w500),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             Text(
@@ -118,32 +126,86 @@ class _ProjectCard extends StatelessWidget {
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
+            if (project.goals.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text('Objectifs :', style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 4),
+              Text(project.goals, style: const TextStyle(fontSize: 13)),
+            ],
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Icon(PhosphorIcons.users(), size: 16, color: Colors.grey.shade500),
+                const SizedBox(width: 6),
+                Text('${project.members.length} / ${project.maxParticipants} membres', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
+                if (project.estimatedDuration.isNotEmpty) ...[
+                  const SizedBox(width: 16),
+                  Icon(PhosphorIcons.hourglass(), size: 16, color: Colors.grey.shade500),
+                  const SizedBox(width: 6),
+                  Text(project.estimatedDuration, style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
+                ]
+              ],
+            ),
             const SizedBox(height: 20),
-            if (project.seekingRoles.isNotEmpty) ...[
+            if (project.skillsRequired.isNotEmpty) ...[
               Text(
-                'Profils recherchés :',
+                'Compétences recherchées :',
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: project.seekingRoles.map((role) => _RoleBadge(role: role)).toList(),
+                children: project.skillsRequired.map((role) => _RoleBadge(role: role)).toList(),
               ),
               const SizedBox(height: 20),
             ],
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () {},
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  side: const BorderSide(color: Color(0xFFF97316)),
-                  foregroundColor: const Color(0xFFF97316),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      context.push('/chat_detail', extra: {
+                        'userId': project.founderId,
+                        'userName': project.founderName,
+                      });
+                    },
+                    icon: Icon(PhosphorIcons.chatCircleText(), size: 18),
+                    label: const Text('Contacter'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      side: BorderSide(color: Colors.grey.shade300),
+                      foregroundColor: Colors.black87,
+                    ),
+                  ),
                 ),
-                child: const Text('Voir le projet', style: TextStyle(fontWeight: FontWeight.w600)),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: isFounder || isMember || hasRequested
+                        ? null
+                        : () async {
+                            await context.read<ProjectProvider>().requestToJoin(project.id);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Demande envoyée !'), backgroundColor: Colors.green),
+                            );
+                          },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: const Color(0xFFF97316),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      disabledBackgroundColor: Colors.grey.shade200,
+                      disabledForegroundColor: Colors.grey.shade500,
+                    ),
+                    child: Text(
+                      isFounder ? 'Mon projet' : (isMember ? 'Membre' : (hasRequested ? 'En attente' : 'Rejoindre')),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -169,122 +231,6 @@ class _RoleBadge extends StatelessWidget {
       child: Text(
         role,
         style: TextStyle(color: Colors.blue.shade700, fontSize: 12, fontWeight: FontWeight.w500),
-      ),
-    );
-  }
-}
-
-class _CreateProjectDialog extends StatefulWidget {
-  const _CreateProjectDialog();
-
-  @override
-  State<_CreateProjectDialog> createState() => _CreateProjectDialogState();
-}
-
-class _CreateProjectDialogState extends State<_CreateProjectDialog> {
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _rolesController = TextEditingController();
-  bool _isPublishing = false;
-
-  Future<void> _publish() async {
-    if (_titleController.text.isEmpty || _descriptionController.text.isEmpty) return;
-
-    setState(() => _isPublishing = true);
-
-    try {
-      final user = Provider.of<AuthProvider>(context, listen: false).userData;
-      final founderName = user?['name'] ?? 'Utilisateur';
-
-      final roles = _rolesController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-
-      final project = ProjectModel(
-        id: '',
-        title: _titleController.text,
-        description: _descriptionController.text,
-        founderId: 'temp_id', // Replaced by server ideally
-        founderName: founderName,
-        isOpen: true,
-        seekingRoles: roles,
-        createdAt: DateTime.now(),
-      );
-
-      await context.read<ProjectProvider>().addProject(project);
-
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Projet lancé avec succès !'), backgroundColor: Colors.green),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isPublishing = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      insetPadding: const EdgeInsets.all(16),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Lancer un projet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              KairoTextField(
-                controller: _titleController,
-                hintText: 'Titre du projet',
-                prefixIcon: PhosphorIcons.rocketLaunch(),
-              ),
-              const SizedBox(height: 12),
-              KairoTextField(
-                controller: _descriptionController,
-                hintText: 'Description (Quelle est votre idée ?)',
-                prefixIcon: PhosphorIcons.textAa(),
-                maxLines: 4,
-              ),
-              const SizedBox(height: 12),
-              KairoTextField(
-                controller: _rolesController,
-                hintText: 'Profils (ex: Développeur, Designer)',
-                prefixIcon: PhosphorIcons.users(),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _isPublishing ? null : _publish,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF97316),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: _isPublishing 
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text('Lancer', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

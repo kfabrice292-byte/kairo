@@ -58,6 +58,9 @@ class _OpportunityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final hasApplied = currentUserId != null && op.applicants.contains(currentUserId);
+
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 16),
@@ -113,14 +116,33 @@ class _OpportunityCard extends StatelessWidget {
                   ),
                   child: Text(op.type, style: TextStyle(color: Colors.grey.shade700, fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
-                TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFFF97316),
-                    textStyle: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  child: const Text('Postuler'),
-                ),
+                hasApplied
+                    ? Row(
+                        children: [
+                          Icon(PhosphorIcons.checkCircle(PhosphorIconsStyle.fill), color: Colors.green, size: 18),
+                          const SizedBox(width: 6),
+                          const Text('Candidature envoyée', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600)),
+                        ],
+                      )
+                    : TextButton.icon(
+                        onPressed: () async {
+                          await context.read<OpportunityProvider>().applyToOpportunity(op.id);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Candidature envoyée avec votre Profil Kaïro ! 🎉'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+                        },
+                        icon: Icon(PhosphorIcons.paperPlaneRight(), size: 18),
+                        label: const Text('Postuler (One-Click)'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFFF97316),
+                          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
               ],
             ),
           ],

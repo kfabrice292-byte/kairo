@@ -16,6 +16,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _acceptedTerms = false;
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -31,6 +32,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _handleRegister() async {
     if (_nameController.text.trim().isEmpty || _emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
       _showError("Veuillez remplir tous les champs.");
+      return;
+    }
+
+    if (!_acceptedTerms) {
+      _showError("Vous devez accepter les conditions et la politique de confidentialité.");
       return;
     }
 
@@ -128,12 +134,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   prefixIcon: PhosphorIcons.lockKey(),
                   obscureText: true,
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: Checkbox(
+                        value: _acceptedTerms,
+                        activeColor: const Color(0xFFF97316),
+                        onChanged: (val) {
+                          setState(() {
+                            _acceptedTerms = val ?? false;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _acceptedTerms = !_acceptedTerms;
+                          });
+                        },
+                        child: Text(
+                          "J'accepte les conditions d'utilisation et la politique de confidentialité.",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: isLoading ? null : _handleRegister,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF97316),
-                    disabledBackgroundColor: const Color(0xFFF97316).withOpacity(0.6),
+                    disabledBackgroundColor: const Color(0xFFF97316).withValues(alpha: 0.6),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     elevation: 0,
@@ -179,7 +221,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 24),
                 OutlinedButton.icon(
                   onPressed: isLoading ? null : _handleGoogleSignIn,
-                  icon: Icon(PhosphorIcons.googleLogo(), color: Colors.black87, size: 24),
+                  icon: Image.network(
+                    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/120px-Google_%22G%22_logo.svg.png',
+                    height: 20,
+                  ),
                   label: const Text(
                     'S\'inscrire avec Google',
                     style: TextStyle(

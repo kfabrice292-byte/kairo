@@ -7,7 +7,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../core/providers/feed_provider.dart';
 import '../core/models/post_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../core/models/comment_model.dart';
+import '../core/providers/community_provider.dart';
+import '../core/providers/notification_provider.dart';
+import 'community/community_detail_screen.dart';
+import 'community/community_discovery_screen.dart';
+import 'community/create_community_screen.dart';
+import 'notifications/notifications_screen.dart';
+import 'profile/public_profile_screen.dart';
 
 class FeedScreen extends StatelessWidget {
   const FeedScreen({super.key});
@@ -18,16 +25,44 @@ class FeedScreen extends StatelessWidget {
       appBar: AppBar(
         title: Image.asset('assets/images/logo.png', height: 32),
         actions: [
+          Stack(
+            children: [
+              IconButton(
+                icon: Icon(PhosphorIcons.bell()),
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsScreen()));
+                },
+              ),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Consumer<NotificationProvider>(
+                  builder: (context, provider, child) {
+                    if (provider.unreadCount == 0) return const SizedBox.shrink();
+                    return Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                      child: Text(
+                        '${provider.unreadCount}',
+                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
           IconButton(
-            icon: Icon(PhosphorIcons.bell()),
+            icon: Icon(PhosphorIcons.users()),
+            tooltip: 'Réseau & Membres',
             onPressed: () {
-              context.push('/notifications');
+              context.push('/search');
             },
           ),
           IconButton(
-            icon: Icon(PhosphorIcons.magnifyingGlass()),
+            icon: Icon(PhosphorIcons.paperPlaneRight()),
             onPressed: () {
-              context.push('/search');
+              context.push('/chat_list');
             },
           ),
         ],
@@ -50,7 +85,7 @@ class FeedScreen extends StatelessWidget {
         onPressed: () {
           showDialog(
             context: context,
-            builder: (context) => const _CreatePostDialog(),
+            builder: (context) => const CreatePostModal(),
           );
         },
         child: Icon(PhosphorIcons.pencilSimple()),
@@ -58,83 +93,131 @@ class FeedScreen extends StatelessWidget {
     );
   }
   Widget _buildCommunities(BuildContext context) {
-    final communities = [
-      {'name': 'Développeurs Flutter', 'icon': PhosphorIcons.code(PhosphorIconsStyle.fill), 'color': Colors.blue},
-      {'name': 'Designers UI/UX', 'icon': PhosphorIcons.palette(PhosphorIconsStyle.fill), 'color': Colors.pink},
-      {'name': 'Entrepreneurs Tech', 'icon': PhosphorIcons.rocket(PhosphorIconsStyle.fill), 'color': Colors.orange},
-    ];
+    final provider = context.watch<CommunityProvider>();
+    final communities = provider.communities;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Text(
-            'Communautés recommandées',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-          ),
-        ),
-        SizedBox(
-          height: 140,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: communities.length,
-            itemBuilder: (context, index) {
-              final comm = communities[index];
-              return Container(
-                width: 160,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
-                  ],
+    if (provider.isLoading) {
+      return const SizedBox(height: 140, child: Center(child: CircularProgressIndicator()));
+    }
+
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Communautés',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: (comm['color'] as Color).withOpacity(0.1),
-                        shape: BoxShape.circle,
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const CommunityDiscoveryScreen()));
+                  },
+                  child: const Text(
+                    'Voir tout',
+                    style: TextStyle(fontSize: 14, color: Color(0xFFF97316), fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 100,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: communities.length + 1,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  // Bouton "Créer"
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateCommunityScreen()));
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 64,
+                            height: 64,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.grey.shade300, width: 1.5, style: BorderStyle.solid),
+                            ),
+                            child: const Icon(Icons.add, color: Colors.grey, size: 28),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text('Créer', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey)),
+                        ],
                       ),
-                      child: Icon(comm['icon'] as IconData, color: comm['color'] as Color, size: 24),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      comm['name'] as String,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                      maxLines: 2,
-                    ),
-                    const SizedBox(height: 8),
-                    InkWell(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Demande envoyée à ${comm['name']}')),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF97316),
-                          borderRadius: BorderRadius.circular(20),
+                  );
+                }
+
+                final comm = communities[index - 1];
+                final color = Color(int.tryParse(comm.colorHex, radix: 16) ?? 0xFF3B82F6);
+                
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CommunityDetailScreen(community: comm),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [color.withValues(alpha: 0.7), color],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4)),
+                            ],
+                            border: comm.members.contains(FirebaseAuth.instance.currentUser?.uid) 
+                                ? Border.all(color: const Color(0xFFF97316), width: 2) 
+                                : null,
+                          ),
+                          child: const Icon(Icons.people, color: Colors.white, size: 28),
                         ),
-                        child: const Text('Rejoindre', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                      ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: 70,
+                          child: Text(
+                            comm.name,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              );
-            },
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -189,7 +272,7 @@ class PostCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -200,34 +283,40 @@ class PostCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundImage: post.authorAvatar.isNotEmpty 
-                      ? NetworkImage(post.authorAvatar) 
-                      : null,
-                  backgroundColor: Colors.grey.shade200,
-                  child: post.authorAvatar.isEmpty 
-                      ? const Icon(Icons.person, color: Colors.grey)
-                      : null,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        post.authorName,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                      Text(
-                        post.authorRole,
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                      ),
-                    ],
+            GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (context) => PublicProfileScreen(userId: post.authorId),
+                ));
+              },
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundImage: post.authorAvatar.isNotEmpty 
+                        ? NetworkImage(post.authorAvatar) 
+                        : null,
+                    backgroundColor: Colors.grey.shade200,
+                    child: post.authorAvatar.isEmpty 
+                        ? const Icon(Icons.person, color: Colors.grey)
+                        : null,
                   ),
-                ),
-                if (FirebaseAuth.instance.currentUser?.uid == post.authorId)
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          post.authorName,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        Text(
+                          post.authorRole,
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (FirebaseAuth.instance.currentUser?.uid == post.authorId)
                   PopupMenuButton<String>(
                     icon: Icon(PhosphorIcons.dotsThree(), color: Colors.grey.shade600),
                     onSelected: (value) {
@@ -261,7 +350,8 @@ class PostCard extends StatelessWidget {
                       ),
                     ],
                   ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 12),
             contentWidget,
@@ -317,6 +407,12 @@ class PostCard extends StatelessWidget {
                     );
                   },
                 ),
+                _InteractionButton(
+                  icon: PhosphorIcons.bookmarkSimple(post.isSaved ? PhosphorIconsStyle.fill : PhosphorIconsStyle.regular),
+                  iconColor: post.isSaved ? const Color(0xFF1E293B) : Colors.grey.shade600,
+                  count: '',
+                  onTap: () => context.read<FeedProvider>().toggleSave(post.id),
+                ),
               ],
             ),
           ],
@@ -371,7 +467,20 @@ class _CommentsSheet extends StatefulWidget {
 
 class _CommentsSheetState extends State<_CommentsSheet> {
   final _commentController = TextEditingController();
+  final _focusNode = FocusNode();
   bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _replyTo(String authorName) {
+    _commentController.text = '@$authorName ';
+    _focusNode.requestFocus();
+  }
 
   Future<void> _submitComment() async {
     if (_commentController.text.trim().isEmpty) return;
@@ -420,18 +529,13 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           const Text('Commentaires', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           const Divider(height: 32),
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('posts')
-                  .doc(widget.postId)
-                  .collection('comments')
-                  .orderBy('createdAt', descending: false)
-                  .snapshots(),
+            child: StreamBuilder<List<CommentModel>>(
+              stream: context.read<FeedProvider>().getComments(widget.postId),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator(color: Color(0xFFF97316)));
                 }
-                final comments = snapshot.data!.docs;
+                final comments = snapshot.data!;
                 if (comments.isEmpty) {
                   return Center(
                     child: Text('Soyez le premier à commenter !', 
@@ -444,14 +548,23 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                   itemCount: comments.length,
                   separatorBuilder: (context, index) => const SizedBox(height: 16),
                   itemBuilder: (context, index) {
-                    final data = comments[index].data() as Map<String, dynamic>;
-                    final avatar = data['authorAvatar'] ?? 'https://ui-avatars.com/api/?name=${data['authorName'] ?? 'U'}';
+                    final comment = comments[index];
+                    final avatar = comment.authorAvatar.isNotEmpty 
+                        ? comment.authorAvatar 
+                        : 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(comment.authorName)}';
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          radius: 16,
-                          backgroundImage: NetworkImage(avatar),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(context, MaterialPageRoute(
+                              builder: (context) => PublicProfileScreen(userId: comment.authorId),
+                            ));
+                          },
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundImage: NetworkImage(avatar),
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -464,14 +577,33 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  data['authorName'] ?? 'Utilisateur',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(context, MaterialPageRoute(
+                                      builder: (context) => PublicProfileScreen(userId: comment.authorId),
+                                    ));
+                                  },
+                                  child: Text(
+                                    comment.authorName,
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  data['content'] ?? '',
+                                  comment.content,
                                   style: const TextStyle(fontSize: 14),
+                                ),
+                                const SizedBox(height: 4),
+                                GestureDetector(
+                                  onTap: () => _replyTo(comment.authorName),
+                                  child: const Text(
+                                    'Répondre',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFFF97316),
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
@@ -488,7 +620,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
             ),
             child: Row(
               children: [
@@ -500,6 +632,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                 Expanded(
                   child: TextField(
                     controller: _commentController,
+                    focusNode: _focusNode,
                     decoration: InputDecoration(
                       hintText: 'Ajouter un commentaire...',
                       hintStyle: TextStyle(color: Colors.grey.shade500),
@@ -528,17 +661,17 @@ class _CommentsSheetState extends State<_CommentsSheet> {
   }
 }
 
-class _CreatePostDialog extends StatefulWidget {
-  const _CreatePostDialog();
+class CreatePostModal extends StatefulWidget {
+  const CreatePostModal({super.key});
 
   @override
-  State<_CreatePostDialog> createState() => _CreatePostDialogState();
+  State<CreatePostModal> createState() => _CreatePostModalState();
 }
 
-class _CreatePostDialogState extends State<_CreatePostDialog> {
+class _CreatePostModalState extends State<CreatePostModal> {
   final _controller = TextEditingController();
   final ImagePicker _picker = ImagePicker();
-  List<File> _selectedImages = [];
+  final List<File> _selectedImages = [];
   bool _isPublishing = false;
   bool _isStylized = false;
   int _styleIndex = 0;
@@ -613,7 +746,7 @@ class _CreatePostDialogState extends State<_CreatePostDialog> {
                   label: const Text('Texte Simple'),
                   selected: !_isStylized,
                   onSelected: (val) => setState(() => _isStylized = false),
-                  selectedColor: const Color(0xFFF97316).withOpacity(0.1),
+                  selectedColor: const Color(0xFFF97316).withValues(alpha: 0.1),
                   labelStyle: TextStyle(color: !_isStylized ? const Color(0xFFF97316) : Colors.grey.shade600, fontWeight: FontWeight.bold),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide.none),
                   backgroundColor: Colors.grey.shade100,
@@ -623,7 +756,7 @@ class _CreatePostDialogState extends State<_CreatePostDialog> {
                   label: const Text('Carte Stylisée ✨'),
                   selected: _isStylized,
                   onSelected: (val) => setState(() => _isStylized = true),
-                  selectedColor: const Color(0xFFF97316).withOpacity(0.1),
+                  selectedColor: const Color(0xFFF97316).withValues(alpha: 0.1),
                   labelStyle: TextStyle(color: _isStylized ? const Color(0xFFF97316) : Colors.grey.shade600, fontWeight: FontWeight.bold),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide.none),
                   backgroundColor: Colors.grey.shade100,
@@ -647,7 +780,7 @@ class _CreatePostDialogState extends State<_CreatePostDialog> {
                             ? Border.all(color: Colors.white, width: 2)
                             : null,
                         boxShadow: _styleIndex == index
-                            ? [BoxShadow(color: gradients[index][0].withOpacity(0.5), blurRadius: 8)]
+                            ? [BoxShadow(color: gradients[index][0].withValues(alpha: 0.5), blurRadius: 8)]
                             : null,
                       ),
                     ),

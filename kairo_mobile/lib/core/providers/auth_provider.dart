@@ -3,14 +3,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/user_model.dart';
+
 class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   Map<String, dynamic>? _userData;
+  UserModel? _userModel;
 
   bool get isAuthenticated => FirebaseAuth.instance.currentUser != null;
   bool get isLoading => _isLoading;
   User? get currentUser => FirebaseAuth.instance.currentUser;
   Map<String, dynamic>? get userData => _userData;
+  UserModel? get userModel => _userModel;
 
   AuthProvider() {
     _initAuthListener();
@@ -32,13 +36,16 @@ class AuthProvider extends ChangeNotifier {
       final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
       if (doc.exists) {
         _userData = doc.data();
+        _userModel = UserModel.fromFirestore(doc);
       } else {
         _userData = {'name': currentUser?.displayName ?? 'Utilisateur', 'email': currentUser?.email};
+        _userModel = null;
       }
       notifyListeners();
     } catch (e) {
       debugPrint("Error fetching user data: $e");
       _userData = {'name': currentUser?.displayName ?? 'Utilisateur', 'email': currentUser?.email};
+      _userModel = null;
       notifyListeners();
     }
   }
@@ -205,8 +212,161 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> sendNetworkRequest(String otherUserId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || user.uid == otherUserId) return;
+
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+
+      final myRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      batch.update(myRef, {
+        'sentRequests': FieldValue.arrayUnion([otherUserId])
+      });
+
+      final otherRef = FirebaseFirestore.instance.collection('users').doc(otherUserId);
+      batch.update(otherRef, {
+        'receivedRequests': FieldValue.arrayUnion([user.uid])
+      });
+
+      final notifRef = FirebaseFirestore.instance.collection('notifications').doc();
+      batch.set(notifRef, {
+        'userId': otherUserId,
+        'title': 'Invitation reçue',
+        'body': '${_userModel?.name ?? "Quelqu'un"} souhaite vous ajouter à son réseau.',
+        'type': 'network',
+        'isRead': false,
+        'createdAt': FieldValue.serverTimestamp(),
+        'relatedId': user.uid,
+      });
+
+      await batch.commit();
+      await fetchUserData(user.uid);
+    } catch (e) {
+      debugPrint('Error sending network request: $e');
+    }
+  }
+
+  Future<void> acceptNetworkRequest(String otherUserId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || user.uid == otherUserId) return;
+
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+
+      final myRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      batch.update(myRef, {
+        'receivedRequests': FieldValue.arrayRemove([otherUserId]),
+        'connections': FieldValue.arrayUnion([otherUserId])
+      });
+
+      final otherRef = FirebaseFirestore.instance.collection('users').doc(otherUserId);
+      batch.update(otherRef, {
+        'sentRequests': FieldValue.arrayRemove([user.uid]),
+        'connections': FieldValue.arrayUnion([user.uid])
+      });
+
+      final notifRef = FirebaseFirestore.instance.collection('notifications').doc();
+      batch.set(notifRef, {
+        'userId': otherUserId,
+        'title': 'Invitation acceptée',
+        'body': '${_userModel?.name ?? "Quelqu'un"} a accepté votre invitation.',
+        'type': 'network_accepted',
+        'isRead': false,
+        'createdAt': FieldValue.serverTimestamp(),
+        'relatedId': user.uid,
+      });
+
+      await batch.commit();
+      await fetchUserData(user.uid);
+    } catch (e) {
+      debugPrint('Error accepting network request: $e');
+    }
+  }
+
+  Future<void> cancelOrRejectNetworkRequest(String otherUserId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || user.uid == otherUserId) return;
+
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+
+      final myRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      batch.update(myRef, {
+        'sentRequests': FieldValue.arrayRemove([otherUserId]),
+        'receivedRequests': FieldValue.arrayRemove([otherUserId])
+      });
+
+      final otherRef = FirebaseFirestore.instance.collection('users').doc(otherUserId);
+      batch.update(otherRef, {
+        'receivedRequests': FieldValue.arrayRemove([user.uid]),
+        'sentRequests': FieldValue.arrayRemove([user.uid])
+      });
+
+      await batch.commit();
+      await fetchUserData(user.uid);
+    } catch (e) {
+      debugPrint('Error cancelling network request: $e');
+    }
+  }
+
   Future<void> logout() async {
     await FirebaseAuth.instance.signOut();
     notifyListeners();
+  }
+
+  Future<String?> resetPassword(String email) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      return null;
+    } on FirebaseAuthException catch (e) {
+      return _getFirebaseErrorMessage(e);
+    } catch (e) {
+      return "Une erreur inattendue est survenue.";
+    }
+  }
+
+  Future<String?> changePassword(String currentPassword, String newPassword) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return "Utilisateur non connecté.";
+      
+      // Re-authenticate
+      final cred = EmailAuthProvider.credential(email: user.email!, password: currentPassword);
+      await user.reauthenticateWithCredential(cred);
+      
+      // Update password
+      await user.updatePassword(newPassword);
+      return null;
+    } on FirebaseAuthException catch (e) {
+      return _getFirebaseErrorMessage(e);
+    } catch (e) {
+      return "Une erreur inattendue est survenue.";
+    }
+  }
+
+  Future<String?> deleteAccount() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return "Utilisateur non connecté.";
+
+      // Delete from Firestore
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
+      
+      // Delete from Auth
+      await user.delete();
+      
+      _userData = null;
+      _userModel = null;
+      notifyListeners();
+      return null;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        return "Veuillez vous reconnecter avant de supprimer votre compte.";
+      }
+      return _getFirebaseErrorMessage(e);
+    } catch (e) {
+      return "Erreur lors de la suppression du compte.";
+    }
   }
 }

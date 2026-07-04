@@ -1,61 +1,46 @@
 import 'dart:io';
-import 'dart:ui';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../core/providers/auth_provider.dart';
+import '../core/models/user_model.dart';
+import '../core/utils/portfolio_generator.dart';
+import 'profile/cv_edit_screen.dart';
+import 'settings/settings_screen.dart';
 import '../widgets/kairo_text_field.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  Future<void> _launchCVBuilder() async {
-    final Uri url = Uri.parse('https://kairo-app.web.app/builder.html');
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      debugPrint('Could not launch $url');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final userData = auth.userData;
+    final user = auth.userModel;
     
-    if (userData == null) {
+    if (user == null) {
       return const Center(child: CircularProgressIndicator(color: Color(0xFFF97316)));
     }
 
-    final name = userData['name'] ?? 'Utilisateur';
-    final email = userData['email'] ?? auth.currentUser?.email ?? '';
-    final photoURL = userData['photoURL'] ?? 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(name)}&background=F97316&color=fff';
-    
-    final university = userData['university'] as String? ?? '';
-    final fieldOfStudy = userData['fieldOfStudy'] as String? ?? '';
-    final level = userData['level'] as String? ?? '';
-    final country = userData['country'] as String? ?? '';
-    final skills = List<String>.from(userData['skills'] ?? []);
-    final interests = List<String>.from(userData['interests'] ?? []);
+    final name = user.name.isNotEmpty ? user.name : 'Utilisateur';
+    final photoURL = user.photoURL.isNotEmpty ? user.photoURL : 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(name)}&background=F97316&color=fff';
+
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Profil', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
+        backgroundColor: theme.appBarTheme.backgroundColor,
+        foregroundColor: theme.appBarTheme.foregroundColor,
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(PhosphorIcons.signOut()),
-            onPressed: () async {
-              await auth.logout();
-              if (context.mounted) {
-                context.go('/login');
-              }
+            icon: Icon(PhosphorIcons.gear()),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
             },
           ),
         ],
@@ -67,433 +52,329 @@ class ProfileScreen extends StatelessWidget {
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               decoration: BoxDecoration(
+                color: theme.cardColor,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFF97316).withOpacity(0.15),
-                    blurRadius: 24,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Stack(
-                  children: [
-                    // Arrière-plan animé / complexe
-                    Container(
-                      height: 340,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF0F172A), Color(0xFF1E1B4B)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: -40,
-                      right: -40,
-                      child: Container(
-                        width: 160,
-                        height: 160,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFFF97316).withOpacity(0.5),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: -50,
-                      left: -20,
-                      child: Container(
-                        width: 200,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFF8B5CF6).withOpacity(0.4),
-                        ),
-                      ),
-                    ),
-                    Positioned.fill(
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
-                            border: Border.all(color: Colors.white.withOpacity(0.1), width: 1.5),
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Contenu principal
-                    Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => _EditProfileDialog(userData: userData),
-                              );
-                            },
-                    child: Stack(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [Color(0xFFF97316), Color(0xFFFB923C)],
-                            ),
-                          ),
-                          child: CircleAvatar(
-                            radius: 46,
-                            backgroundImage: NetworkImage(photoURL),
-                            backgroundColor: Colors.grey.shade800,
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF97316),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFF1E293B), width: 3),
-                            ),
-                            child: const Icon(Icons.edit, size: 14, color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    fieldOfStudy.isEmpty 
-                      ? 'Complétez votre profil' 
-                      : '$fieldOfStudy${level.isNotEmpty ? " • $level" : ""}',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey.shade400,
-                      fontStyle: fieldOfStudy.isEmpty ? FontStyle.italic : FontStyle.normal,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      if (university.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(PhosphorIcons.bank(PhosphorIconsStyle.fill), size: 14, color: Colors.grey.shade300),
-                              const SizedBox(width: 6),
-                              Text(university, style: TextStyle(fontSize: 12, color: Colors.grey.shade300)),
-                            ],
-                          ),
-                        ),
-                      if (country.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(PhosphorIcons.mapPin(PhosphorIconsStyle.fill), size: 14, color: Colors.grey.shade300),
-                              const SizedBox(width: 6),
-                              Text(country, style: TextStyle(fontSize: 12, color: Colors.grey.shade300)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => _EditProfileDialog(userData: userData),
-                    );
-                  },
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    side: BorderSide(color: Colors.grey.shade300),
-                    foregroundColor: Colors.black87,
-                  ),
-                  child: const Text('Éditer mon profil', style: TextStyle(fontWeight: FontWeight.w600)),
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 12),
-            
-            if (skills.isNotEmpty)
-              _ProfileSection(
-                title: 'Compétences',
-                icon: PhosphorIcons.lightning(),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: skills.map((s) => _Badge(text: s, isSkill: true)).toList(),
-                ),
-              )
-            else
-              _ProfileSection(
-                title: 'Compétences',
-                icon: PhosphorIcons.lightning(),
-                child: Text('Aucune compétence ajoutée. Éditez votre profil pour en rajouter.', style: TextStyle(color: Colors.grey.shade500, fontStyle: FontStyle.italic)),
-              ),
-
-            if (interests.isNotEmpty)
-              _ProfileSection(
-                title: 'Centres d\'intérêt',
-                icon: PhosphorIcons.heart(),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: interests.map((i) => _Badge(text: i, isSkill: false)).toList(),
-                ),
-              )
-            else
-              _ProfileSection(
-                title: 'Centres d\'intérêt',
-                icon: PhosphorIcons.heart(),
-                child: Text('Aucun centre d\'intérêt ajouté.', style: TextStyle(color: Colors.grey.shade500, fontStyle: FontStyle.italic)),
-              ),
-
-            const SizedBox(height: 12),
-
-            // Kaïro Studio CV Builder Banner
-            Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFF97316), Color(0xFFFBBF24)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFF97316).withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
                 ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.topCenter,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
+                  // Banner (Couverture)
+                  Container(
+                    height: 110,
+                    decoration: BoxDecoration(
+                      gradient: user.coverPhoto.isEmpty ? const LinearGradient(
+                        colors: [Color(0xFFF97316), Color(0xFFFB923C)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ) : null,
+                      image: user.coverPhoto.isNotEmpty ? DecorationImage(
+                        image: NetworkImage(user.coverPhoto),
+                        fit: BoxFit.cover,
+                      ) : null,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24),
+                      ),
+                    ),
+                  ),
+                  // Contenu principal (Avatar + Infos)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 60, left: 24, right: 24, bottom: 24),
+                    child: Column(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => _EditProfileDialog(user: user),
+                            );
+                          },
+                          child: Stack(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                ),
+                                child: CircleAvatar(
+                                  radius: 46,
+                                  backgroundImage: NetworkImage(photoURL),
+                                  backgroundColor: Colors.grey.shade200,
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 4,
+                                right: 4,
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF97316),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2),
+                                  ),
+                                  child: const Icon(Icons.edit, size: 14, color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        child: Icon(PhosphorIcons.magicWand(), color: Colors.white),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'Kaïro Studio',
-                        style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Crée ton CV premium généré par IA et décroche ton prochain stage !',
-                    style: TextStyle(color: Colors.white, fontSize: 14, height: 1.5),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _launchCVBuilder,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFFF97316),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
-                      ),
-                      child: const Text('Créer mon CV', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 16),
+                        Text(
+                          name,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: theme.textTheme.bodyLarge?.color,
+                            letterSpacing: -0.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        if (user.professionalTitle.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              user.professionalTitle,
+                              style: const TextStyle(fontSize: 16, color: Color(0xFFF97316), fontWeight: FontWeight.w600),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        const SizedBox(height: 4),
+                        Text(
+                          user.fieldOfStudy.isEmpty 
+                            ? 'Complétez votre profil' 
+                            : '${user.fieldOfStudy}${user.studyLevel.isNotEmpty ? ' • ${user.studyLevel}' : ''}',
+                          style: TextStyle(fontSize: 14, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          user.city.isEmpty && user.country.isEmpty
+                              ? 'Localisation non renseignée'
+                              : '${user.city}, ${user.country}',
+                          style: TextStyle(fontSize: 14, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        const SizedBox(height: 24),
+                        
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () {
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => CVEditScreen(user: user)));
+                                },
+                                icon: Icon(PhosphorIcons.fileText(), size: 18),
+                                label: const Text('Générer CV'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: theme.textTheme.bodyLarge?.color,
+                                  side: BorderSide(color: theme.dividerColor),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () {
+                                  PortfolioGenerator.generatePortfolio(user);
+                                },
+                                icon: Icon(PhosphorIcons.briefcase(), size: 18),
+                                label: const Text('Portfolio'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: theme.textTheme.bodyLarge?.color,
+                                  side: BorderSide(color: theme.dividerColor),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 24),
+                        if (user.bio.isNotEmpty)
+                          _buildSection('À propos', [
+                            Text(user.bio, style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8), height: 1.5, fontSize: 15)),
+                          ], theme),
+                          
+                        if (user.skills.isNotEmpty)
+                          _buildSection('Compétences', [
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: user.skills.map((skill) => Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF97316).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: const Color(0xFFF97316).withValues(alpha: 0.2)),
+                                ),
+                                child: Text(skill, style: const TextStyle(color: Color(0xFFF97316), fontWeight: FontWeight.w600, fontSize: 13)),
+                              )).toList(),
+                            )
+                          ], theme),
+
+                        if (user.experiences.isNotEmpty)
+                          _buildSection('Expériences', user.experiences.map((exp) => _buildExperienceCard(exp, theme)).toList(), theme),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 32),
           ],
         ),
       ),
     );
   }
-}
+  Widget _buildSection(String title, List<Widget> children, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: theme.textTheme.bodyLarge?.color, letterSpacing: -0.3)),
+          const SizedBox(height: 12),
+          ...children,
+        ],
+      ),
+    );
+  }
 
-class _ProfileSection extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final Widget child;
-
-  const _ProfileSection({required this.title, required this.icon, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildExperienceCard(Experience exp, ThemeData theme) {
     return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.all(24),
       margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.dividerColor),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 22, color: Colors.black87),
-              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  exp.title, 
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: theme.textTheme.bodyLarge?.color),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
               Text(
-                title,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                exp.period, 
+                style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5), fontSize: 12),
+                textAlign: TextAlign.right,
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          child,
+          const SizedBox(height: 4),
+          Text(exp.organization, style: TextStyle(color: theme.textTheme.bodyLarge?.color, fontWeight: FontWeight.w500, fontSize: 14)),
+          if (exp.description.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              exp.description, 
+              style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7), height: 1.4, fontSize: 13),
+              softWrap: true,
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
-class _Badge extends StatelessWidget {
-  final String text;
-  final bool isSkill;
-
-  const _Badge({required this.text, required this.isSkill});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSkill ? Colors.orange.shade50 : Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: isSkill ? Colors.orange.shade100 : Colors.grey.shade200),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: isSkill ? Colors.orange.shade800 : Colors.grey.shade700,
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-}
-
 class _EditProfileDialog extends StatefulWidget {
-  final Map<String, dynamic> userData;
-  const _EditProfileDialog({required this.userData});
+  final UserModel user;
+  const _EditProfileDialog({required this.user});
 
-  @override
+@override
   State<_EditProfileDialog> createState() => _EditProfileDialogState();
 }
 
 class _EditProfileDialogState extends State<_EditProfileDialog> {
-  late TextEditingController _nameController;
-  late TextEditingController _fieldController;
-  late TextEditingController _universityController;
-  late TextEditingController _countryController;
-  late TextEditingController _skillsController;
-  late TextEditingController _interestsController;
+  final _nameController = TextEditingController();
+  final _titleController = TextEditingController();
+  final _bioController = TextEditingController();
+  final _fieldController = TextEditingController();
+  final _levelController = TextEditingController();
+  final _universityController = TextEditingController();
+  final _countryController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _skillsController = TextEditingController();
+  
+  File? _newImage;
+  File? _newCoverImage;
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.userData['name']);
-    _fieldController = TextEditingController(text: widget.userData['fieldOfStudy']);
-    _universityController = TextEditingController(text: widget.userData['university']);
-    _countryController = TextEditingController(text: widget.userData['country']);
-    
-    final skills = widget.userData['skills'] as List<dynamic>?;
-    _skillsController = TextEditingController(text: skills?.join(', '));
-    
-    final interests = widget.userData['interests'] as List<dynamic>?;
-    _interestsController = TextEditingController(text: interests?.join(', '));
+    _nameController.text = widget.user.name;
+    _titleController.text = widget.user.professionalTitle;
+    _bioController.text = widget.user.bio;
+    _fieldController.text = widget.user.fieldOfStudy;
+    _levelController.text = widget.user.studyLevel;
+    _universityController.text = widget.user.university;
+    _countryController.text = widget.user.country;
+    _cityController.text = widget.user.city;
+    _skillsController.text = widget.user.skills.join(', ');
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _titleController.dispose();
+    _bioController.dispose();
     _fieldController.dispose();
+    _levelController.dispose();
     _universityController.dispose();
     _countryController.dispose();
+    _cityController.dispose();
     _skillsController.dispose();
-    _interestsController.dispose();
     super.dispose();
   }
 
-  File? _newImage;
-  final ImagePicker _picker = ImagePicker();
-
-  Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
+  Future<void> _pickImage({bool isCover = false}) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
       setState(() {
-        _newImage = File(image.path);
+        if (isCover) {
+          _newCoverImage = File(pickedFile.path);
+        } else {
+          _newImage = File(pickedFile.path);
+        }
       });
     }
   }
 
   Future<void> _save() async {
     setState(() => _isLoading = true);
-    
+
     String? photoUrl;
-    if (_newImage != null) {
+    String? coverUrl;
+    
+    Future<String?> uploadToImgBB(File imageFile) async {
       try {
-        final bytes = await _newImage!.readAsBytes();
+        final bytes = await imageFile.readAsBytes();
         final base64Image = base64Encode(bytes);
         
         final response = await http.post(
@@ -506,26 +387,38 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
         
         if (response.statusCode == 200) {
           final jsonResponse = jsonDecode(response.body);
-          photoUrl = jsonResponse['data']['display_url'];
-        } else {
-          debugPrint('ImgBB API Error: ${response.body}');
+          return jsonResponse['data']['display_url'];
         }
       } catch (e) {
         debugPrint('Error uploading image to ImgBB: $e');
       }
+      return null;
+    }
+
+    if (_newImage != null) {
+      photoUrl = await uploadToImgBB(_newImage!);
+    }
+    if (_newCoverImage != null) {
+      coverUrl = await uploadToImgBB(_newCoverImage!);
     }
 
     final updateData = {
-      'name': _nameController.text,
-      'fieldOfStudy': _fieldController.text,
+      'name': _nameController.text.trim(),
+      'professionalTitle': _titleController.text.trim(),
+      'bio': _bioController.text.trim(),
+      'fieldOfStudy': _fieldController.text.trim(),
+      'studyLevel': _levelController.text.trim(),
       'university': _universityController.text.trim(),
       'country': _countryController.text.trim(),
+      'city': _cityController.text.trim(),
       'skills': _skillsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
-      'interests': _interestsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
     };
 
     if (photoUrl != null) {
       updateData['photoURL'] = photoUrl;
+    }
+    if (coverUrl != null) {
+      updateData['coverPhoto'] = coverUrl;
     }
 
     try {
@@ -533,7 +426,7 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profil mis à jour avec succès !'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Profil mis à jour !'), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
@@ -570,80 +463,94 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
               ),
               const SizedBox(height: 16),
               Center(
-                child: GestureDetector(
-                  onTap: _pickImage,
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundColor: Colors.grey.shade200,
-                        backgroundImage: _newImage != null 
-                            ? FileImage(_newImage!) as ImageProvider
-                            : (widget.userData['photoURL'] != null ? NetworkImage(widget.userData['photoURL']) : null),
-                        child: _newImage == null && widget.userData['photoURL'] == null
-                            ? const Icon(Icons.person, size: 40, color: Colors.grey)
-                            : null,
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFF97316),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.camera_alt, size: 14, color: Colors.white),
+                child: Column(
+                  children: [
+                    // Cover photo preview
+                    GestureDetector(
+                      onTap: () => _pickImage(isCover: true),
+                      child: Container(
+                        height: 100,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(12),
+                          image: _newCoverImage != null 
+                              ? DecorationImage(image: FileImage(_newCoverImage!), fit: BoxFit.cover)
+                              : (widget.user.coverPhoto.isNotEmpty ? DecorationImage(image: NetworkImage(widget.user.coverPhoto), fit: BoxFit.cover) : null),
                         ),
+                        child: _newCoverImage == null && widget.user.coverPhoto.isEmpty
+                            ? const Center(child: Icon(Icons.add_a_photo, color: Colors.grey))
+                            : const Align(alignment: Alignment.bottomRight, child: Padding(padding: EdgeInsets.all(8.0), child: Icon(Icons.edit, color: Colors.white, shadows: [Shadow(color: Colors.black, blurRadius: 4)]))),
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: () => _pickImage(isCover: false),
+                      child: Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 40,
+                            backgroundColor: Colors.grey.shade200,
+                            backgroundImage: _newImage != null 
+                                ? FileImage(_newImage!) as ImageProvider
+                                : (widget.user.photoURL.isNotEmpty ? NetworkImage(widget.user.photoURL) : null),
+                            child: _newImage == null && widget.user.photoURL.isEmpty
+                                ? const Icon(Icons.person, size: 40, color: Colors.grey)
+                                : null,
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(color: Color(0xFFF97316), shape: BoxShape.circle),
+                              child: const Icon(Icons.camera_alt, size: 14, color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
-              KairoTextField(
-                controller: _nameController,
-                hintText: 'Nom Complet',
-                prefixIcon: PhosphorIcons.user(),
-              ),
+              const Text("Informations de base", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+              const SizedBox(height: 8),
+              KairoTextField(controller: _nameController, hintText: 'Nom Complet', prefixIcon: PhosphorIcons.user()),
               const SizedBox(height: 12),
-              KairoTextField(
-                controller: _fieldController,
-                hintText: 'Filière d\'études',
-                prefixIcon: PhosphorIcons.student(),
-              ),
+              KairoTextField(controller: _titleController, hintText: 'Titre professionnel (ex: Développeur Flutter)', prefixIcon: PhosphorIcons.briefcase()),
               const SizedBox(height: 12),
-              KairoTextField(
-                controller: _universityController,
-                hintText: 'Université / École',
-                prefixIcon: PhosphorIcons.bank(),
-              ),
+              KairoTextField(controller: _bioController, hintText: 'Bio rapide...', prefixIcon: PhosphorIcons.textAa()),
+              const SizedBox(height: 24),
+              
+              const Text("Études & Localisation", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+              const SizedBox(height: 8),
+              KairoTextField(controller: _fieldController, hintText: 'Filière d\'études', prefixIcon: PhosphorIcons.student()),
               const SizedBox(height: 12),
-              KairoTextField(
-                controller: _countryController,
-                hintText: 'Pays de résidence',
-                prefixIcon: PhosphorIcons.mapPin(),
-              ),
+              KairoTextField(controller: _levelController, hintText: 'Niveau (ex: Bac+3, Master)', prefixIcon: PhosphorIcons.certificate()),
               const SizedBox(height: 12),
-              KairoTextField(
-                controller: _skillsController,
-                hintText: 'Compétences (séparées par une virgule)',
-                prefixIcon: PhosphorIcons.lightning(),
-              ),
+              KairoTextField(controller: _universityController, hintText: 'Université / École', prefixIcon: PhosphorIcons.bank()),
               const SizedBox(height: 12),
-              KairoTextField(
-                controller: _interestsController,
-                hintText: 'Centres d\'intérêt (séparés par une virgule)',
-                prefixIcon: PhosphorIcons.heart(),
+              Row(
+                children: [
+                  Expanded(child: KairoTextField(controller: _cityController, hintText: 'Ville', prefixIcon: PhosphorIcons.buildings())),
+                  const SizedBox(width: 8),
+                  Expanded(child: KairoTextField(controller: _countryController, hintText: 'Pays', prefixIcon: PhosphorIcons.mapPin())),
+                ],
               ),
               const SizedBox(height: 24),
+
+              const Text("Compétences", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+              const SizedBox(height: 8),
+              KairoTextField(controller: _skillsController, hintText: 'Séparées par des virgules...', prefixIcon: PhosphorIcons.lightning()),
+              
+              const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _isLoading ? null : _save,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFF97316),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 0,
                 ),
                 child: _isLoading
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))

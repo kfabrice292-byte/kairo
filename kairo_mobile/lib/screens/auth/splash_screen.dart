@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/providers/auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -11,70 +12,72 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
+  late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
-    );
     
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
+    _fadeController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeIn),
     );
 
-    _animationController.forward();
-    _checkAuth();
+    _startSequence();
+  }
+
+  Future<void> _startSequence() async {
+    await _fadeController.forward();
+    await Future.delayed(const Duration(milliseconds: 1500));
+    _checkInitialRoute();
+  }
+
+  Future<void> _checkInitialRoute() async {
+    if (!mounted) return;
+    
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
+    
+    if (!mounted) return;
+    
+    if (!hasSeenOnboarding) {
+      context.go('/onboarding');
+    } else {
+      final authProvider = context.read<AuthProvider>();
+      if (authProvider.isAuthenticated) {
+        context.go('/main');
+      } else {
+        context.go('/login');
+      }
+    }
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _fadeController.dispose();
     super.dispose();
-  }
-
-  Future<void> _checkAuth() async {
-    await Future.delayed(const Duration(seconds: 3));
-    if (!mounted) return;
-    
-    final authProvider = context.read<AuthProvider>();
-    if (authProvider.isAuthenticated) {
-      context.go('/main');
-    } else {
-      context.go('/login');
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
-          child: ScaleTransition(
-            scale: _scaleAnimation,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/images/logo.png',
-                  width: 150,
-                  errorBuilder: (context, error, stackTrace) => 
-                      const Icon(Icons.school, size: 80, color: Color(0xFFF97316)),
+          child: Image.asset(
+            'assets/images/logo.png',
+            width: 150,
+            errorBuilder: (context, error, stackTrace) => 
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF97316).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(height: 60),
-                const CircularProgressIndicator(color: Color(0xFFF97316)),
-              ],
-            ),
+                child: const Icon(Icons.school, size: 80, color: Color(0xFFF97316)),
+              ),
           ),
         ),
       ),

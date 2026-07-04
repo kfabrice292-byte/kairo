@@ -39,4 +39,26 @@ class ProjectProvider extends ChangeNotifier {
     
     await FirebaseFirestore.instance.collection('projects').add(project.toMap());
   }
+
+  Future<void> requestToJoin(String projectId) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+
+    await FirebaseFirestore.instance.collection('projects').doc(projectId).update({
+      'joinRequests': FieldValue.arrayUnion([userId])
+    });
+  }
+
+  Future<void> acceptJoinRequest(String projectId, String userId) async {
+    await FirebaseFirestore.instance.collection('projects').doc(projectId).update({
+      'joinRequests': FieldValue.arrayRemove([userId]),
+      'members': FieldValue.arrayUnion([userId]),
+    });
+  }
+
+  Future<void> refuseJoinRequest(String projectId, String userId) async {
+    await FirebaseFirestore.instance.collection('projects').doc(projectId).update({
+      'joinRequests': FieldValue.arrayRemove([userId]),
+    });
+  }
 }
