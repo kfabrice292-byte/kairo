@@ -9,6 +9,8 @@ class OpportunityModel {
   final String description;
   final String postedBy; // User ID of the student who posted
   final List<String> applicants; // IDs of users who applied
+  final List<String> mandatorySkills;
+  final String status;
   final DateTime createdAt;
 
   OpportunityModel({
@@ -20,6 +22,8 @@ class OpportunityModel {
     required this.description,
     required this.postedBy,
     this.applicants = const [],
+    this.mandatorySkills = const [],
+    this.status = 'ouvert',
     required this.createdAt,
   });
 
@@ -34,6 +38,8 @@ class OpportunityModel {
       description: data['description'] ?? '',
       postedBy: data['postedBy'] ?? 'Admin',
       applicants: List<String>.from(data['applicants'] ?? []),
+      mandatorySkills: List<String>.from(data['mandatorySkills'] ?? []),
+      status: data['status'] ?? 'ouvert',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
