@@ -12,6 +12,7 @@ export interface PipelineItem {
   status: 'new' | 'screening' | 'interview' | 'offer' | 'hired' | 'rejected';
   addedAt: Date;
   matchScore?: number;
+  answers?: { question: string; answer: string }[];
 }
 
 interface PipelineColumns {
@@ -132,7 +133,8 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
             candidate: data.candidate,
             status: data.status,
             addedAt: data.addedAt?.toDate() || new Date(),
-            matchScore: calculateScore(jobData, data.candidate)
+            matchScore: calculateScore(jobData, data.candidate),
+            answers: data.answers || []
           });
         });
 

@@ -8,13 +8,15 @@ import { CandidateProfileModal } from "../components/CandidateProfileModal";
 import type { TalentProfile } from "../store/useTalentStore";
 import { ArrowLeft } from "lucide-react";
 
+import type { PipelineItem } from "../store/usePipelineStore";
+
 export function Pipeline() {
   const [searchParams] = useSearchParams();
   const jobId = searchParams.get('jobId');
   const navigate = useNavigate();
   
   const { data, setActiveJob, moveItem } = usePipelineStore();
-  const [selectedTalent, setSelectedTalent] = useState<TalentProfile | null>(null);
+  const [selectedItem, setSelectedItem] = useState<PipelineItem | null>(null);
 
   useEffect(() => {
     if (jobId) {
@@ -97,7 +99,7 @@ export function Pipeline() {
                                 <CandidateCard 
                                   talent={item.candidate} 
                                   matchScore={item.matchScore}
-                                  onClick={() => setSelectedTalent(item.candidate)} 
+                                  onClick={() => setSelectedItem(item)} 
                                 />
                               </div>
                             )}
@@ -114,10 +116,11 @@ export function Pipeline() {
         </DragDropContext>
       </div>
 
-      {selectedTalent && (
+      {selectedItem && (
         <CandidateProfileModal 
-          talent={selectedTalent} 
-          onClose={() => setSelectedTalent(null)} 
+          talent={selectedItem.candidate} 
+          application={selectedItem}
+          onClose={() => setSelectedItem(null)} 
         />
       )}
     </div>

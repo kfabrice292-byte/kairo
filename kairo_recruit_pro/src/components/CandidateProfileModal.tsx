@@ -6,10 +6,11 @@ import { useState, useEffect } from "react";
 
 interface CandidateProfileModalProps {
   talent: TalentProfile | null;
+  application?: any; // To avoid circular dependency if we import PipelineItem, or we can just import it
   onClose: () => void;
 }
 
-export function CandidateProfileModal({ talent, onClose }: CandidateProfileModalProps) {
+export function CandidateProfileModal({ talent, application, onClose }: CandidateProfileModalProps) {
   const { jobs, fetchJobs } = useJobStore();
   const { addCandidateToPipeline } = usePipelineStore();
   
@@ -134,6 +135,20 @@ export function CandidateProfileModal({ talent, onClose }: CandidateProfileModal
                       <span key={index} className="px-3 py-1 bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light rounded-lg text-sm font-medium border border-primary/20">
                         {skill}
                       </span>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {application && application.answers && application.answers.length > 0 && (
+                <section>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3">Réponses aux questions</h3>
+                  <div className="space-y-4">
+                    {application.answers.map((item: any, index: number) => (
+                      <div key={index} className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">{item.question}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">{item.answer}</p>
+                      </div>
                     ))}
                   </div>
                 </section>

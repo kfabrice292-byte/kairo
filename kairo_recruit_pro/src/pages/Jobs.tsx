@@ -82,14 +82,18 @@ export function Jobs() {
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 truncate">{job.title}</h3>
               <p className="text-sm font-medium text-slate-500 mb-4 truncate">{job.company}</p>
               
-              <div className="space-y-2 mb-6">
+              <div className="space-y-2 mb-4">
                 <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
                   <MapPin className="w-4 h-4 mr-2 opacity-70" />
-                  {job.location}
+                  {job.location} • {job.remoteWork}
                 </div>
                 <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
                   <Briefcase className="w-4 h-4 mr-2 opacity-70" />
-                  {job.type} • {job.educationLevel} • {job.minExperience} an(s)
+                  {job.type} • {job.workTime} • {job.numberOfPositions} poste(s)
+                </div>
+                <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
+                  <Users className="w-4 h-4 mr-2 opacity-70" />
+                  {job.educationLevel} • {job.minExperience > 0 ? `${job.minExperience} an(s) min.` : 'Débutant accepté'}
                 </div>
                 {job.salaryRange && (
                   <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
@@ -99,7 +103,8 @@ export function Jobs() {
                 )}
                 <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
                   <Calendar className="w-4 h-4 mr-2 opacity-70" />
-                  Publié le {new Date(job.createdAt).toLocaleDateString()}
+                  Publié le {new Date(job.createdAt).toLocaleDateString()} 
+                  {job.closeDate && ` • Clôture : ${new Date(job.closeDate).toLocaleDateString()}`}
                 </div>
               </div>
 
