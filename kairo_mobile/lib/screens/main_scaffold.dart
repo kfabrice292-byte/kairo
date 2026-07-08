@@ -6,6 +6,7 @@ import 'projects_screen.dart';
 import 'profile_screen.dart';
 import 'publish/add_experience_dialog.dart';
 import 'publish/add_project_dialog.dart';
+import 'package:kairo_mobile/core/theme/app_colors.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -62,7 +63,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         onPressed: () {
           _showPublishModal(context);
         },
-        backgroundColor: const Color(0xFFF97316),
+        backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -87,8 +88,8 @@ class _MainScaffoldState extends State<MainScaffold> {
             _buildPublishOption(
               context,
               icon: PhosphorIcons.article(),
-              title: 'Un post',
-              subtitle: 'Partager une idée ou une actualité',
+              title: 'Un partage d\'expérience',
+              subtitle: 'Partager une réussite, une difficulté ou un conseil',
               onTap: () {
                 Navigator.pop(context);
                 showDialog(
@@ -101,8 +102,8 @@ class _MainScaffoldState extends State<MainScaffold> {
             _buildPublishOption(
               context,
               icon: PhosphorIcons.briefcase(),
-              title: 'Une expérience',
-              subtitle: 'Enrichir votre parcours professionnel',
+              title: 'Une expérience pro',
+              subtitle: 'Enrichir votre parcours professionnel (CV)',
               onTap: () {
                 Navigator.pop(context);
                 showDialog(
@@ -116,7 +117,8 @@ class _MainScaffoldState extends State<MainScaffold> {
               context,
               icon: PhosphorIcons.rocketLaunch(),
               title: 'Un projet',
-              subtitle: 'Présenter une réalisation ou chercher des collaborateurs',
+              subtitle:
+                  'Présenter une réalisation ou chercher des collaborateurs',
               onTap: () {
                 Navigator.pop(context);
                 showDialog(
@@ -152,18 +154,27 @@ class _MainScaffoldState extends State<MainScaffold> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF97316).withValues(alpha: 0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: const Color(0xFFF97316)),
+              child: Icon(icon, color: AppColors.primary),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text(subtitle, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  ),
                 ],
               ),
             ),

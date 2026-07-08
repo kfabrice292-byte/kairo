@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../widgets/kairo_text_field.dart';
+import 'package:kairo_mobile/core/theme/app_colors.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -21,7 +22,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(fontWeight: FontWeight.w500)),
+        content: Text(
+          message,
+          style: const TextStyle(fontWeight: FontWeight.w500),
+        ),
         backgroundColor: Colors.redAccent,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -30,19 +34,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
-    if (_nameController.text.trim().isEmpty || _emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+    if (_nameController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty) {
       _showError("Veuillez remplir tous les champs.");
       return;
     }
 
     if (!_acceptedTerms) {
-      _showError("Vous devez accepter les conditions et la politique de confidentialité.");
+      _showError(
+        "Vous devez accepter les conditions et la politique de confidentialité.",
+      );
       return;
     }
 
     final auth = context.read<AuthProvider>();
-    final error = await auth.register(_nameController.text.trim(), _emailController.text.trim(), _passwordController.text.trim());
-    
+    final error = await auth.register(
+      _nameController.text.trim(),
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
+
     if (mounted) {
       if (error == null) {
         context.go('/main');
@@ -55,7 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _handleGoogleSignIn() async {
     final auth = context.read<AuthProvider>();
     final error = await auth.signInWithGoogle();
-    
+
     if (mounted) {
       if (error == null) {
         context.go('/main');
@@ -82,7 +94,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 10.0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -90,8 +105,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Image.asset(
                     'assets/images/logo.png',
                     height: 60,
-                    errorBuilder: (context, error, stackTrace) => 
-                        const Icon(Icons.school, size: 48, color: Color(0xFFF97316)),
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.school,
+                      size: 48,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -143,7 +161,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       width: 24,
                       child: Checkbox(
                         value: _acceptedTerms,
-                        activeColor: const Color(0xFFF97316),
+                        activeColor: AppColors.primary,
                         onChanged: (val) {
                           setState(() {
                             _acceptedTerms = val ?? false;
@@ -174,8 +192,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ElevatedButton(
                   onPressed: isLoading ? null : _handleRegister,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF97316),
-                    disabledBackgroundColor: const Color(0xFFF97316).withValues(alpha: 0.6),
+                    backgroundColor: AppColors.primary,
+                    disabledBackgroundColor: AppColors.primary.withValues(
+                      alpha: 0.6,
+                    ),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     elevation: 0,
@@ -249,12 +269,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     Text(
                       'Déjà membre ?',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 15,
+                      ),
                     ),
                     TextButton(
                       onPressed: () => context.pop(),
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFFF97316),
+                        foregroundColor: AppColors.primary,
                         textStyle: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,

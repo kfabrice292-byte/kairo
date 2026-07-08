@@ -19,12 +19,17 @@ class CommunityProvider extends ChangeNotifier {
         .collection('communities')
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .listen((snapshot) {
-      _communities = snapshot.docs.map((doc) => CommunityModel.fromFirestore(doc)).toList();
-      notifyListeners();
-    }, onError: (error) {
-      debugPrint('Error listening to communities: $error');
-    });
+        .listen(
+          (snapshot) {
+            _communities = snapshot.docs
+                .map((doc) => CommunityModel.fromFirestore(doc))
+                .toList();
+            notifyListeners();
+          },
+          onError: (error) {
+            debugPrint('Error listening to communities: $error');
+          },
+        );
   }
 
   Future<void> joinCommunity(String communityId) async {
@@ -32,10 +37,13 @@ class CommunityProvider extends ChangeNotifier {
     if (userId == null) return;
 
     try {
-      await FirebaseFirestore.instance.collection('communities').doc(communityId).update({
-        'members': FieldValue.arrayUnion([userId]),
-        'membersCount': FieldValue.increment(1),
-      });
+      await FirebaseFirestore.instance
+          .collection('communities')
+          .doc(communityId)
+          .update({
+            'members': FieldValue.arrayUnion([userId]),
+            'membersCount': FieldValue.increment(1),
+          });
     } catch (e) {
       debugPrint('Error joining community: $e');
       rethrow;
@@ -47,10 +55,13 @@ class CommunityProvider extends ChangeNotifier {
     if (userId == null) return;
 
     try {
-      await FirebaseFirestore.instance.collection('communities').doc(communityId).update({
-        'members': FieldValue.arrayRemove([userId]),
-        'membersCount': FieldValue.increment(-1),
-      });
+      await FirebaseFirestore.instance
+          .collection('communities')
+          .doc(communityId)
+          .update({
+            'members': FieldValue.arrayRemove([userId]),
+            'membersCount': FieldValue.increment(-1),
+          });
     } catch (e) {
       debugPrint('Error leaving community: $e');
       rethrow;
@@ -59,11 +70,13 @@ class CommunityProvider extends ChangeNotifier {
 
   // Permet à l'admin de créer une communauté depuis l'app (optionnel)
   Future<void> createCommunity(
-    String name, 
-    String description, 
-    String colorHex, 
-    {String privacy = 'public', List<String> tags = const [], String rules = ''}
-  ) async {
+    String name,
+    String description,
+    String colorHex, {
+    String privacy = 'public',
+    List<String> tags = const [],
+    String rules = '',
+  }) async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
 
@@ -73,7 +86,7 @@ class CommunityProvider extends ChangeNotifier {
         'description': description,
         'iconHex': '',
         'colorHex': colorHex,
-        'membersCount': 1, 
+        'membersCount': 1,
         'members': [userId],
         'adminId': userId,
         'moderators': <String>[],

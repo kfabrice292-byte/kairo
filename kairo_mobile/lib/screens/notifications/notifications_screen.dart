@@ -5,6 +5,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import '../../core/providers/notification_provider.dart';
 import '../../core/providers/auth_provider.dart';
 import '../profile/public_profile_screen.dart';
+import '../post_detail_screen.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -17,7 +18,10 @@ class NotificationsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text(
+          'Notifications',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -26,7 +30,13 @@ class NotificationsScreen extends StatelessWidget {
               icon: Icon(PhosphorIcons.checks()),
               onPressed: () {
                 provider.markAllAsRead();
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Toutes les notifications ont été marquées comme lues.')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Toutes les notifications ont été marquées comme lues.',
+                    ),
+                  ),
+                );
               },
             ),
         ],
@@ -36,9 +46,16 @@ class NotificationsScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(PhosphorIcons.bellZ(), size: 64, color: Colors.grey.shade300),
+                  Icon(
+                    PhosphorIcons.bellZ(),
+                    size: 64,
+                    color: Colors.grey.shade300,
+                  ),
                   const SizedBox(height: 16),
-                  Text('Aucune notification', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                  Text(
+                    'Aucune notification',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                  ),
                 ],
               ),
             )
@@ -46,7 +63,11 @@ class NotificationsScreen extends StatelessWidget {
               itemCount: notifications.length,
               itemBuilder: (context, index) {
                 final notif = notifications[index];
-                
+                final myUser = context.watch<AuthProvider>().userModel;
+                final bool hasPendingRequest =
+                    notif.relatedId != null &&
+                    (myUser?.receivedRequests.contains(notif.relatedId) ??
+                        false);
                 IconData icon;
                 Color color;
                 switch (notif.type) {
@@ -76,54 +97,46 @@ class NotificationsScreen extends StatelessWidget {
                 }
 
                 return Container(
-                  color: notif.isRead ? Colors.transparent : Colors.orange.shade50,
+                  color: notif.isRead
+                      ? Colors.transparent
+                      : Colors.orange.shade50,
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: color.withValues(alpha: 0.1),
                       child: Icon(icon, color: color, size: 20),
                     ),
-                    title: Text(notif.title, style: TextStyle(fontWeight: notif.isRead ? FontWeight.normal : FontWeight.bold)),
+                    title: Text(
+                      notif.title,
+                      style: TextStyle(
+                        fontWeight: notif.isRead
+                            ? FontWeight.normal
+                            : FontWeight.bold,
+                      ),
+                    ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 4),
-                        Text(notif.body, style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
+                        Text(
+                          notif.body,
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontSize: 13,
+                          ),
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           timeago.format(notif.createdAt, locale: 'fr'),
-                          style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 11,
+                          ),
                         ),
-                        if (notif.type == 'network') ...[
+                        if (notif.type == 'network' && hasPendingRequest) ...[
                           const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              ElevatedButton(
-                                onPressed: () {
-                                  context.read<AuthProvider>().acceptNetworkRequest(notif.relatedId!);
-                                  provider.markAsRead(notif.id);
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation acceptée')));
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF10B981),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                                  minimumSize: const Size(0, 32),
-                                ),
-                                child: const Text('Accepter', style: TextStyle(fontSize: 12)),
-                              ),
-                              const SizedBox(width: 8),
-                              OutlinedButton(
-                                onPressed: () {
-                                  context.read<AuthProvider>().cancelOrRejectNetworkRequest(notif.relatedId!);
-                                  provider.markAsRead(notif.id);
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                                  minimumSize: const Size(0, 32),
-                                ),
-                                child: const Text('Refuser', style: TextStyle(fontSize: 12)),
-                              ),
-                            ],
+                          _NetworkActionButtons(
+                            notif: notif,
+                            provider: provider,
                           ),
                         ],
                       ],
@@ -132,16 +145,111 @@ class NotificationsScreen extends StatelessWidget {
                       if (!notif.isRead) {
                         provider.markAsRead(notif.id);
                       }
-                      if (notif.type == 'network' || notif.type == 'network_accepted') {
-                        Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => PublicProfileScreen(userId: notif.relatedId!),
-                        ));
+                      if (notif.relatedId == null) return;
+                      if (notif.type == 'network' ||
+                          notif.type == 'network_accepted') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                PublicProfileScreen(userId: notif.relatedId!),
+                          ),
+                        );
+                      } else if (notif.type == 'post' ||
+                          notif.type == 'comment') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                PostDetailScreen(postId: notif.relatedId!),
+                          ),
+                        );
                       }
                     },
                   ),
                 );
               },
             ),
+    );
+  }
+}
+
+class _NetworkActionButtons extends StatefulWidget {
+  final dynamic notif;
+  final NotificationProvider provider;
+
+  const _NetworkActionButtons({required this.notif, required this.provider});
+
+  @override
+  State<_NetworkActionButtons> createState() => _NetworkActionButtonsState();
+}
+
+class _NetworkActionButtonsState extends State<_NetworkActionButtons> {
+  bool _isLoading = false;
+
+  Future<void> _handleAction(bool accept) async {
+    setState(() => _isLoading = true);
+    try {
+      if (accept) {
+        await context.read<AuthProvider>().acceptNetworkRequest(
+          widget.notif.relatedId!,
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invitation acceptée'),
+            backgroundColor: Color(0xFF10B981),
+          ),
+        );
+      } else {
+        await context.read<AuthProvider>().cancelOrRejectNetworkRequest(
+          widget.notif.relatedId!,
+        );
+      }
+      widget.provider.markAsRead(widget.notif.id);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const SizedBox(
+        height: 32,
+        width: 32,
+        child: Padding(
+          padding: EdgeInsets.all(8.0),
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        ElevatedButton(
+          onPressed: () => _handleAction(true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF10B981),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            minimumSize: const Size(0, 32),
+          ),
+          child: const Text('Accepter', style: TextStyle(fontSize: 12)),
+        ),
+        const SizedBox(width: 8),
+        OutlinedButton(
+          onPressed: () => _handleAction(false),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            minimumSize: const Size(0, 32),
+          ),
+          child: const Text('Refuser', style: TextStyle(fontSize: 12)),
+        ),
+      ],
     );
   }
 }

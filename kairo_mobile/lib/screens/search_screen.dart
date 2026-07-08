@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'profile/public_profile_screen.dart';
+import 'package:kairo_mobile/core/theme/app_colors.dart';
+import '../../widgets/connection_card.dart';
+import '../../core/models/user_model.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -17,6 +17,8 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  String _selectedCountry = '';
+  String _selectedDomain = '';
   final String _currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
   @override
@@ -50,134 +52,217 @@ class _SearchScreenState extends State<SearchScreen> {
                 });
               },
             ),
+          IconButton(
+            icon: Icon(
+              PhosphorIcons.faders(),
+              color: (_selectedCountry.isNotEmpty || _selectedDomain.isNotEmpty)
+                  ? AppColors.primary
+                  : Colors.grey.shade700,
+            ),
+            onPressed: _showFilterSheet,
+          ),
         ],
       ),
-      body: _searchQuery.isEmpty
-          ? StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .limit(20)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFFF97316)));
-                }
+      body: _buildSearchResults(),
+    );
+  }
 
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text("Aucun utilisateur disponible."));
-                }
+  Widget _buildSearchResults() {
+    Query query = FirebaseFirestore.instance.collection('users');
 
-                // Filter out current user
-                final users = snapshot.data!.docs.where((doc) => doc.id != _currentUserId).toList();
+    if (_selectedCountry.isNotEmpty) {
+      query = query.where('country', isEqualTo: _selectedCountry);
+    }
+    if (_selectedDomain.isNotEmpty) {
+      query = query.where('fieldOfStudy', isEqualTo: _selectedDomain);
+    }
 
-                if (users.isEmpty) {
-                  return const Center(child: Text("Aucun autre membre disponible."));
-                }
+    // Name search requires it to be the first order by in some configurations
+    // or just local filtering if simple. We will do local filtering for text search if there are other filters.
+    // But for a simple implementation:
+    if (_searchQuery.isNotEmpty) {
+      query = query
+          .where('name', isGreaterThanOrEqualTo: _searchQuery)
+          .where('name', isLessThanOrEqualTo: '$_searchQuery\uf8ff');
+    }
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                      child: Text('Membres suggérés', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                    ),
-                    Expanded(
-                      child: ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: users.length,
-                        separatorBuilder: (context, index) => const Divider(),
-                        itemBuilder: (context, index) {
-                          final data = users[index].data() as Map<String, dynamic>;
-                          final name = data['name'] ?? 'Utilisateur';
-                          final photoURL = data['photoURL'] ?? 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(name)}';
-                          final fieldOfStudy = data['fieldOfStudy'] ?? '';
+    return StreamBuilder<QuerySnapshot>(
+      stream: query.limit(30).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          );
+        }
 
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: NetworkImage(photoURL),
-                              backgroundColor: Colors.grey.shade200,
-                            ),
-                            title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: fieldOfStudy.isNotEmpty ? Text(fieldOfStudy) : null,
-                            trailing: IconButton(
-                              icon: const Icon(Icons.person_outline, color: Color(0xFFF97316)),
-                              onPressed: () {
-                                Navigator.push(context, MaterialPageRoute(
-                                  builder: (_) => PublicProfileScreen(userId: users[index].id),
-                                ));
-                              },
-                            ),
-                            onTap: () {
-                              Navigator.push(context, MaterialPageRoute(
-                                builder: (_) => PublicProfileScreen(userId: users[index].id),
-                              ));
-                            },
-                          );
-                        },
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text("Aucun utilisateur trouvé."));
+        }
+
+        final users = snapshot.data!.docs
+            .map((doc) => UserModel.fromFirestore(doc))
+            .where((u) => u.uid != _currentUserId)
+            .toList();
+
+        if (users.isEmpty) {
+          return const Center(
+            child: Text("Aucun utilisateur trouvé avec ces critères."),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: users.length,
+          itemBuilder: (context, index) {
+            return ConnectionCard(user: users[index]);
+          },
+        );
+      },
+    );
+  }
+
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        String tempCountry = _selectedCountry;
+        String tempDomain = _selectedDomain;
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 20,
+                right: 20,
+                top: 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Filtres',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              },
-            )
-          : StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .where('name', isGreaterThanOrEqualTo: _searchQuery)
-                  .where('name', isLessThanOrEqualTo: '$_searchQuery\uf8ff')
-                  .limit(20)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFFF97316)));
-                }
-
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text("Aucun utilisateur trouvé."));
-                }
-
-                // Filter out current user
-                final users = snapshot.data!.docs.where((doc) => doc.id != _currentUserId).toList();
-
-                if (users.isEmpty) {
-                  return const Center(child: Text("Aucun utilisateur trouvé."));
-                }
-
-                return ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: users.length,
-                  separatorBuilder: (context, index) => const Divider(),
-                  itemBuilder: (context, index) {
-                    final data = users[index].data() as Map<String, dynamic>;
-                    final name = data['name'] ?? 'Utilisateur';
-                    final photoURL = data['photoURL'] ?? 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(name)}';
-                    final fieldOfStudy = data['fieldOfStudy'] ?? '';
-
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: NetworkImage(photoURL),
-                        backgroundColor: Colors.grey.shade200,
-                      ),
-                      title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: fieldOfStudy.isNotEmpty ? Text(fieldOfStudy) : null,
-                      trailing: IconButton(
-                        icon: const Icon(Icons.person_outline, color: Color(0xFFF97316)),
+                      TextButton(
                         onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(
-                            builder: (_) => PublicProfileScreen(userId: users[index].id),
-                          ));
+                          setModalState(() {
+                            tempCountry = '';
+                            tempDomain = '';
+                          });
                         },
+                        child: const Text('Réinitialiser'),
                       ),
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => PublicProfileScreen(userId: users[index].id),
-                        ));
-                      },
-                    );
-                  },
-                );
-              },
-            ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  const Text(
+                    'Pays',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: tempCountry.isEmpty ? null : tempCountry,
+                    hint: const Text('Tous les pays'),
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                    ),
+                    items:
+                        [
+                              'Sénégal',
+                              'Côte d\'Ivoire',
+                              'France',
+                              'Maroc',
+                              'Cameroun',
+                            ]
+                            .map(
+                              (c) => DropdownMenuItem(value: c, child: Text(c)),
+                            )
+                            .toList(),
+                    onChanged: (val) =>
+                        setModalState(() => tempCountry = val ?? ''),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  const Text(
+                    'Domaine d\'études',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: tempDomain.isEmpty ? null : tempDomain,
+                    hint: const Text('Tous les domaines'),
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                    ),
+                    items:
+                        [
+                              'Informatique',
+                              'Business',
+                              'Design',
+                              'Marketing',
+                              'Ingénierie',
+                            ]
+                            .map(
+                              (d) => DropdownMenuItem(value: d, child: Text(d)),
+                            )
+                            .toList(),
+                    onChanged: (val) =>
+                        setModalState(() => tempDomain = val ?? ''),
+                  ),
+
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedCountry = tempCountry;
+                        _selectedDomain = tempDomain;
+                      });
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Appliquer',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

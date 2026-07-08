@@ -2,18 +2,48 @@ import { create } from 'zustand';
 import { db } from '../lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
-export interface TalentProfile {
+export interface Skill {
+  name: string;
+  level?: string;
+}
+
+export interface Experience {
   id: string;
+  title: string;
+  organization: string;
+  period: string;
+  description: string;
+  skillsUsed?: string[];
+}
+
+export interface TalentProfile {
+  id: string; // Equivalent to uid
   name: string;
   email: string;
-  photoUrl?: string;
-  headline?: string;
+  photoUrl?: string; // photoURL in flutter
+  coverPhoto?: string;
+  professionalTitle?: string;
   bio?: string;
-  skills?: string[];
-  university?: string;
   country?: string;
+  city?: string;
+  university?: string;
+  establishment?: string;
+  fieldOfStudy?: string;
+  studyLevel?: string;
+  
+  skills?: Skill[];
+  experiences?: Experience[];
+  projectIds?: string[];
+  portfolioLinks?: string[];
+  documents?: string[];
+  
+  phone?: string;
+  linkedin?: string;
+  github?: string;
+  behance?: string;
+  website?: string;
+  
   role?: string;
-  // Based on kairo_mobile structure
 }
 
 interface TalentState {
@@ -49,7 +79,7 @@ export const useTalentStore = create<TalentState>((set, get) => ({
             name: data.name || data.fullName || 'Talent Anonyme',
             email: data.email,
             photoUrl: data.photoUrl || data.avatarUrl || null,
-            headline: data.headline || data.jobTitle || 'Étudiant',
+            professionalTitle: data.professionalTitle || data.jobTitle || 'Étudiant',
             bio: data.bio || '',
             skills: data.skills || [],
             university: data.university || data.school || 'Université',
@@ -72,15 +102,15 @@ export const useTalentStore = create<TalentState>((set, get) => ({
 
     const filtered = talents.filter(t => {
       const matchName = t.name.toLowerCase().includes(lowerQuery);
-      const matchHeadline = t.headline?.toLowerCase().includes(lowerQuery);
+      const matchTitle = t.professionalTitle?.toLowerCase().includes(lowerQuery);
       const matchBio = t.bio?.toLowerCase().includes(lowerQuery);
       
-      const matchesSearch = matchName || matchHeadline || matchBio;
+      const matchesSearch = matchName || matchTitle || matchBio;
       
       let matchesSkill = true;
       if (filterSkill && filterSkill.trim() !== '') {
         const lowerFilter = filterSkill.toLowerCase();
-        matchesSkill = t.skills?.some(s => s.toLowerCase().includes(lowerFilter)) || false;
+        matchesSkill = t.skills?.some(s => s.name.toLowerCase().includes(lowerFilter)) || false;
       }
 
       return matchesSearch && matchesSkill;

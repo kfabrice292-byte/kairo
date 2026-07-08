@@ -17,7 +17,7 @@ export function Register() {
     try {
       await register(email, password, name, company);
       navigate("/");
-    } catch (err) {
+    } catch (_err) {
       // Error handled in store
     }
   };

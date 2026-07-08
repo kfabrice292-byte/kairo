@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:kairo_mobile/core/theme/app_colors.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -18,19 +19,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       'title': 'Créer',
       'subtitle': 'Bâtissez votre identité numérique',
-      'description': 'Façonnez un profil unique, générez des CV sur-mesure et mettez en valeur votre parcours comme jamais auparavant.',
+      'description':
+          'Façonnez un profil unique, générez des CV sur-mesure et mettez en valeur votre parcours comme jamais auparavant.',
       'icon': Icon(PhosphorIcons.pencilLine(), size: 80),
     },
     {
       'title': 'Innover',
       'subtitle': 'Découvrez des projets',
-      'description': 'Explorez des idées novatrices, collaborez sur des projets open-source et poussez les limites de la technologie.',
+      'description':
+          'Explorez des idées novatrices, collaborez sur des projets open-source et poussez les limites de la technologie.',
       'icon': Icon(PhosphorIcons.lightbulb(), size: 80),
     },
     {
       'title': 'Connecter',
       'subtitle': 'Rejoignez la communauté',
-      'description': 'Échangez avec des experts, participez à des groupes d\'intérêt et créez des opportunités professionnelles infinies.',
+      'description':
+          'Échangez avec des experts, participez à des groupes d\'intérêt et créez des opportunités professionnelles infinies.',
       'icon': Icon(PhosphorIcons.graph(), size: 80),
     },
   ];
@@ -51,7 +55,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _nextPage() {
     if (_currentPage < _pages.length - 1) {
-      _pageController.nextPage(duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
     } else {
       _completeOnboarding();
     }
@@ -60,7 +67,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
@@ -73,11 +80,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onPressed: _completeOnboarding,
                 child: Text(
                   "Passer",
-                  style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6), fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    color: theme.textTheme.bodyMedium?.color?.withValues(
+                      alpha: 0.6,
+                    ),
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),
-            
+
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -109,7 +121,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         height: 6,
                         width: _currentPage == index ? 24 : 6,
                         decoration: BoxDecoration(
-                          color: _currentPage == index ? const Color(0xFFF97316) : theme.dividerColor,
+                          color: _currentPage == index
+                              ? AppColors.primary
+                              : theme.dividerColor,
                           borderRadius: BorderRadius.circular(3),
                         ),
                       ),
@@ -120,7 +134,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ElevatedButton(
                     onPressed: _nextPage,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF97316),
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       padding: EdgeInsets.symmetric(
@@ -135,8 +149,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          _currentPage == _pages.length - 1 ? "Commencer" : "Suivant",
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                          _currentPage == _pages.length - 1
+                              ? "Commencer"
+                              : "Suivant",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
                         ),
                         if (_currentPage < _pages.length - 1) ...[
                           const SizedBox(width: 8),

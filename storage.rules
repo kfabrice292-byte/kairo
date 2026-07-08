@@ -1,0 +1,66 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Vérifie si l'utilisateur est connecté
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Vérifie la taille du fichier en Mo
+    function isUnderSize(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
+    }
+    
+    // Vérifie que le fichier est une image (JPEG, PNG, WEBP, etc.)
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    // Vérifie que le fichier est un document standard (PDF, DOCX) ou Image
+    function isDocument() {
+      return request.resource.contentType.matches('application/pdf') 
+             || request.resource.contentType.matches('image/.*')
+             || request.resource.contentType.matches('application/msword')
+             || request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    }
+
+    // Avatars des utilisateurs
+    match /avatars/{userId}/{fileName} {
+      // Tout le monde peut voir les avatars
+      allow read: if true;
+      // Seul le propriétaire peut upload, max 5MB, format image uniquement
+      allow write: if isAuthenticated() 
+                   && request.auth.uid == userId 
+                   && isImage() 
+                   && isUnderSize(5);
+    }
+
+    // Documents (CV, Lettres, Certificats)
+    match /documents/{userId}/{fileName} {
+      // Lecture : Soit le propriétaire, soit tout utilisateur authentifié (ex: un recruteur)
+      // On pourrait restreindre plus, mais les documents d'un profil peuvent être vus par n'importe quel recruteur
+      allow read: if isAuthenticated();
+      
+      // Upload : Seul le propriétaire peut uploader ses propres documents. Limité à 10MB.
+      allow write: if isAuthenticated() 
+                   && request.auth.uid == userId 
+                   && isDocument() 
+                   && isUnderSize(10);
+    }
+
+    // Pièces jointes des messages (Optionnel)
+    match /chats/{chatId}/{fileName} {
+      // Lecture restreinte aux utilisateurs authentifiés (La DB filtrera l'accès au ChatId)
+      allow read: if isAuthenticated();
+      
+      // Upload: Images ou Docs de 20MB max
+      allow write: if isAuthenticated() && isUnderSize(20);
+    }
+
+    // Rejets par défaut
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

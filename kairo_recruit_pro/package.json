@@ -1,5 +1,5 @@
 {
-  "name": "kairo_recruit_pro",
+  "name": "kairo_pro",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,8 +14,8 @@
     "preview": "vite preview"
   },
   "build": {
-    "appId": "com.kairo.recruitpro",
-    "productName": "Kaïro Recruit Pro",
+    "appId": "com.kairo.pro",
+    "productName": "Kaïro Pro",
     "directories": {
       "output": "C:/temp/kairo-build"
     },

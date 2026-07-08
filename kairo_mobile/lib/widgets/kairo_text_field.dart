@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kairo_mobile/core/theme/app_colors.dart';
 
 class KairoTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -7,6 +8,7 @@ class KairoTextField extends StatelessWidget {
   final bool obscureText;
   final TextInputType? keyboardType;
   final int maxLines;
+  final int? maxLength;
 
   const KairoTextField({
     super.key,
@@ -16,6 +18,7 @@ class KairoTextField extends StatelessWidget {
     this.obscureText = false,
     this.keyboardType,
     this.maxLines = 1,
+    this.maxLength,
   });
 
   @override
@@ -38,10 +41,8 @@ class KairoTextField extends StatelessWidget {
         obscureText: obscureText,
         keyboardType: keyboardType,
         maxLines: maxLines,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
+        maxLength: maxLength,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(
@@ -49,21 +50,14 @@ class KairoTextField extends StatelessWidget {
             fontSize: 16,
             fontWeight: FontWeight.w400,
           ),
-          prefixIcon: Icon(
-            prefixIcon,
-            color: Colors.grey.shade600,
-            size: 22,
-          ),
+          prefixIcon: Icon(prefixIcon, color: Colors.grey.shade600, size: 22),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: Color(0xFFF97316),
-              width: 1.5,
-            ),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
           ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,

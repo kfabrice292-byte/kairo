@@ -15,7 +15,7 @@ export function Login() {
     try {
       await login(email, password);
       navigate("/");
-    } catch (err) {
+    } catch (_err) {
       // Error is handled in store
     }
   };
@@ -27,7 +27,7 @@ export function Login() {
           <Briefcase className="w-12 h-12" />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900 dark:text-white">
-          Kaïro Recruit Pro
+          Kaïro Pro
         </h2>
         <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
           Connectez-vous à votre espace recruteur

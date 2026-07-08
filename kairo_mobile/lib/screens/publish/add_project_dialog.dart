@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/models/project_model.dart';
 import '../../widgets/kairo_text_field.dart';
+import 'package:kairo_mobile/core/theme/app_colors.dart';
 
 class AddProjectDialog extends StatefulWidget {
   const AddProjectDialog({super.key});
@@ -36,7 +37,10 @@ class _AddProjectDialogState extends State<AddProjectDialog> {
   Future<void> _save() async {
     if (_titleController.text.isEmpty || _descController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Le titre et la description sont requis.'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text('Le titre et la description sont requis.'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -55,7 +59,11 @@ class _AddProjectDialogState extends State<AddProjectDialog> {
         founderId: user.uid,
         founderName: user.name.isNotEmpty ? user.name : 'Utilisateur',
         founderPhoto: user.photoURL,
-        skillsRequired: _skillsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
+        skillsRequired: _skillsController.text
+            .split(',')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList(),
         maxParticipants: int.tryParse(_participantsController.text) ?? 5,
         estimatedDuration: _durationController.text.trim(),
         members: [user.uid], // Le fondateur est membre de base
@@ -63,16 +71,22 @@ class _AddProjectDialogState extends State<AddProjectDialog> {
       );
 
       try {
-        final docRef = await FirebaseFirestore.instance.collection('projects').add(newProject.toMap());
-        
+        final docRef = await FirebaseFirestore.instance
+            .collection('projects')
+            .add(newProject.toMap());
+
         // Ajouter le projet au profil (enrichissement auto)
-        final updatedProjects = List<String>.from(user.projectIds)..add(docRef.id);
+        final updatedProjects = List<String>.from(user.projectIds)
+          ..add(docRef.id);
         await auth.updateProfile({'projectIds': updatedProjects});
 
         if (mounted) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Projet publié !'), backgroundColor: Colors.green),
+            const SnackBar(
+              content: Text('Projet publié !'),
+              backgroundColor: Colors.green,
+            ),
           );
         }
       } catch (e) {
@@ -101,7 +115,10 @@ class _AddProjectDialogState extends State<AddProjectDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Créer un projet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Créer un projet',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
@@ -109,7 +126,11 @@ class _AddProjectDialogState extends State<AddProjectDialog> {
                 ],
               ),
               const SizedBox(height: 16),
-              KairoTextField(controller: _titleController, hintText: 'Nom du projet', prefixIcon: PhosphorIcons.rocketLaunch()),
+              KairoTextField(
+                controller: _titleController,
+                hintText: 'Nom du projet',
+                prefixIcon: PhosphorIcons.rocketLaunch(),
+              ),
               const SizedBox(height: 12),
               TextField(
                 controller: _descController,
@@ -118,33 +139,72 @@ class _AddProjectDialogState extends State<AddProjectDialog> {
                   hintText: 'Description détaillée...',
                   filled: true,
                   fillColor: Colors.grey.shade100,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
                   contentPadding: const EdgeInsets.all(16),
                 ),
               ),
               const SizedBox(height: 12),
-              KairoTextField(controller: _goalsController, hintText: 'Objectifs du projet', prefixIcon: PhosphorIcons.target()),
+              KairoTextField(
+                controller: _goalsController,
+                hintText: 'Objectifs du projet',
+                prefixIcon: PhosphorIcons.target(),
+              ),
               const SizedBox(height: 12),
-              KairoTextField(controller: _skillsController, hintText: 'Compétences recherchées (ex: UI, Flutter)', prefixIcon: PhosphorIcons.lightning()),
+              KairoTextField(
+                controller: _skillsController,
+                hintText: 'Compétences recherchées (ex: UI, Flutter)',
+                prefixIcon: PhosphorIcons.lightning(),
+              ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(child: KairoTextField(controller: _durationController, hintText: 'Durée (ex: 2 mois)', prefixIcon: PhosphorIcons.hourglass())),
+                  Expanded(
+                    child: KairoTextField(
+                      controller: _durationController,
+                      hintText: 'Durée (ex: 2 mois)',
+                      prefixIcon: PhosphorIcons.hourglass(),
+                    ),
+                  ),
                   const SizedBox(width: 8),
-                  Expanded(child: KairoTextField(controller: _participantsController, hintText: 'Max. Membres', prefixIcon: PhosphorIcons.users())),
+                  Expanded(
+                    child: KairoTextField(
+                      controller: _participantsController,
+                      hintText: 'Max. Membres',
+                      prefixIcon: PhosphorIcons.users(),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : _save,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF97316),
+                  backgroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: _isLoading
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Publier le projet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Publier le projet',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ],
           ),

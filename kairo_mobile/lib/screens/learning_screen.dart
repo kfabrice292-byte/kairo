@@ -8,9 +8,7 @@ class LearningScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Formations'),
-      ),
+      appBar: AppBar(title: const Text('Formations')),
       body: Consumer<LearningProvider>(
         builder: (context, provider, child) {
           final courses = provider.courses;
@@ -38,9 +36,17 @@ class LearningScreen extends StatelessWidget {
                       child: Container(
                         decoration: BoxDecoration(
                           color: Colors.orange.shade100,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(16),
+                          ),
                         ),
-                        child: const Center(child: Icon(Icons.play_circle_fill, size: 48, color: Colors.orange)),
+                        child: const Center(
+                          child: Icon(
+                            Icons.play_circle_fill,
+                            size: 48,
+                            color: Colors.orange,
+                          ),
+                        ),
                       ),
                     ),
                     Padding(
@@ -48,9 +54,20 @@ class LearningScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(course.title, style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.ellipsis),
+                          Text(
+                            course.title,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           const SizedBox(height: 4),
-                          Text(course.instructor, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                          Text(
+                            course.instructor,
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
+                            ),
+                          ),
                         ],
                       ),
                     ),

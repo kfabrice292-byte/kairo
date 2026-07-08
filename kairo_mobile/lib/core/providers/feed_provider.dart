@@ -6,10 +6,12 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/post_model.dart';
 import '../models/comment_model.dart';
+import '../models/user_model.dart';
 
 class FeedProvider extends ChangeNotifier {
   List<PostModel> _posts = [];
   bool _isLoading = false;
+  final Map<String, UserModel> usersCache = {};
 
   List<PostModel> get posts => _posts;
   bool get isLoading => _isLoading;
@@ -21,7 +23,9 @@ class FeedProvider extends ChangeNotifier {
 
   Future<void> cleanDummyData() async {
     try {
-      final snapshot = await FirebaseFirestore.instance.collection('posts').get();
+      final snapshot = await FirebaseFirestore.instance
+          .collection('posts')
+          .get();
       for (var doc in snapshot.docs) {
         final data = doc.data();
         if (data['authorId'] == null || data['authorId'] == '') {
@@ -41,23 +45,48 @@ class FeedProvider extends ChangeNotifier {
         .collection('posts')
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .listen((snapshot) {
-      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-      _posts = snapshot.docs.map((doc) {
-        final post = PostModel.fromFirestore(doc);
-        if (currentUserId != null) {
-          post.isLiked = post.likedBy.contains(currentUserId);
-          post.isSaved = post.savedBy.contains(currentUserId);
-        }
-        return post;
-      }).toList();
-      _isLoading = false;
-      notifyListeners();
-    }, onError: (e) {
-      debugPrint('Error fetching posts: $e');
-      _isLoading = false;
-      notifyListeners();
-    });
+        .listen(
+          (snapshot) {
+            final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+            _posts = snapshot.docs.map((doc) {
+              final post = PostModel.fromFirestore(doc);
+              if (currentUserId != null) {
+                post.isLiked = post.likedBy.contains(currentUserId);
+                post.isSaved = post.savedBy.contains(currentUserId);
+              }
+              return post;
+            }).toList();
+            _isLoading = false;
+            notifyListeners();
+
+            // Fetch missing users for the cache
+            final missingUserIds = _posts
+                .map((p) => p.authorId)
+                .toSet()
+                .difference(usersCache.keys.toSet());
+
+            for (String uid in missingUserIds) {
+              if (uid.isNotEmpty) {
+                FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(uid)
+                    .get()
+                    .then((doc) {
+                      if (doc.exists) {
+                        usersCache[uid] = UserModel.fromFirestore(doc);
+                        notifyListeners();
+                      }
+                    })
+                    .catchError((_) {}); // Ignore errors
+              }
+            }
+          },
+          onError: (e) {
+            debugPrint('Error fetching posts: $e');
+            _isLoading = false;
+            notifyListeners();
+          },
+        );
   }
 
   Future<void> toggleLike(String postId) async {
@@ -77,13 +106,15 @@ class FeedProvider extends ChangeNotifier {
         post.likedBy.add(userId);
       }
       notifyListeners();
-      
+
       try {
-        await FirebaseFirestore.instance.collection('posts').doc(postId).update({
-          'likedBy': isCurrentlyLiked 
-              ? FieldValue.arrayRemove([userId]) 
-              : FieldValue.arrayUnion([userId]),
-        });
+        await FirebaseFirestore.instance.collection('posts').doc(postId).update(
+          {
+            'likedBy': isCurrentlyLiked
+                ? FieldValue.arrayRemove([userId])
+                : FieldValue.arrayUnion([userId]),
+          },
+        );
 
         // Add Notification
         if (!isCurrentlyLiked && post.authorId != userId) {
@@ -91,7 +122,8 @@ class FeedProvider extends ChangeNotifier {
           await FirebaseFirestore.instance.collection('notifications').add({
             'userId': post.authorId,
             'title': 'Nouveau j\'aime',
-            'body': '${currentUser?.displayName ?? "Quelqu'un"} a aimé votre publication.',
+            'body':
+                '${currentUser?.displayName ?? "Quelqu'un"} a aimé votre publication.',
             'type': 'post',
             'isRead': false,
             'createdAt': FieldValue.serverTimestamp(),
@@ -129,13 +161,15 @@ class FeedProvider extends ChangeNotifier {
         post.savedBy.add(userId);
       }
       notifyListeners();
-      
+
       try {
-        await FirebaseFirestore.instance.collection('posts').doc(postId).update({
-          'savedBy': isCurrentlySaved 
-              ? FieldValue.arrayRemove([userId]) 
-              : FieldValue.arrayUnion([userId]),
-        });
+        await FirebaseFirestore.instance.collection('posts').doc(postId).update(
+          {
+            'savedBy': isCurrentlySaved
+                ? FieldValue.arrayRemove([userId])
+                : FieldValue.arrayUnion([userId]),
+          },
+        );
       } catch (e) {
         debugPrint('Error toggling save: $e');
         // Revert optimistic update
@@ -150,7 +184,11 @@ class FeedProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> addComment(String postId, String content) async {
+  Future<void> addComment(
+    String postId,
+    String content, {
+    String? parentId,
+  }) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || content.isEmpty) return;
 
@@ -166,6 +204,7 @@ class FeedProvider extends ChangeNotifier {
         'authorName': user.displayName ?? 'Utilisateur',
         'authorAvatar': user.photoURL,
         'content': content,
+        'parentId': parentId,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -174,13 +213,17 @@ class FeedProvider extends ChangeNotifier {
       });
 
       // Add Notification
-      final postDoc = await FirebaseFirestore.instance.collection('posts').doc(postId).get();
+      final postDoc = await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(postId)
+          .get();
       final postAuthorId = postDoc.data()?['authorId'] as String?;
       if (postAuthorId != null && postAuthorId != user.uid) {
         await FirebaseFirestore.instance.collection('notifications').add({
           'userId': postAuthorId,
           'title': 'Nouveau commentaire',
-          'body': '${user.displayName ?? "Quelqu'un"} a commenté votre publication.',
+          'body':
+              '${user.displayName ?? "Quelqu'un"} a commenté votre publication.',
           'type': 'post',
           'isRead': false,
           'createdAt': FieldValue.serverTimestamp(),
@@ -200,23 +243,43 @@ class FeedProvider extends ChangeNotifier {
         .collection('comments')
         .orderBy('createdAt', descending: false)
         .snapshots()
-        .map((snapshot) => 
-            snapshot.docs.map((doc) => CommentModel.fromFirestore(doc)).toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => CommentModel.fromFirestore(doc))
+              .toList(),
+        );
   }
 
-  Future<void> addPost(String content, {List<File>? images, bool isStylized = false, int styleIndex = 0}) async {
+  Future<void> addPost(
+    String content, {
+    List<File>? images,
+    bool isStylized = false,
+    int styleIndex = 0,
+    String? category,
+    Map<String, dynamic> customFields = const {},
+    List<String> tags = const [],
+  }) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-    
+
     // Fetch actual user data from Firestore to get their real name, fieldOfStudy, and photo
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
     final userData = userDoc.data() ?? {};
-    
+
     final authorName = userData['name'] ?? user.displayName ?? 'Étudiant';
-    final authorRole = userData['fieldOfStudy']?.toString().isNotEmpty == true 
-        ? userData['fieldOfStudy'] 
-        : 'Étudiant Kaïro';
-    final authorAvatar = userData['photoURL'] ?? user.photoURL ?? 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(authorName)}&background=F97316&color=fff';
+    final authorRole =
+        userData['professionalTitle']?.toString().isNotEmpty == true
+        ? userData['professionalTitle']
+        : (userData['fieldOfStudy']?.toString().isNotEmpty == true
+              ? userData['fieldOfStudy']
+              : 'Ajouter un titre professionnel');
+    final authorAvatar =
+        userData['photoURL'] ??
+        user.photoURL ??
+        'https://ui-avatars.com/api/?name=${Uri.encodeComponent(authorName)}&background=F97316&color=fff';
 
     List<String> uploadedImageUrls = [];
 
@@ -225,7 +288,7 @@ class FeedProvider extends ChangeNotifier {
         try {
           final bytes = await image.readAsBytes();
           final base64Image = base64Encode(bytes);
-          
+
           final response = await http.post(
             Uri.parse('https://api.imgbb.com/1/upload'),
             body: {
@@ -233,7 +296,7 @@ class FeedProvider extends ChangeNotifier {
               'image': base64Image,
             },
           );
-          
+
           if (response.statusCode == 200) {
             final jsonResponse = jsonDecode(response.body);
             uploadedImageUrls.add(jsonResponse['data']['display_url']);
@@ -253,13 +316,16 @@ class FeedProvider extends ChangeNotifier {
       authorRole: authorRole,
       authorAvatar: authorAvatar,
       content: content,
+      category: category,
+      customFields: customFields,
+      tags: tags,
       imageUrls: uploadedImageUrls,
       isStylized: isStylized,
       styleIndex: styleIndex,
       likedBy: [],
       createdAt: DateTime.now(),
     );
-    
+
     await FirebaseFirestore.instance.collection('posts').add(newPost.toMap());
   }
 

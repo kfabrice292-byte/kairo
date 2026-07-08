@@ -17,26 +17,35 @@ class CommunityDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
     final isMember = community.members.contains(userId);
-    final color = Color(int.tryParse(community.colorHex, radix: 16) ?? 0xFF3B82F6);
+    final color = Color(
+      int.tryParse(community.colorHex, radix: 16) ?? 0xFF3B82F6,
+    );
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: Text(community.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          community.name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
-          if (userId == community.adminId || community.moderators.contains(userId))
+          if (userId == community.adminId ||
+              community.moderators.contains(userId))
             IconButton(
               icon: Icon(PhosphorIcons.gear()),
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => CommunitySettingsScreen(community: community)));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        CommunitySettingsScreen(community: community),
+                  ),
+                );
               },
             ),
-          IconButton(
-            icon: Icon(PhosphorIcons.info()),
-            onPressed: () {},
-          ),
+          IconButton(icon: Icon(PhosphorIcons.info()), onPressed: () {}),
         ],
       ),
       body: Column(
@@ -55,7 +64,11 @@ class CommunityDetailScreen extends StatelessWidget {
                   backgroundColor: color.withValues(alpha: 0.2),
                   child: Text(
                     community.name.substring(0, 2).toUpperCase(),
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -68,9 +81,19 @@ class CommunityDetailScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(PhosphorIcons.users(), size: 16, color: Colors.grey.shade600),
+                    Icon(
+                      PhosphorIcons.users(),
+                      size: 16,
+                      color: Colors.grey.shade600,
+                    ),
                     const SizedBox(width: 8),
-                    Text('${community.members.length} membres', style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.bold)),
+                    Text(
+                      '${community.members.length} membres',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -79,68 +102,101 @@ class CommunityDetailScreen extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () {
                       if (isMember) {
-                        context.read<CommunityProvider>().leaveCommunity(community.id);
+                        context.read<CommunityProvider>().leaveCommunity(
+                          community.id,
+                        );
                       } else {
-                        context.read<CommunityProvider>().joinCommunity(community.id);
+                        context.read<CommunityProvider>().joinCommunity(
+                          community.id,
+                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isMember ? Colors.grey.shade200 : color,
                       foregroundColor: isMember ? Colors.black87 : Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       elevation: 0,
                     ),
-                    child: Text(isMember ? 'Quitter la communauté' : 'Rejoindre', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    child: Text(
+                      isMember ? 'Quitter la communauté' : 'Rejoindre',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          
+
           // Fil d'actualité exclusif
           Expanded(
-            child: isMember 
-              ? Consumer<FeedProvider>(
-                  builder: (context, provider, child) {
-                    // Pour l'instant on filtre le feed global en simulant un feed de commuanuté
-                    // Idéalement, les posts auraient un champ 'communityId'
-                    final posts = provider.posts.where((p) => p.content.toLowerCase().contains(community.name.toLowerCase()) || provider.posts.indexOf(p) % 3 == 0).toList();
-                    
-                    if (posts.isEmpty) {
-                      return Center(
-                        child: Text("Aucune publication dans cette communauté.", style: TextStyle(color: Colors.grey.shade500)),
-                      );
-                    }
+            child: isMember
+                ? Consumer<FeedProvider>(
+                    builder: (context, provider, child) {
+                      // Pour l'instant on filtre le feed global en simulant un feed de commuanuté
+                      // Idéalement, les posts auraient un champ 'communityId'
+                      final posts = provider.posts
+                          .where(
+                            (p) =>
+                                p.content.toLowerCase().contains(
+                                  community.name.toLowerCase(),
+                                ) ||
+                                provider.posts.indexOf(p) % 3 == 0,
+                          )
+                          .toList();
 
-                    return ListView.builder(
-                      itemCount: posts.length,
-                      itemBuilder: (context, index) {
-                        return PostCard(post: posts[index]);
-                      },
-                    );
-                  },
-                )
-              : Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(PhosphorIcons.lockKey(), size: 48, color: Colors.grey.shade400),
-                      const SizedBox(height: 16),
-                      Text("Rejoignez la communauté\npour voir les publications.", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade500)),
-                    ],
+                      if (posts.isEmpty) {
+                        return Center(
+                          child: Text(
+                            "Aucune publication dans cette communauté.",
+                            style: TextStyle(color: Colors.grey.shade500),
+                          ),
+                        );
+                      }
+
+                      return ListView.builder(
+                        itemCount: posts.length,
+                        itemBuilder: (context, index) {
+                          return PostCard(post: posts[index]);
+                        },
+                      );
+                    },
+                  )
+                : Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          PhosphorIcons.lockKey(),
+                          size: 48,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          "Rejoignez la communauté\npour voir les publications.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey.shade500),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
           ),
         ],
       ),
-      floatingActionButton: isMember ? FloatingActionButton(
-        onPressed: () {
-          // TODO: Open CreatePostModal with community context
-        },
-        backgroundColor: color,
-        child: const Icon(Icons.edit, color: Colors.white),
-      ) : null,
+      floatingActionButton: isMember
+          ? FloatingActionButton(
+              onPressed: () {
+                // TODO: Open CreatePostModal with community context
+              },
+              backgroundColor: color,
+              child: const Icon(Icons.edit, color: Colors.white),
+            )
+          : null,
     );
   }
 }

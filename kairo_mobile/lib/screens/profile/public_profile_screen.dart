@@ -6,6 +6,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/models/user_model.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/chat_provider.dart';
+import '../../core/providers/feed_provider.dart';
+import '../feed_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:kairo_mobile/core/theme/app_colors.dart';
 
 class PublicProfileScreen extends StatefulWidget {
   final String userId;
@@ -27,7 +31,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
   Future<void> _fetchUser() async {
     try {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId)
+          .get();
       if (doc.exists) {
         setState(() {
           _user = UserModel.fromFirestore(doc);
@@ -44,7 +51,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
   void _handleNetworkAction(BuildContext context, String action) async {
     final auth = context.read<AuthProvider>();
-    
+
     if (action == 'message') {
       try {
         final chatId = await context.read<ChatProvider>().createOrGetChat(
@@ -53,12 +60,15 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           _user!.photoURL,
         );
         if (context.mounted) {
-          context.push('/chat_detail', extra: {
-            'chatId': chatId,
-            'otherUserId': _user!.uid,
-            'otherUserName': _user!.name,
-            'otherUserAvatar': _user!.photoURL,
-          });
+          context.push(
+            '/chat_detail',
+            extra: {
+              'chatId': chatId,
+              'otherUserId': _user!.uid,
+              'otherUserName': _user!.name,
+              'otherUserAvatar': _user!.photoURL,
+            },
+          );
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -69,21 +79,32 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       await auth.sendNetworkRequest(_user!.uid);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Invitation envoyée à ${_user!.name} !'), backgroundColor: const Color(0xFF10B981)),
+          SnackBar(
+            content: Text('Invitation envoyée à ${_user!.name} !'),
+            backgroundColor: const Color(0xFF10B981),
+          ),
         );
       }
     } else if (action == 'accept_request') {
       await auth.acceptNetworkRequest(_user!.uid);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Vous êtes maintenant connecté avec ${_user!.name} !'), backgroundColor: const Color(0xFF10B981)),
+          SnackBar(
+            content: Text(
+              'Vous êtes maintenant connecté avec ${_user!.name} !',
+            ),
+            backgroundColor: const Color(0xFF10B981),
+          ),
         );
       }
     } else if (action == 'cancel_request') {
       await auth.cancelOrRejectNetworkRequest(_user!.uid);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invitation annulée.'), backgroundColor: Colors.grey),
+          const SnackBar(
+            content: Text('Invitation annulée.'),
+            backgroundColor: Colors.grey,
+          ),
         );
       }
     }
@@ -93,7 +114,9 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: Color(0xFFF97316))),
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
       );
     }
 
@@ -109,12 +132,13 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     final isMe = myUser?.uid == _user!.uid;
     final isConnected = myUser?.connections.contains(_user!.uid) ?? false;
     final hasSentRequest = myUser?.sentRequests.contains(_user!.uid) ?? false;
-    final hasReceivedRequest = myUser?.receivedRequests.contains(_user!.uid) ?? false;
+    final hasReceivedRequest =
+        myUser?.receivedRequests.contains(_user!.uid) ?? false;
 
     String action = 'send_request';
     String label = 'Envoyer une invitation';
     IconData icon = PhosphorIcons.userPlus();
-    Color bgColor = const Color(0xFFF97316);
+    Color bgColor = AppColors.primary;
     Color fgColor = Colors.white;
 
     if (isConnected) {
@@ -140,7 +164,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(_user!.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        title: Text(
+          _user!.name,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
         backgroundColor: theme.appBarTheme.backgroundColor,
         foregroundColor: theme.appBarTheme.foregroundColor,
         elevation: 0,
@@ -152,8 +179,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           children: [
             CircleAvatar(
               radius: 50,
-              backgroundImage: NetworkImage(
-                _user!.photoURL.isNotEmpty ? _user!.photoURL : 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(_user!.name)}'
+              backgroundImage: CachedNetworkImageProvider(
+                _user!.photoURL.isNotEmpty
+                    ? _user!.photoURL
+                    : 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(_user!.name)}',
               ),
             ),
             const SizedBox(height: 16),
@@ -165,12 +194,17 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
               const SizedBox(height: 4),
               Text(
                 _user!.fieldOfStudy,
-                style: TextStyle(fontSize: 16, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: theme.textTheme.bodyMedium?.color?.withValues(
+                    alpha: 0.7,
+                  ),
+                ),
               ),
             ],
-            
+
             const SizedBox(height: 24),
-            
+
             if (!isMe)
               SizedBox(
                 width: double.infinity,
@@ -179,26 +213,38 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: bgColor,
                     foregroundColor: fgColor,
-                    side: isConnected ? BorderSide(color: Colors.grey.shade300) : null,
+                    side: isConnected
+                        ? BorderSide(color: Colors.grey.shade300)
+                        : null,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     elevation: 0,
                   ),
                   icon: Icon(icon, size: 20),
                   label: Text(
                     label,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
 
             const SizedBox(height: 32),
-            
+
             if (_user!.bio.isNotEmpty) ...[
               _buildSectionTitle('À propos', theme),
               Text(
                 _user!.bio,
-                style: TextStyle(height: 1.5, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8)),
+                style: TextStyle(
+                  height: 1.5,
+                  color: theme.textTheme.bodyMedium?.color?.withValues(
+                    alpha: 0.8,
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
             ],
@@ -209,10 +255,50 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 spacing: 8,
                 runSpacing: 8,
                 children: _user!.skills.map((skill) {
-                  return Chip(
-                    label: Text(skill),
-                    backgroundColor: theme.cardColor,
-                    side: BorderSide(color: theme.dividerColor),
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          skill.name,
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            skill.level,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   );
                 }).toList(),
               ),
@@ -227,16 +313,49 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   leading: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF97316).withValues(alpha: 0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(PhosphorIcons.briefcase(), color: const Color(0xFFF97316)),
+                    child: Icon(
+                      PhosphorIcons.briefcase(),
+                      color: AppColors.primary,
+                    ),
                   ),
-                  title: Text(exp.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  title: Text(
+                    exp.title,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   subtitle: Text('${exp.organization} • ${exp.period}'),
                 );
               }),
             ],
+
+            const SizedBox(height: 32),
+            _buildSectionTitle("Partages d'expérience", theme),
+            const SizedBox(height: 16),
+            Consumer<FeedProvider>(
+              builder: (context, feedProvider, _) {
+                final userPosts = feedProvider.posts
+                    .where((p) => p.authorId == _user!.uid)
+                    .toList();
+
+                if (userPosts.isEmpty) {
+                  return const Text(
+                    "Aucun partage pour le moment.",
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  );
+                }
+
+                return Column(
+                  children: userPosts
+                      .map((post) => PostCard(post: post))
+                      .toList(),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -250,7 +369,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         alignment: Alignment.centerLeft,
         child: Text(
           title,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.textTheme.bodyLarge?.color),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: theme.textTheme.bodyLarge?.color,
+          ),
         ),
       ),
     );

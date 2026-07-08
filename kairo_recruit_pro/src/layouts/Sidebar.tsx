@@ -16,7 +16,7 @@ export function Sidebar() {
   return (
     <aside className="w-64 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 flex flex-col">
       <div className="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800">
-        <h1 className="text-xl font-bold text-primary">Kaïro Recruit Pro</h1>
+        <h1 className="text-xl font-bold text-primary">Kaïro Pro</h1>
       </div>
       <nav className="flex-1 overflow-y-auto py-4">
         <ul className="space-y-1 px-3">

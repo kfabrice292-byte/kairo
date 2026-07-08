@@ -57,7 +57,7 @@ const calculateScore = (job: Job | null, candidate: TalentProfile): number => {
   
   // 1. Compétences Techniques (40%)
   if (job.mandatorySkills && job.mandatorySkills.length > 0) {
-    const candidateSkillsStr = (candidate.skills || []).join(' ').toLowerCase();
+    const candidateSkillsStr = (candidate.skills || []).map(s => s.name).join(' ').toLowerCase();
     let matches = 0;
     job.mandatorySkills.forEach(skill => {
       if (candidateSkillsStr.includes(skill.toLowerCase())) matches++;
@@ -70,9 +70,9 @@ const calculateScore = (job: Job | null, candidate: TalentProfile): number => {
   // 2. Formation (15%)
   if (job.educationLevel) {
     // Basic string matching for MVP
-    const candidateHeadline = (candidate.headline || '').toLowerCase();
+    const candidateTitle = (candidate.professionalTitle || '').toLowerCase();
     const candidateUni = (candidate.university || '').toLowerCase();
-    if (candidateHeadline.includes(job.educationLevel.toLowerCase()) || candidateUni.includes(job.educationLevel.toLowerCase())) {
+    if (candidateTitle.includes(job.educationLevel.toLowerCase()) || candidateUni.includes(job.educationLevel.toLowerCase())) {
       score += 15;
     } else {
       score += 5; // Partial points

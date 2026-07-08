@@ -111,7 +111,7 @@ export function CandidateProfileModal({ talent, application, onClose }: Candidat
 
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{talent.name}</h2>
-              <p className="text-lg font-medium text-slate-600 dark:text-slate-400 mt-1">{talent.headline}</p>
+              <p className="text-lg font-medium text-slate-600 dark:text-slate-400 mt-1">{talent.professionalTitle}</p>
               <div className="flex flex-wrap gap-4 mt-3 text-sm text-slate-500 dark:text-slate-400">
                 <div className="flex items-center"><MapPin className="w-4 h-4 mr-1.5" />{talent.country}</div>
                 <div className="flex items-center"><GraduationCap className="w-4 h-4 mr-1.5" />{talent.university}</div>
@@ -133,7 +133,7 @@ export function CandidateProfileModal({ talent, application, onClose }: Candidat
                   <div className="flex flex-wrap gap-2">
                     {talent.skills.map((skill, index) => (
                       <span key={index} className="px-3 py-1 bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light rounded-lg text-sm font-medium border border-primary/20">
-                        {skill}
+                        {skill.name}
                       </span>
                     ))}
                   </div>

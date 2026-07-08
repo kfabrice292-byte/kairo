@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/models/user_model.dart';
 import '../../widgets/kairo_text_field.dart';
+import 'package:kairo_mobile/core/theme/app_colors.dart';
 
 class AddExperienceDialog extends StatefulWidget {
   const AddExperienceDialog({super.key});
@@ -34,7 +35,10 @@ class _AddExperienceDialogState extends State<AddExperienceDialog> {
   Future<void> _save() async {
     if (_titleController.text.isEmpty || _orgController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Le titre et l\'organisation sont requis.'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text('Le titre et l\'organisation sont requis.'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -51,23 +55,31 @@ class _AddExperienceDialogState extends State<AddExperienceDialog> {
         organization: _orgController.text.trim(),
         period: _periodController.text.trim(),
         description: _descController.text.trim(),
-        skillsUsed: _skillsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
+        skillsUsed: _skillsController.text
+            .split(',')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList(),
       );
 
-      final updatedExperiences = List<Experience>.from(user.experiences)..insert(0, newExp);
+      final updatedExperiences = List<Experience>.from(user.experiences)
+        ..insert(0, newExp);
 
       try {
         await auth.updateProfile({
           'experiences': updatedExperiences.map((e) => e.toMap()).toList(),
         });
-        
+
         // Bonus: on pourrait créer un post "A commencé une nouvelle expérience" ici
         // pour que ça apparaisse dans le feed d'actualité.
 
         if (mounted) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Expérience ajoutée !'), backgroundColor: Colors.green),
+            const SnackBar(
+              content: Text('Expérience ajoutée !'),
+              backgroundColor: Colors.green,
+            ),
           );
         }
       } catch (e) {
@@ -96,7 +108,10 @@ class _AddExperienceDialogState extends State<AddExperienceDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Ajouter une expérience', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Ajouter une expérience',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
@@ -104,11 +119,23 @@ class _AddExperienceDialogState extends State<AddExperienceDialog> {
                 ],
               ),
               const SizedBox(height: 16),
-              KairoTextField(controller: _titleController, hintText: 'Titre du poste', prefixIcon: PhosphorIcons.briefcase()),
+              KairoTextField(
+                controller: _titleController,
+                hintText: 'Titre du poste',
+                prefixIcon: PhosphorIcons.briefcase(),
+              ),
               const SizedBox(height: 12),
-              KairoTextField(controller: _orgController, hintText: 'Entreprise / Organisation', prefixIcon: PhosphorIcons.buildings()),
+              KairoTextField(
+                controller: _orgController,
+                hintText: 'Entreprise / Organisation',
+                prefixIcon: PhosphorIcons.buildings(),
+              ),
               const SizedBox(height: 12),
-              KairoTextField(controller: _periodController, hintText: 'Période (ex: Jan 2023 - Présent)', prefixIcon: PhosphorIcons.calendar()),
+              KairoTextField(
+                controller: _periodController,
+                hintText: 'Période (ex: Jan 2023 - Présent)',
+                prefixIcon: PhosphorIcons.calendar(),
+              ),
               const SizedBox(height: 12),
               TextField(
                 controller: _descController,
@@ -117,23 +144,46 @@ class _AddExperienceDialogState extends State<AddExperienceDialog> {
                   hintText: 'Description des missions...',
                   filled: true,
                   fillColor: Colors.grey.shade100,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
                   contentPadding: const EdgeInsets.all(16),
                 ),
               ),
               const SizedBox(height: 12),
-              KairoTextField(controller: _skillsController, hintText: 'Compétences (séparées par une virgule)', prefixIcon: PhosphorIcons.lightning()),
+              KairoTextField(
+                controller: _skillsController,
+                hintText: 'Compétences (séparées par une virgule)',
+                prefixIcon: PhosphorIcons.lightning(),
+              ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : _save,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF97316),
+                  backgroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: _isLoading
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Sauvegarder', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Sauvegarder',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ],
           ),

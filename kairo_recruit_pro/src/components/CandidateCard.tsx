@@ -42,7 +42,7 @@ export function CandidateCard({ talent, onClick, matchScore }: CandidateCardProp
             )}
           </div>
           <p className="text-sm font-medium text-slate-600 dark:text-slate-400 truncate">
-            {talent.headline}
+            {talent.professionalTitle}
           </p>
           
           <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -66,7 +66,7 @@ export function CandidateCard({ talent, onClick, matchScore }: CandidateCardProp
                 key={index} 
                 className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
               >
-                {skill}
+                {skill.name}
               </span>
             ))}
             {talent.skills.length > 3 && (

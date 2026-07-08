@@ -5,10 +5,17 @@ import 'package:printing/printing.dart';
 import '../models/user_model.dart';
 
 class CVGenerator {
-  static Future<void> generateAndPrintCV(UserModel user, {String template = 'moderne'}) async {
+  static Future<void> generateAndPrintCV(
+    UserModel user, {
+    String template = 'moderne',
+  }) async {
     final pdf = pw.Document();
 
-    final primaryColor = template == 'creatif' ? PdfColors.purple800 : (template == 'classique' ? PdfColors.blueGrey800 : PdfColors.orange800);
+    final primaryColor = template == 'creatif'
+        ? PdfColors.purple800
+        : (template == 'classique'
+              ? PdfColors.blueGrey800
+              : PdfColors.orange800);
 
     pw.MemoryImage? profileImage;
     if (user.photoURL.isNotEmpty) {
@@ -46,36 +53,74 @@ class CVGenerator {
                           margin: const pw.EdgeInsets.only(bottom: 20),
                           decoration: pw.BoxDecoration(
                             shape: pw.BoxShape.circle,
-                            image: pw.DecorationImage(image: profileImage, fit: pw.BoxFit.cover),
+                            image: pw.DecorationImage(
+                              image: profileImage,
+                              fit: pw.BoxFit.cover,
+                            ),
                           ),
                         ),
                       pw.Text(
                         user.name.toUpperCase(),
-                        style: pw.TextStyle(color: PdfColors.white, fontSize: 18, fontWeight: pw.FontWeight.bold),
+                        style: pw.TextStyle(
+                          color: PdfColors.white,
+                          fontSize: 18,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
                         textAlign: pw.TextAlign.center,
                       ),
                       pw.SizedBox(height: 8),
                       pw.Text(
                         user.professionalTitle,
-                        style: const pw.TextStyle(color: PdfColors.white, fontSize: 12),
+                        style: const pw.TextStyle(
+                          color: PdfColors.white,
+                          fontSize: 12,
+                        ),
                         textAlign: pw.TextAlign.center,
                       ),
                       pw.SizedBox(height: 24),
                       if (user.city.isNotEmpty || user.country.isNotEmpty) ...[
-                        pw.Text('LOCALISATION', style: pw.TextStyle(color: PdfColors.white, fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                        pw.Text(
+                          'LOCALISATION',
+                          style: pw.TextStyle(
+                            color: PdfColors.white,
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
                         pw.SizedBox(height: 4),
-                        pw.Text('${user.city}, ${user.country}', style: pw.TextStyle(color: PdfColors.grey300, fontSize: 10)),
+                        pw.Text(
+                          '${user.city}, ${user.country}',
+                          style: pw.TextStyle(
+                            color: PdfColors.grey300,
+                            fontSize: 10,
+                          ),
+                        ),
                         pw.SizedBox(height: 16),
                       ],
                       if (user.skills.isNotEmpty) ...[
                         pw.Divider(color: PdfColors.white, thickness: 0.5),
                         pw.SizedBox(height: 16),
-                        pw.Text('COMPÉTENCES', style: pw.TextStyle(color: PdfColors.white, fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                        pw.Text(
+                          'COMPÉTENCES',
+                          style: pw.TextStyle(
+                            color: PdfColors.white,
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
                         pw.SizedBox(height: 8),
-                        ...user.skills.map((s) => pw.Padding(
-                          padding: const pw.EdgeInsets.only(bottom: 4),
-                          child: pw.Text('• $s', style: pw.TextStyle(color: PdfColors.grey200, fontSize: 10)),
-                        )),
+                        ...user.skills.map(
+                          (s) => pw.Padding(
+                            padding: const pw.EdgeInsets.only(bottom: 4),
+                            child: pw.Text(
+                              '• ${s.name}',
+                              style: pw.TextStyle(
+                                color: PdfColors.grey200,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ],
                   ),
@@ -88,35 +133,84 @@ class CVGenerator {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         if (user.bio.isNotEmpty) ...[
-                          pw.Text('PROFIL', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold, color: primaryColor)),
+                          pw.Text(
+                            'PROFIL',
+                            style: pw.TextStyle(
+                              fontSize: 16,
+                              fontWeight: pw.FontWeight.bold,
+                              color: primaryColor,
+                            ),
+                          ),
                           pw.SizedBox(height: 8),
-                          pw.Text(user.bio, style: pw.TextStyle(fontSize: 11, color: PdfColors.grey800, lineSpacing: 1.5)),
+                          pw.Text(
+                            user.bio,
+                            style: pw.TextStyle(
+                              fontSize: 11,
+                              color: PdfColors.grey800,
+                              lineSpacing: 1.5,
+                            ),
+                          ),
                           pw.SizedBox(height: 24),
                         ],
                         if (user.experiences.isNotEmpty) ...[
-                          pw.Text('EXPÉRIENCES', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold, color: primaryColor)),
-                          pw.SizedBox(height: 12),
-                          ...user.experiences.map((exp) => pw.Container(
-                            margin: const pw.EdgeInsets.only(bottom: 12),
-                            child: pw.Column(
-                              crossAxisAlignment: pw.CrossAxisAlignment.start,
-                              children: [
-                                pw.Row(
-                                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    pw.Text(exp.title, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
-                                    pw.Text(exp.period, style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
-                                  ],
-                                ),
-                                pw.SizedBox(height: 2),
-                                pw.Text(exp.organization, style: pw.TextStyle(fontSize: 11, fontStyle: pw.FontStyle.italic, color: PdfColors.orange800)),
-                                if (exp.description.isNotEmpty) ...[
-                                  pw.SizedBox(height: 4),
-                                  pw.Text(exp.description, style: const pw.TextStyle(fontSize: 10, lineSpacing: 1.5)),
-                                ],
-                              ],
+                          pw.Text(
+                            'EXPÉRIENCES',
+                            style: pw.TextStyle(
+                              fontSize: 16,
+                              fontWeight: pw.FontWeight.bold,
+                              color: primaryColor,
                             ),
-                          )),
+                          ),
+                          pw.SizedBox(height: 12),
+                          ...user.experiences.map(
+                            (exp) => pw.Container(
+                              margin: const pw.EdgeInsets.only(bottom: 12),
+                              child: pw.Column(
+                                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                children: [
+                                  pw.Row(
+                                    mainAxisAlignment:
+                                        pw.MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      pw.Text(
+                                        exp.title,
+                                        style: pw.TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: pw.FontWeight.bold,
+                                        ),
+                                      ),
+                                      pw.Text(
+                                        exp.period,
+                                        style: pw.TextStyle(
+                                          fontSize: 10,
+                                          color: PdfColors.grey600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  pw.SizedBox(height: 2),
+                                  pw.Text(
+                                    exp.organization,
+                                    style: pw.TextStyle(
+                                      fontSize: 11,
+                                      fontStyle: pw.FontStyle.italic,
+                                      color: PdfColors.orange800,
+                                    ),
+                                  ),
+                                  if (exp.description.isNotEmpty) ...[
+                                    pw.SizedBox(height: 4),
+                                    pw.Text(
+                                      exp.description,
+                                      style: const pw.TextStyle(
+                                        fontSize: 10,
+                                        lineSpacing: 1.5,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
                       ],
                     ),
@@ -129,7 +223,9 @@ class CVGenerator {
       );
     } else {
       // Classique & Creatif Layout
-      final headerAlignment = template == 'classique' ? pw.CrossAxisAlignment.center : pw.CrossAxisAlignment.start;
+      final headerAlignment = template == 'classique'
+          ? pw.CrossAxisAlignment.center
+          : pw.CrossAxisAlignment.start;
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
@@ -141,7 +237,9 @@ class CVGenerator {
                 pw.Container(
                   padding: const pw.EdgeInsets.only(bottom: 20),
                   decoration: const pw.BoxDecoration(
-                    border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300, width: 2)),
+                    border: pw.Border(
+                      bottom: pw.BorderSide(color: PdfColors.grey300, width: 2),
+                    ),
                   ),
                   child: pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -151,13 +249,29 @@ class CVGenerator {
                         children: [
                           pw.Text(
                             user.name.toUpperCase(),
-                            style: pw.TextStyle(fontSize: template == 'creatif' ? 28 : 24, fontWeight: pw.FontWeight.bold, color: primaryColor),
+                            style: pw.TextStyle(
+                              fontSize: template == 'creatif' ? 28 : 24,
+                              fontWeight: pw.FontWeight.bold,
+                              color: primaryColor,
+                            ),
                           ),
                           if (user.professionalTitle.isNotEmpty)
-                            pw.Text(user.professionalTitle, style: pw.TextStyle(fontSize: 16, color: PdfColors.grey800)),
+                            pw.Text(
+                              user.professionalTitle,
+                              style: pw.TextStyle(
+                                fontSize: 16,
+                                color: PdfColors.grey800,
+                              ),
+                            ),
                           pw.SizedBox(height: 8),
                           if (user.city.isNotEmpty || user.country.isNotEmpty)
-                            pw.Text('${user.city}, ${user.country}', style: pw.TextStyle(fontSize: 12, color: PdfColors.grey600)),
+                            pw.Text(
+                              '${user.city}, ${user.country}',
+                              style: pw.TextStyle(
+                                fontSize: 12,
+                                color: PdfColors.grey600,
+                              ),
+                            ),
                         ],
                       ),
                       if (profileImage != null)
@@ -166,7 +280,10 @@ class CVGenerator {
                           height: 80,
                           decoration: pw.BoxDecoration(
                             shape: pw.BoxShape.circle,
-                            image: pw.DecorationImage(image: profileImage, fit: pw.BoxFit.cover),
+                            image: pw.DecorationImage(
+                              image: profileImage,
+                              fit: pw.BoxFit.cover,
+                            ),
                           ),
                         ),
                     ],
@@ -174,49 +291,116 @@ class CVGenerator {
                 ),
                 pw.SizedBox(height: 20),
                 if (user.bio.isNotEmpty) ...[
-                  pw.Text('PROFIL', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: primaryColor)),
+                  pw.Text(
+                    'PROFIL',
+                    style: pw.TextStyle(
+                      fontSize: 14,
+                      fontWeight: pw.FontWeight.bold,
+                      color: primaryColor,
+                    ),
+                  ),
                   pw.SizedBox(height: 4),
-                  pw.Text(user.bio, style: const pw.TextStyle(fontSize: 11, lineSpacing: 1.5)),
+                  pw.Text(
+                    user.bio,
+                    style: const pw.TextStyle(fontSize: 11, lineSpacing: 1.5),
+                  ),
                   pw.SizedBox(height: 20),
                 ],
                 if (user.skills.isNotEmpty) ...[
-                  pw.Text('COMPÉTENCES', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: primaryColor)),
+                  pw.Text(
+                    'COMPÉTENCES',
+                    style: pw.TextStyle(
+                      fontSize: 14,
+                      fontWeight: pw.FontWeight.bold,
+                      color: primaryColor,
+                    ),
+                  ),
                   pw.SizedBox(height: 8),
                   pw.Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: user.skills.map((s) => pw.Container(
-                      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: pw.BoxDecoration(color: PdfColors.grey200, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
-                      child: pw.Text(s, style: const pw.TextStyle(fontSize: 10)),
-                    )).toList(),
+                    children: user.skills
+                        .map(
+                          (s) => pw.Container(
+                            padding: const pw.EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: pw.BoxDecoration(
+                              color: PdfColors.grey200,
+                              borderRadius: const pw.BorderRadius.all(
+                                pw.Radius.circular(4),
+                              ),
+                            ),
+                            child: pw.Text(
+                              s.name,
+                              style: const pw.TextStyle(fontSize: 10),
+                            ),
+                          ),
+                        )
+                        .toList(),
                   ),
                   pw.SizedBox(height: 20),
                 ],
                 if (user.experiences.isNotEmpty) ...[
-                  pw.Text('EXPÉRIENCES', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: primaryColor)),
-                  pw.SizedBox(height: 12),
-                  ...user.experiences.map((exp) => pw.Container(
-                    margin: const pw.EdgeInsets.only(bottom: 12),
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Row(
-                          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pw.Text(exp.title, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
-                            pw.Text(exp.period, style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
-                          ],
-                        ),
-                        pw.SizedBox(height: 2),
-                        pw.Text(exp.organization, style: pw.TextStyle(fontSize: 11, fontStyle: pw.FontStyle.italic, color: PdfColors.grey800)),
-                        if (exp.description.isNotEmpty) ...[
-                          pw.SizedBox(height: 4),
-                          pw.Text(exp.description, style: const pw.TextStyle(fontSize: 10, lineSpacing: 1.5)),
-                        ],
-                      ],
+                  pw.Text(
+                    'EXPÉRIENCES',
+                    style: pw.TextStyle(
+                      fontSize: 14,
+                      fontWeight: pw.FontWeight.bold,
+                      color: primaryColor,
                     ),
-                  )),
+                  ),
+                  pw.SizedBox(height: 12),
+                  ...user.experiences.map(
+                    (exp) => pw.Container(
+                      margin: const pw.EdgeInsets.only(bottom: 12),
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Row(
+                            mainAxisAlignment:
+                                pw.MainAxisAlignment.spaceBetween,
+                            children: [
+                              pw.Text(
+                                exp.title,
+                                style: pw.TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: pw.FontWeight.bold,
+                                ),
+                              ),
+                              pw.Text(
+                                exp.period,
+                                style: pw.TextStyle(
+                                  fontSize: 10,
+                                  color: PdfColors.grey600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          pw.SizedBox(height: 2),
+                          pw.Text(
+                            exp.organization,
+                            style: pw.TextStyle(
+                              fontSize: 11,
+                              fontStyle: pw.FontStyle.italic,
+                              color: PdfColors.grey800,
+                            ),
+                          ),
+                          if (exp.description.isNotEmpty) ...[
+                            pw.SizedBox(height: 4),
+                            pw.Text(
+                              exp.description,
+                              style: const pw.TextStyle(
+                                fontSize: 10,
+                                lineSpacing: 1.5,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ],
             );

@@ -27,11 +27,11 @@ class NotificationModel {
       id: doc.id,
       userId: data['userId'] ?? '',
       title: data['title'] ?? '',
-      body: data['body'] ?? '',
+      body: data['body'] ?? data['message'] ?? '',
       type: data['type'] ?? 'info',
-      isRead: data['isRead'] ?? false,
+      isRead: data['isRead'] ?? data['read'] ?? false,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      relatedId: data['relatedId'],
+      relatedId: data['relatedId'] ?? data['jobId'],
     );
   }
 

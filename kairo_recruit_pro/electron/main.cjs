@@ -25,7 +25,7 @@ function createWindow() {
       contextIsolation: true,
       webSecurity: false,
     },
-    title: 'Kaïro Recruit Pro',
+    title: 'Kaïro Pro',
     show: true,
   });
 

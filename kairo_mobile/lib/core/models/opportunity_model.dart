@@ -7,11 +7,28 @@ class OpportunityModel {
   final String location;
   final String type; // Stage, Emploi, Bourse, Concours
   final String description;
-  final String postedBy; // User ID of the student who posted
+  final String postedBy; // User ID of the student/recruiter who posted
   final List<String> applicants; // IDs of users who applied
   final List<String> mandatorySkills;
   final String status;
+  
+  // ATS Fields
+  final List<String> requiredDocuments;
+  final String? educationLevel;
+  final int? minExperience;
+  final List<String> niceToHaveSkills;
+  final List<String> languages;
+  final List<String> preSelectionQuestions;
+  final String? salaryRange;
+  final String? department;
+  final int? numberOfPositions;
+  final String? workTime;
+  final String? seniorityLevel;
+  final String? remoteWork;
+  
   final DateTime createdAt;
+  final DateTime? closeDate;
+  final DateTime? expectedStartDate;
 
   OpportunityModel({
     required this.id,
@@ -24,7 +41,23 @@ class OpportunityModel {
     this.applicants = const [],
     this.mandatorySkills = const [],
     this.status = 'ouvert',
+    
+    this.requiredDocuments = const [],
+    this.educationLevel,
+    this.minExperience,
+    this.niceToHaveSkills = const [],
+    this.languages = const [],
+    this.preSelectionQuestions = const [],
+    this.salaryRange,
+    this.department,
+    this.numberOfPositions,
+    this.workTime,
+    this.seniorityLevel,
+    this.remoteWork,
+    
     required this.createdAt,
+    this.closeDate,
+    this.expectedStartDate,
   });
 
   factory OpportunityModel.fromFirestore(DocumentSnapshot doc) {
@@ -40,7 +73,23 @@ class OpportunityModel {
       applicants: List<String>.from(data['applicants'] ?? []),
       mandatorySkills: List<String>.from(data['mandatorySkills'] ?? []),
       status: data['status'] ?? 'ouvert',
+      
+      requiredDocuments: List<String>.from(data['requiredDocuments'] ?? []),
+      educationLevel: data['educationLevel'],
+      minExperience: data['minExperience'],
+      niceToHaveSkills: List<String>.from(data['niceToHaveSkills'] ?? []),
+      languages: List<String>.from(data['languages'] ?? []),
+      preSelectionQuestions: List<String>.from(data['preSelectionQuestions'] ?? []),
+      salaryRange: data['salaryRange'],
+      department: data['department'],
+      numberOfPositions: data['numberOfPositions'],
+      workTime: data['workTime'],
+      seniorityLevel: data['seniorityLevel'],
+      remoteWork: data['remoteWork'],
+      
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      closeDate: (data['closeDate'] as Timestamp?)?.toDate(),
+      expectedStartDate: (data['expectedStartDate'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -53,7 +102,25 @@ class OpportunityModel {
       'description': description,
       'postedBy': postedBy,
       'applicants': applicants,
+      'mandatorySkills': mandatorySkills,
+      'status': status,
+      
+      'requiredDocuments': requiredDocuments,
+      'educationLevel': educationLevel,
+      'minExperience': minExperience,
+      'niceToHaveSkills': niceToHaveSkills,
+      'languages': languages,
+      'preSelectionQuestions': preSelectionQuestions,
+      'salaryRange': salaryRange,
+      'department': department,
+      'numberOfPositions': numberOfPositions,
+      'workTime': workTime,
+      'seniorityLevel': seniorityLevel,
+      'remoteWork': remoteWork,
+      
       'createdAt': Timestamp.fromDate(createdAt),
+      'closeDate': closeDate != null ? Timestamp.fromDate(closeDate!) : null,
+      'expectedStartDate': expectedStartDate != null ? Timestamp.fromDate(expectedStartDate!) : null,
     };
   }
 }

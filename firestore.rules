@@ -1,0 +1,131 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------------------------------------------------------------------------
+    // FONCTIONS UTILITAIRES DE SECURITE
+    // -------------------------------------------------------------------------
+
+    // Vérifie si l'utilisateur est connecté
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Vérifie si l'utilisateur accède à sa propre ressource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Vérifie si l'utilisateur a le rôle recruteur (soit dans le token, soit dans la DB)
+    function isRecruiter() {
+      return isAuthenticated() && (
+        request.auth.token.role == 'recruiter' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'recruiter'
+      );
+    }
+
+    // Vérifie si l'utilisateur a le rôle admin
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.role == 'admin' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
+    // -------------------------------------------------------------------------
+    // REGLES PAR COLLECTION
+    // -------------------------------------------------------------------------
+
+    // Collection "users" (Candidats, Recruteurs, Admins)
+    match /users/{userId} {
+      // Lecture : Tout le monde peut voir les profils (nécessaire pour le feed et la recherche)
+      allow read: if isAuthenticated();
+      
+      // Création : L'utilisateur ne peut créer que son propre document.
+      // Protection d'escalade de rôle : Impossible de se créer en tant qu'admin ou recruteur via l'app mobile.
+      allow create: if isOwner(userId) 
+                    && (!request.resource.data.keys().hasAny(['role', 'isAdmin']) 
+                        || request.resource.data.role == 'talent');
+
+      // Mise à jour : L'utilisateur ne peut modifier que son propre document.
+      // Et il ne peut pas modifier son rôle lui-même.
+      allow update: if isOwner(userId) 
+                    && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'isAdmin']));
+                    
+      // Seuls les admins peuvent supprimer un utilisateur ou changer un rôle.
+      allow delete, update: if isAdmin();
+    }
+
+    // Collection "opportunities" (Offres d'emploi)
+    match /opportunities/{opportunityId} {
+      // Lecture : Tout le monde peut voir les offres
+      allow read: if true;
+      
+      // Ecriture : Seuls les recruteurs et les admins peuvent créer, modifier ou supprimer des offres
+      allow create, update, delete: if isRecruiter() || isAdmin();
+    }
+
+    // Collection "applications" (Candidatures)
+    match /applications/{applicationId} {
+      // L'utilisateur peut lire ses propres candidatures, le recruteur peut toutes les lire
+      allow read: if isRecruiter() || isAdmin() || (isAuthenticated() && resource.data.applicantId == request.auth.uid);
+      
+      // Un candidat peut créer une candidature, mais uniquement pour lui-même
+      allow create: if isAuthenticated() && request.resource.data.applicantId == request.auth.uid;
+      
+      // Seul le recruteur/admin peut modifier le statut d'une candidature
+      allow update: if isRecruiter() || isAdmin();
+      
+      allow delete: if isAdmin();
+    }
+
+    // Collection "chats" (Conversations privées)
+    match /chats/{chatId} {
+      // Un utilisateur ne peut lire/modifier une conversation que s'il est dans les participants
+      allow read, update: if isAuthenticated() && (request.auth.uid in resource.data.participantIds);
+      
+      // Création d'une conversation : L'utilisateur doit s'inclure dans les participants
+      allow create: if isAuthenticated() && (request.auth.uid in request.resource.data.participantIds);
+      allow delete: if isAdmin();
+
+      // Sous-collection "messages"
+      match /messages/{messageId} {
+        // Lecture : on revérifie si le parent chat contient l'utilisateur
+        allow read: if isAuthenticated() 
+                    && (request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds);
+        
+        // Création d'un message : L'expéditeur doit être l'utilisateur connecté
+        allow create: if isAuthenticated() 
+                      && (request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds)
+                      && request.resource.data.senderId == request.auth.uid;
+                      
+        allow update: if isAuthenticated() 
+                      && (request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds);
+      }
+    }
+
+    // Collection "notifications"
+    match /notifications/{notificationId} {
+      // Un utilisateur ne peut lire, modifier, créer que ses propres notifications
+      allow read, update: if isOwner(resource.data.userId);
+      // Pour la création, la notif doit être destinée au bon userId
+      // Note: Les Cloud Functions utilisent l'Admin SDK (qui bypass ces règles) pour créer des notifs en toute sécurité.
+      allow create: if isOwner(request.resource.data.userId);
+      allow delete: if isOwner(resource.data.userId);
+    }
+
+    // Collection "projects", "posts", "feed" (Contenu généré par les utilisateurs)
+    match /{path=**}/posts/{postId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && request.resource.data.authorId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.authorId == request.auth.uid || isAdmin();
+    }
+    
+    match /projects/{projectId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid || isAdmin();
+    }
+  }
+}

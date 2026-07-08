@@ -7,6 +7,9 @@ class PostModel {
   final String authorRole;
   final String authorAvatar;
   final String content;
+  final String? category;
+  final Map<String, dynamic> customFields;
+  final List<String> tags;
   final String? communityId; // Si null, c'est un post global
   final List<String> imageUrls;
   final bool isStylized;
@@ -25,6 +28,9 @@ class PostModel {
     required this.authorRole,
     required this.authorAvatar,
     required this.content,
+    this.category,
+    this.customFields = const {},
+    this.tags = const [],
     this.communityId,
     this.imageUrls = const [],
     this.isStylized = false,
@@ -46,6 +52,11 @@ class PostModel {
       authorRole: data['authorRole'] ?? '',
       authorAvatar: data['authorAvatar'] ?? '',
       content: data['content'] ?? '',
+      category: data['category'],
+      customFields: data['customFields'] != null
+          ? Map<String, dynamic>.from(data['customFields'])
+          : {},
+      tags: List<String>.from(data['tags'] ?? []),
       communityId: data['communityId'],
       imageUrls: List<String>.from(data['imageUrls'] ?? []),
       isStylized: data['isStylized'] ?? false,
@@ -64,6 +75,9 @@ class PostModel {
       'authorRole': authorRole,
       'authorAvatar': authorAvatar,
       'content': content,
+      'category': category,
+      'customFields': customFields,
+      'tags': tags,
       'communityId': communityId,
       'imageUrls': imageUrls,
       'isStylized': isStylized,

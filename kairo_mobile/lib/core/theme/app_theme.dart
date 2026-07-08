@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:kairo_mobile/core/theme/app_colors.dart';
 
 class AppTheme {
-  static const Color primaryColor = Color(0xFFF97316); // Orange-500, used sparingly
+  static const Color primaryColor =
+      AppColors.primary; // Orange-500, used sparingly
 
   // Light Mode Colors
-  static const Color lightBackground = Color(0xFFFAFAFA); // Very clean white-grey
+  static const Color lightBackground = Color(
+    0xFFFAFAFA,
+  ); // Very clean white-grey
   static const Color lightSurface = Colors.white;
   static const Color lightTextPrimary = Color(0xFF111827); // Gray-900
   static const Color lightTextSecondary = Color(0xFF6B7280); // Gray-500
   static const Color lightDivider = Color(0xFFE5E7EB); // Gray-200
 
   // Dark Mode Colors (Espresso / Warm Dark)
-  static const Color darkBackground = Color(0xFF14110F); // Very dark brown/black
-  static const Color darkSurface = Color(0xFF221C18); // Elevated warm dark surface
+  static const Color darkBackground = Color(
+    0xFF14110F,
+  ); // Very dark brown/black
+  static const Color darkSurface = Color(
+    0xFF221C18,
+  ); // Elevated warm dark surface
   static const Color darkTextPrimary = Color(0xFFFDFBF7); // Off-white warm
   static const Color darkTextSecondary = Color(0xFFAFA39C); // Warm grey
   static const Color darkDivider = Color(0xFF3B322D); // Warm dark grey
@@ -63,10 +71,9 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: darkBackground,
       dividerColor: darkDivider,
-      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).apply(
-        bodyColor: darkTextPrimary,
-        displayColor: darkTextPrimary,
-      ),
+      textTheme: GoogleFonts.interTextTheme(
+        ThemeData.dark().textTheme,
+      ).apply(bodyColor: darkTextPrimary, displayColor: darkTextPrimary),
       appBarTheme: AppBarTheme(
         backgroundColor: darkBackground,
         elevation: 0,

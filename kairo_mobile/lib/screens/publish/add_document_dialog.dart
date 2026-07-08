@@ -3,6 +3,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../widgets/kairo_text_field.dart';
+import 'package:kairo_mobile/core/theme/app_colors.dart';
 
 class AddDocumentDialog extends StatefulWidget {
   const AddDocumentDialog({super.key});
@@ -26,7 +27,10 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
   Future<void> _save() async {
     if (_titleController.text.isEmpty || _linkController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Le titre et le lien sont requis.'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text('Le titre et le lien sont requis.'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -37,18 +41,20 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
     final user = auth.userModel;
 
     if (user != null) {
-      final docLabel = "${_titleController.text.trim()} (${_linkController.text.trim()})";
+      final docLabel =
+          "${_titleController.text.trim()} (${_linkController.text.trim()})";
       final updatedDocs = List<String>.from(user.documents)..add(docLabel);
 
       try {
-        await auth.updateProfile({
-          'documents': updatedDocs,
-        });
+        await auth.updateProfile({'documents': updatedDocs});
 
         if (mounted) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Document ajouté !'), backgroundColor: Colors.green),
+            const SnackBar(
+              content: Text('Document ajouté !'),
+              backgroundColor: Colors.green,
+            ),
           );
         }
       } catch (e) {
@@ -76,7 +82,10 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Ajouter un document', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Ajouter un document',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
                 IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: () => Navigator.pop(context),
@@ -84,20 +93,44 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
               ],
             ),
             const SizedBox(height: 16),
-            KairoTextField(controller: _titleController, hintText: 'Titre (ex: CV, Certificat Google)', prefixIcon: PhosphorIcons.filePdf()),
+            KairoTextField(
+              controller: _titleController,
+              hintText: 'Titre (ex: CV, Certificat Google)',
+              prefixIcon: PhosphorIcons.filePdf(),
+            ),
             const SizedBox(height: 12),
-            KairoTextField(controller: _linkController, hintText: 'Lien Drive ou Portfolio', prefixIcon: PhosphorIcons.link()),
+            KairoTextField(
+              controller: _linkController,
+              hintText: 'Lien Drive ou Portfolio',
+              prefixIcon: PhosphorIcons.link(),
+            ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _isLoading ? null : _save,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF97316),
+                backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: _isLoading
-                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Sauvegarder', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Sauvegarder',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ],
         ),

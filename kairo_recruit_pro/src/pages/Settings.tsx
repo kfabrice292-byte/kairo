@@ -86,7 +86,7 @@ export function Settings() {
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Préférences d'Affichage</h3>
-              <p className="text-sm text-slate-500 mt-1">Personnalisez votre expérience sur Kaïro Recruit Pro.</p>
+              <p className="text-sm text-slate-500 mt-1">Personnalisez votre expérience sur Kaïro Pro.</p>
             </div>
             <div className="p-6">
               <div className="flex items-center justify-between">

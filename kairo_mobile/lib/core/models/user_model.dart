@@ -1,5 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+class Skill {
+  final String name;
+  final String level;
+
+  Skill({required this.name, this.level = 'Intermédiaire'});
+
+  factory Skill.fromMap(Map<String, dynamic> map) {
+    return Skill(
+      name: map['name'] ?? '',
+      level: map['level'] ?? 'Intermédiaire',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {'name': name, 'level': level};
+  }
+}
+
 class Experience {
   final String id;
   final String title;
@@ -42,7 +60,7 @@ class Experience {
 
 class UserModel {
   final String uid;
-  
+
   // Informations personnelles
   final String photoURL;
   final String coverPhoto;
@@ -55,21 +73,21 @@ class UserModel {
   final String establishment;
   final String fieldOfStudy;
   final String studyLevel;
-  
+
   // Compétences
-  final List<String> skills;
-  
+  final List<Skill> skills;
+
   // Expériences
   final List<Experience> experiences;
-  
+
   // Projets (références ou résumé des projets auxquels on participe)
   // On stockera les IDs des projets ou un résumé
   final List<String> projectIds;
-  
+
   // Portfolio & Documents (liens d'images, PDF, etc.)
   final List<String> portfolioLinks;
   final List<String> documents; // CV, certificats
-  
+
   // Contacts
   final String phone;
   final String email;
@@ -85,6 +103,9 @@ class UserModel {
   final List<String> connections;
   final List<String> sentRequests;
   final List<String> receivedRequests;
+  final List<String> followers;
+  final List<String> following;
+  final List<String> savedOpportunities;
 
   // CV Builder Data
   final String lastCvTitle;
@@ -119,6 +140,9 @@ class UserModel {
     this.connections = const [],
     this.sentRequests = const [],
     this.receivedRequests = const [],
+    this.followers = const [],
+    this.following = const [],
+    this.savedOpportunities = const [],
     this.lastCvTitle = '',
     this.lastCvBio = '',
     this.lastCvTemplate = 'moderne',
@@ -126,7 +150,7 @@ class UserModel {
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
-    
+
     return UserModel(
       uid: doc.id,
       photoURL: data['photoURL'] ?? '',
@@ -140,7 +164,14 @@ class UserModel {
       establishment: data['establishment'] ?? '',
       fieldOfStudy: data['fieldOfStudy'] ?? '',
       studyLevel: data['studyLevel'] ?? '',
-      skills: List<String>.from(data['skills'] ?? []),
+      skills: (data['skills'] as List<dynamic>? ?? [])
+          .map((e) {
+            if (e is String) return Skill(name: e);
+            if (e is Map<String, dynamic>) return Skill.fromMap(e);
+            return Skill(name: '');
+          })
+          .where((s) => s.name.isNotEmpty)
+          .toList(),
       experiences: (data['experiences'] as List<dynamic>? ?? [])
           .map((e) => Experience.fromMap(e as Map<String, dynamic>))
           .toList(),
@@ -157,6 +188,9 @@ class UserModel {
       connections: List<String>.from(data['connections'] ?? []),
       sentRequests: List<String>.from(data['sentRequests'] ?? []),
       receivedRequests: List<String>.from(data['receivedRequests'] ?? []),
+      followers: List<String>.from(data['followers'] ?? []),
+      following: List<String>.from(data['following'] ?? []),
+      savedOpportunities: List<String>.from(data['savedOpportunities'] ?? []),
       lastCvTitle: data['lastCvTitle'] ?? '',
       lastCvBio: data['lastCvBio'] ?? '',
       lastCvTemplate: data['lastCvTemplate'] ?? 'moderne',
@@ -176,7 +210,7 @@ class UserModel {
       'establishment': establishment,
       'fieldOfStudy': fieldOfStudy,
       'studyLevel': studyLevel,
-      'skills': skills,
+      'skills': skills.map((s) => s.toMap()).toList(),
       'experiences': experiences.map((e) => e.toMap()).toList(),
       'projectIds': projectIds,
       'portfolioLinks': portfolioLinks,
@@ -191,6 +225,9 @@ class UserModel {
       'connections': connections,
       'sentRequests': sentRequests,
       'receivedRequests': receivedRequests,
+      'followers': followers,
+      'following': following,
+      'savedOpportunities': savedOpportunities,
       'lastCvTitle': lastCvTitle,
       'lastCvBio': lastCvBio,
       'lastCvTemplate': lastCvTemplate,

@@ -50,7 +50,7 @@ export const useAuthStore = create<AuthState>((set) => {
           // Fallback if no doc
           set({ user: firebaseUser, profile: null, isLoading: false, isInitialized: true, error: null });
         }
-      } catch (err) {
+      } catch (_err) {
         set({ user: firebaseUser, profile: null, isLoading: false, isInitialized: true, error: null });
       }
     } else {

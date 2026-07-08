@@ -7,6 +7,7 @@ class CommentModel {
   final String authorName;
   final String authorAvatar;
   final String content;
+  final String? parentId;
   final DateTime createdAt;
 
   CommentModel({
@@ -16,6 +17,7 @@ class CommentModel {
     required this.authorName,
     required this.authorAvatar,
     required this.content,
+    this.parentId,
     required this.createdAt,
   });
 
@@ -28,6 +30,7 @@ class CommentModel {
       authorName: data['authorName'] ?? 'Utilisateur',
       authorAvatar: data['authorAvatar'] ?? '',
       content: data['content'] ?? '',
+      parentId: data['parentId'],
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
@@ -39,6 +42,7 @@ class CommentModel {
       'authorName': authorName,
       'authorAvatar': authorAvatar,
       'content': content,
+      'parentId': parentId,
       'createdAt': FieldValue.serverTimestamp(),
     };
   }

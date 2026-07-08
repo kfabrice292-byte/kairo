@@ -8,7 +8,8 @@ class CommunityDiscoveryScreen extends StatefulWidget {
   const CommunityDiscoveryScreen({super.key});
 
   @override
-  State<CommunityDiscoveryScreen> createState() => _CommunityDiscoveryScreenState();
+  State<CommunityDiscoveryScreen> createState() =>
+      _CommunityDiscoveryScreenState();
 }
 
 class _CommunityDiscoveryScreenState extends State<CommunityDiscoveryScreen> {
@@ -17,15 +18,23 @@ class _CommunityDiscoveryScreenState extends State<CommunityDiscoveryScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CommunityProvider>();
-    final communities = provider.communities.where(
-      (c) => c.name.toLowerCase().contains(_searchQuery.toLowerCase()) || 
-             c.tags.any((t) => t.toLowerCase().contains(_searchQuery.toLowerCase()))
-    ).toList();
+    final communities = provider.communities
+        .where(
+          (c) =>
+              c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              c.tags.any(
+                (t) => t.toLowerCase().contains(_searchQuery.toLowerCase()),
+              ),
+        )
+        .toList();
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Découvrir les communautés', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text(
+          'Découvrir les communautés',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
@@ -39,7 +48,10 @@ class _CommunityDiscoveryScreenState extends State<CommunityDiscoveryScreen> {
               onChanged: (val) => setState(() => _searchQuery = val),
               decoration: InputDecoration(
                 hintText: 'Rechercher une communauté, un tag...',
-                prefixIcon: Icon(PhosphorIcons.magnifyingGlass(), color: Colors.grey.shade500),
+                prefixIcon: Icon(
+                  PhosphorIcons.magnifyingGlass(),
+                  color: Colors.grey.shade500,
+                ),
                 filled: true,
                 fillColor: Colors.grey.shade100,
                 border: OutlineInputBorder(
@@ -56,8 +68,10 @@ class _CommunityDiscoveryScreenState extends State<CommunityDiscoveryScreen> {
               itemCount: communities.length,
               itemBuilder: (context, index) {
                 final comm = communities[index];
-                final color = Color(int.tryParse(comm.colorHex, radix: 16) ?? 0xFF3B82F6);
-                
+                final color = Color(
+                  int.tryParse(comm.colorHex, radix: 16) ?? 0xFF3B82F6,
+                );
+
                 return Card(
                   elevation: 0,
                   margin: const EdgeInsets.only(bottom: 12),
@@ -72,26 +86,60 @@ class _CommunityDiscoveryScreenState extends State<CommunityDiscoveryScreen> {
                       backgroundColor: color.withValues(alpha: 0.2),
                       child: Text(
                         comm.name.substring(0, 2).toUpperCase(),
-                        style: TextStyle(fontWeight: FontWeight.bold, color: color),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
                       ),
                     ),
-                    title: Text(comm.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    title: Text(
+                      comm.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 4),
-                        Text(comm.description, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                        Text(
+                          comm.description,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 13,
+                          ),
+                        ),
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            Icon(PhosphorIcons.users(), size: 14, color: Colors.grey.shade500),
+                            Icon(
+                              PhosphorIcons.users(),
+                              size: 14,
+                              color: Colors.grey.shade500,
+                            ),
                             const SizedBox(width: 4),
-                            Text('${comm.members.length} membres', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                            Text(
+                              '${comm.members.length} membres',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 12,
+                              ),
+                            ),
                             const SizedBox(width: 12),
                             if (comm.privacy == 'private') ...[
-                              Icon(PhosphorIcons.lockKey(), size: 14, color: Colors.grey.shade500),
+                              Icon(
+                                PhosphorIcons.lockKey(),
+                                size: 14,
+                                color: Colors.grey.shade500,
+                              ),
                               const SizedBox(width: 4),
-                              Text('Privé', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                              Text(
+                                'Privé',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ],
                           ],
                         ),
@@ -100,7 +148,10 @@ class _CommunityDiscoveryScreenState extends State<CommunityDiscoveryScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => CommunityDetailScreen(community: comm)),
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              CommunityDetailScreen(community: comm),
+                        ),
                       );
                     },
                   ),

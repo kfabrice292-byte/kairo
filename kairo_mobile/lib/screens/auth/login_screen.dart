@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../widgets/kairo_text_field.dart';
+import 'package:kairo_mobile/core/theme/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,7 +20,10 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(fontWeight: FontWeight.w500)),
+        content: Text(
+          message,
+          style: const TextStyle(fontWeight: FontWeight.w500),
+        ),
         backgroundColor: Colors.redAccent,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -28,14 +32,18 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+    if (_emailController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty) {
       _showError("Veuillez remplir tous les champs.");
       return;
     }
 
     final auth = context.read<AuthProvider>();
-    final error = await auth.login(_emailController.text.trim(), _passwordController.text.trim());
-    
+    final error = await auth.login(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
+
     if (mounted) {
       if (error == null) {
         context.go('/main');
@@ -48,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleGoogleSignIn() async {
     final auth = context.read<AuthProvider>();
     final error = await auth.signInWithGoogle();
-    
+
     if (mounted) {
       if (error == null) {
         context.go('/main');
@@ -61,21 +69,28 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleForgotPassword() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
-      _showError("Veuillez saisir votre adresse email pour réinitialiser le mot de passe.");
+      _showError(
+        "Veuillez saisir votre adresse email pour réinitialiser le mot de passe.",
+      );
       return;
     }
 
     final auth = context.read<AuthProvider>();
     final error = await auth.resetPassword(email);
-    
+
     if (mounted) {
       if (error == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text("Email de réinitialisation envoyé.", style: TextStyle(fontWeight: FontWeight.w500)),
+            content: const Text(
+              "Email de réinitialisation envoyé.",
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
       } else {
@@ -93,7 +108,10 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 40.0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -102,8 +120,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Image.asset(
                     'assets/images/logo.png',
                     height: 80,
-                    errorBuilder: (context, error, stackTrace) => 
-                        const Icon(Icons.school, size: 64, color: Color(0xFFF97316)),
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.school,
+                      size: 64,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -147,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: const Text(
                       'Mot de passe oublié ?',
                       style: TextStyle(
-                        color: Color(0xFFF97316),
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
@@ -158,8 +179,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 ElevatedButton(
                   onPressed: isLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF97316),
-                    disabledBackgroundColor: const Color(0xFFF97316).withValues(alpha: 0.6),
+                    backgroundColor: AppColors.primary,
+                    disabledBackgroundColor: AppColors.primary.withValues(
+                      alpha: 0.6,
+                    ),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     elevation: 0,
@@ -233,12 +256,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     Text(
                       'Pas encore membre ?',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 15,
+                      ),
                     ),
                     TextButton(
                       onPressed: () => context.push('/register'),
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFFF97316),
+                        foregroundColor: AppColors.primary,
                         textStyle: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,

@@ -5,7 +5,7 @@ import type { DropResult } from "@hello-pangea/dnd";
 import { usePipelineStore } from "../store/usePipelineStore";
 import { CandidateCard } from "../components/CandidateCard";
 import { CandidateProfileModal } from "../components/CandidateProfileModal";
-import type { TalentProfile } from "../store/useTalentStore";
+import { PipelineActionModal } from "../components/PipelineActionModal";
 import { ArrowLeft } from "lucide-react";
 
 import type { PipelineItem } from "../store/usePipelineStore";
@@ -17,6 +17,7 @@ export function Pipeline() {
   
   const { data, setActiveJob, moveItem } = usePipelineStore();
   const [selectedItem, setSelectedItem] = useState<PipelineItem | null>(null);
+  const [actionCandidate, setActionCandidate] = useState<{ item: PipelineItem, action: 'interview' | 'reject' | 'hire' } | null>(null);
 
   useEffect(() => {
     if (jobId) {
@@ -46,6 +47,15 @@ export function Pipeline() {
       source.index,
       destination.index
     );
+
+    const item = data.items[draggableId];
+    if (destination.droppableId === 'interview') {
+      setActionCandidate({ item, action: 'interview' });
+    } else if (destination.droppableId === 'rejected') {
+      setActionCandidate({ item, action: 'reject' });
+    } else if (destination.droppableId === 'hired') {
+      setActionCandidate({ item, action: 'hire' });
+    }
   };
 
   return (
@@ -121,6 +131,14 @@ export function Pipeline() {
           talent={selectedItem.candidate} 
           application={selectedItem}
           onClose={() => setSelectedItem(null)} 
+        />
+      )}
+
+      {actionCandidate && (
+        <PipelineActionModal
+          action={actionCandidate.action}
+          item={actionCandidate.item}
+          onClose={() => setActionCandidate(null)}
         />
       )}
     </div>
