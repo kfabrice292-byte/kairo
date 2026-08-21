@@ -36,11 +36,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.onCandidateApplied = exports.kairoApi = void 0;
+exports.onCandidateUpdated = exports.onCandidateApplied = exports.kairoApi = void 0;
 const functions = __importStar(require("firebase-functions"));
+const firebase_functions_1 = require("firebase-functions");
 const admin = __importStar(require("firebase-admin"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
+const email_service_1 = require("./services/email.service");
+const templates_1 = require("./emails/templates");
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)({ origin: true }));
 app.use(express_1.default.json());
@@ -68,7 +71,7 @@ const validateApiKey = async (req, res, next) => {
         next();
     }
     catch (error) {
-        console.error('API Key validation error:', error);
+        firebase_functions_1.logger.error('API Key validation error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
@@ -78,11 +81,26 @@ app.use(validateApiKey);
 // Create a new opportunity (job offer) on KAIRO
 // ----------------------------------------------------------------------
 app.post('/api/v1/opportunities', async (req, res) => {
+    var _a;
     try {
         const agencyId = req.agencyId;
         const { title, description, location, type, salary, requirements } = req.body;
         if (!title || !description || !location) {
             return res.status(400).json({ error: 'Missing required fields: title, description, location' });
+        }
+        // BUSINESS RULE: Freemium B2B = 1 active opportunity limit. Premium = 50 limit.
+        const agencyDoc = await db.collection('agencies').doc(agencyId).get();
+        const isPremium = ((_a = agencyDoc.data()) === null || _a === void 0 ? void 0 : _a.isPremium) === true;
+        const limit = isPremium ? 50 : 1;
+        const activeOpsSnapshot = await db.collection('opportunities')
+            .where('companyId', '==', agencyId)
+            .where('status', '==', 'open')
+            .count()
+            .get();
+        if (activeOpsSnapshot.data().count >= limit) {
+            return res.status(403).json({
+                error: `Quota reached. Freemium limit is 1, Premium limit is 50. You currently have ${activeOpsSnapshot.data().count} active opportunities.`
+            });
         }
         const newOpp = {
             title,
@@ -91,8 +109,8 @@ app.post('/api/v1/opportunities', async (req, res) => {
             type: type || 'CDI',
             salary: salary || 'Non spécifié',
             requirements: Array.isArray(requirements) ? requirements : [],
-            companyId: agencyId, // Link to the agency!
-            status: 'active',
+            companyId: agencyId,
+            status: 'open', // STANDARD: 'open', 'closed', 'draft'
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
@@ -103,7 +121,7 @@ app.post('/api/v1/opportunities', async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error creating opportunity:', error);
+        firebase_functions_1.logger.error('Error creating opportunity:', error);
         res.status(500).json({ error: 'Failed to create opportunity' });
     }
 });
@@ -125,7 +143,7 @@ app.get('/api/v1/opportunities', async (req, res) => {
         res.status(200).json({ data: opportunities });
     }
     catch (error) {
-        console.error('Error fetching opportunities:', error);
+        firebase_functions_1.logger.error('Error fetching opportunities:', error);
         res.status(500).json({ error: 'Failed to fetch opportunities' });
     }
 });
@@ -137,7 +155,7 @@ app.get('/api/v1/opportunities/:opportunityId/candidates', async (req, res) => {
     var _a;
     try {
         const agencyId = req.agencyId;
-        const { opportunityId } = req.params;
+        const opportunityId = req.params.opportunityId;
         // Verify opportunity belongs to agency
         const oppDoc = await db.collection('opportunities').doc(opportunityId).get();
         if (!oppDoc.exists || ((_a = oppDoc.data()) === null || _a === void 0 ? void 0 : _a.companyId) !== agencyId) {
@@ -151,7 +169,7 @@ app.get('/api/v1/opportunities/:opportunityId/candidates', async (req, res) => {
         res.status(200).json({ data: candidates });
     }
     catch (error) {
-        console.error('Error fetching candidates:', error);
+        firebase_functions_1.logger.error('Error fetching candidates:', error);
         res.status(500).json({ error: 'Failed to fetch candidates' });
     }
 });
@@ -163,7 +181,8 @@ app.patch('/api/v1/opportunities/:opportunityId/candidates/:candidateId/status',
     var _a;
     try {
         const agencyId = req.agencyId;
-        const { opportunityId, candidateId } = req.params;
+        const opportunityId = req.params.opportunityId;
+        const candidateId = req.params.candidateId;
         const { status } = req.body;
         const validStatuses = ['new', 'evaluating', 'interview', 'hired', 'rejected'];
         if (!status || !validStatuses.includes(status)) {
@@ -186,8 +205,35 @@ app.patch('/api/v1/opportunities/:opportunityId/candidates/:candidateId/status',
         res.status(200).json({ message: 'Candidate status updated successfully' });
     }
     catch (error) {
-        console.error('Error updating candidate status:', error);
+        firebase_functions_1.logger.error('Error updating candidate status:', error);
         res.status(500).json({ error: 'Failed to update candidate status' });
+    }
+});
+// ----------------------------------------------------------------------
+// ENDPOINT: POST /api/v1/resend/webhook
+// Webhook for Resend events (delivered, bounced, etc.)
+// ----------------------------------------------------------------------
+app.post('/api/v1/resend/webhook', async (req, res) => {
+    try {
+        // In production, you would verify the svix signature here to ensure it's from Resend
+        // https://resend.com/docs/dashboard/webhooks/introduction
+        const { type, data } = req.body;
+        firebase_functions_1.logger.info(`Received Resend Webhook: ${type}`, { emailId: data === null || data === void 0 ? void 0 : data.email_id });
+        // Store the event in a dedicated collection for auditing/analytics
+        if (data === null || data === void 0 ? void 0 : data.email_id) {
+            await db.collection('email_logs').doc(data.email_id).set({
+                type,
+                to: data.to,
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                createdAt: data.created_at,
+                error: data.error || null
+            }, { merge: true });
+        }
+        res.status(200).send('Webhook processed');
+    }
+    catch (error) {
+        firebase_functions_1.logger.error('Error processing Resend webhook:', error);
+        res.status(500).send('Internal Server Error');
     }
 });
 exports.kairoApi = functions.https.onRequest(app);
@@ -215,10 +261,33 @@ exports.onCandidateApplied = functions.firestore
             return;
         const agencyData = agencyDoc.data();
         const webhookUrl = agencyData === null || agencyData === void 0 ? void 0 : agencyData.webhookUrl;
-        // If the agency hasn't configured a webhook, do nothing
-        if (!webhookUrl)
-            return;
-        // 3. Send the payload to the agency's webhook URL
+        // 3. Envoyer des e-mails via Resend
+        const candidateEmail = applicantData === null || applicantData === void 0 ? void 0 : applicantData.email;
+        const candidateName = (applicantData === null || applicantData === void 0 ? void 0 : applicantData.firstName) || 'Candidat';
+        const agencyName = (agencyData === null || agencyData === void 0 ? void 0 : agencyData.name) || "L'entreprise";
+        // Vérifie si on a déjà envoyé l'e-mail (idempotence)
+        if (candidateEmail && !applicantData.emailSent) {
+            // Envoi au candidat
+            const candidateEmailSent = await email_service_1.EmailService.sendEmail({
+                to: candidateEmail,
+                subject: 'Votre candidature a bien été envoyée',
+                html: templates_1.Templates.applicationSubmitted(candidateName, oppData.title, agencyName)
+            });
+            // Envoi au recruteur (s'il a une adresse e-mail définie)
+            const recruiterEmail = agencyData === null || agencyData === void 0 ? void 0 : agencyData.contactEmail;
+            if (recruiterEmail) {
+                const recruiterName = (agencyData === null || agencyData === void 0 ? void 0 : agencyData.contactName) || 'Recruteur';
+                await email_service_1.EmailService.sendEmail({
+                    to: recruiterEmail,
+                    subject: 'Vous avez reçu une nouvelle candidature',
+                    html: templates_1.Templates.newApplication(recruiterName, candidateName, oppData.title)
+                });
+            }
+            // Marquer l'e-mail comme envoyé pour éviter les doublons
+            if (candidateEmailSent) {
+                await snapshot.ref.update({ emailSent: true });
+            }
+        }
         const payload = {
             event: 'candidate.applied',
             opportunityId,
@@ -227,16 +296,101 @@ exports.onCandidateApplied = functions.firestore
             candidateDetails: applicantData,
             timestamp: new Date().toISOString()
         };
-        // Native fetch is available in Node 18+
-        const response = await fetch(webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        console.log(`Webhook sent to ${webhookUrl} for candidate ${candidateId}. Status: ${response.status}`);
+        // Configuration du timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 secondes timeout
+        try {
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
+            if (!response.ok) {
+                firebase_functions_1.logger.error(`Webhook échoué pour ${webhookUrl} (Status: ${response.status})`);
+            }
+            else {
+                firebase_functions_1.logger.info(`Webhook envoyé à ${webhookUrl} pour candidat ${candidateId}. Status: ${response.status}`);
+            }
+        }
+        catch (fetchError) {
+            if (fetchError.name === 'AbortError') {
+                firebase_functions_1.logger.error(`Webhook timeout après 10s pour ${webhookUrl}`);
+            }
+            else {
+                firebase_functions_1.logger.error(`Erreur réseau Webhook vers ${webhookUrl}:`, fetchError);
+            }
+            // Throwing error allows Firebase Functions to retry if "Retry on failure" is enabled in Google Cloud Console
+            throw fetchError;
+        }
+        finally {
+            clearTimeout(timeoutId);
+        }
     }
     catch (error) {
-        console.error('Error processing candidate webhook:', error);
+        firebase_functions_1.logger.error('Error processing candidate webhook/email:', error);
+        // Let it fail gracefully or throw if we want global retry
+    }
+});
+// ----------------------------------------------------------------------
+// WEBHOOK TRIGGER: onCandidateUpdated
+// Triggered when a candidate's status is updated (e.g. accepted, rejected)
+// ----------------------------------------------------------------------
+exports.onCandidateUpdated = functions.firestore
+    .document('opportunities/{opportunityId}/applicants/{candidateId}')
+    .onUpdate(async (change, context) => {
+    var _a;
+    try {
+        const { opportunityId } = context.params;
+        const beforeData = change.before.data();
+        const afterData = change.after.data();
+        // Vérifier si le statut a changé
+        if (beforeData.status === afterData.status) {
+            return;
+        }
+        const newStatus = afterData.status;
+        const candidateEmail = afterData.email;
+        const candidateName = afterData.firstName || 'Candidat';
+        if (!candidateEmail)
+            return;
+        // Récupérer l'opportunité pour obtenir le nom de l'entreprise et le titre
+        const oppDoc = await db.collection('opportunities').doc(opportunityId).get();
+        if (!oppDoc.exists)
+            return;
+        const oppData = oppDoc.data();
+        const agencyDoc = await db.collection('agencies').doc(oppData === null || oppData === void 0 ? void 0 : oppData.companyId).get();
+        const agencyName = ((_a = agencyDoc.data()) === null || _a === void 0 ? void 0 : _a.name) || "L'entreprise";
+        // Envoi de l'e-mail selon le nouveau statut
+        let emailTemplate = '';
+        let subject = '';
+        if (newStatus === 'hired') {
+            subject = 'Bonne nouvelle 🎉 Votre candidature a été retenue';
+            emailTemplate = templates_1.Templates.applicationAccepted(candidateName, oppData === null || oppData === void 0 ? void 0 : oppData.title, agencyName);
+        }
+        else if (newStatus === 'rejected') {
+            subject = 'Mise à jour concernant votre candidature';
+            emailTemplate = templates_1.Templates.applicationRejected(candidateName, oppData === null || oppData === void 0 ? void 0 : oppData.title, agencyName);
+        }
+        else {
+            // Pour les autres statuts (interview, etc.), on n'envoie pas forcément de mail automatique pour l'instant
+            return;
+        }
+        // Pour l'idempotence, on vérifie un champ spécifique au statut
+        const statusEmailField = `emailSent_${newStatus}`;
+        if (afterData[statusEmailField]) {
+            return; // E-mail déjà envoyé pour ce statut
+        }
+        const success = await email_service_1.EmailService.sendEmail({
+            to: candidateEmail,
+            subject: subject,
+            html: emailTemplate
+        });
+        if (success) {
+            await change.after.ref.update({ [statusEmailField]: true });
+        }
+    }
+    catch (error) {
+        firebase_functions_1.logger.error('Error processing candidate update email:', error);
     }
 });
 //# sourceMappingURL=api.js.map

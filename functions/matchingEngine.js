@@ -209,6 +209,27 @@ const calculateRecommendationsForOpportunity = async (db, oppId, oppData) => {
                 createdAt: new Date()
             });
             opCount++;
+
+            // Email Notification for PRIMARY match (Score très élevé)
+            // On s'assure de ne pas spammer.
+            if (user.email && match.score > 80 && !user['emailSentForOpp_' + oppId]) {
+                const userName = user.firstName || user.name || 'Candidat';
+                const agencyName = oppData.companyName || 'Une entreprise';
+                
+                // Fire and forget (ne pas bloquer le batch)
+                EmailService.sendEmail({
+                    to: user.email,
+                    subject: 'Une opportunité pourrait vous intéresser',
+                    html: Templates.opportunityMatch(userName, oppData.title || 'Nouvelle offre', agencyName, match.score)
+                }).then(success => {
+                    if (success) {
+                        // Idempotence : On note dans le profil de l'utilisateur qu'on lui a envoyé un mail pour cette opp
+                        db.collection('users').doc(doc.id).set({
+                            [`emailSentForOpp_${oppId}`]: true
+                        }, { merge: true }).catch(err => logger.error('Failed to update emailSent flag', err));
+                    }
+                });
+            }
         }
 
         if (opCount >= 400) {

@@ -3,6 +3,8 @@ import { logger } from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import express from 'express';
 import cors from 'cors';
+import { EmailService } from './services/email.service';
+import { Templates } from './emails/templates';
 
 const app = express();
 app.use(cors({ origin: true }));
@@ -195,6 +197,36 @@ app.patch('/api/v1/opportunities/:opportunityId/candidates/:candidateId/status',
   }
 });
 
+// ----------------------------------------------------------------------
+// ENDPOINT: POST /api/v1/resend/webhook
+// Webhook for Resend events (delivered, bounced, etc.)
+// ----------------------------------------------------------------------
+app.post('/api/v1/resend/webhook', async (req: express.Request, res: express.Response) => {
+  try {
+    // In production, you would verify the svix signature here to ensure it's from Resend
+    // https://resend.com/docs/dashboard/webhooks/introduction
+    
+    const { type, data } = req.body;
+    logger.info(`Received Resend Webhook: ${type}`, { emailId: data?.email_id });
+
+    // Store the event in a dedicated collection for auditing/analytics
+    if (data?.email_id) {
+      await db.collection('email_logs').doc(data.email_id).set({
+        type,
+        to: data.to,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: data.created_at,
+        error: data.error || null
+      }, { merge: true });
+    }
+
+    res.status(200).send('Webhook processed');
+  } catch (error) {
+    logger.error('Error processing Resend webhook:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 export const kairoApi = functions.https.onRequest(app);
 
 // ----------------------------------------------------------------------
@@ -223,10 +255,38 @@ export const onCandidateApplied = functions.firestore
       const agencyData = agencyDoc.data();
       const webhookUrl = agencyData?.webhookUrl;
       
-      // If the agency hasn't configured a webhook, do nothing
-      if (!webhookUrl) return;
+      // 3. Envoyer des e-mails via Resend
+      const candidateEmail = applicantData?.email;
+      const candidateName = applicantData?.firstName || 'Candidat';
+      const agencyName = agencyData?.name || "L'entreprise";
 
-      // 3. Send the payload to the agency's webhook URL
+      // Vérifie si on a déjà envoyé l'e-mail (idempotence)
+      if (candidateEmail && !applicantData.emailSent) {
+        // Envoi au candidat
+        const candidateEmailSent = await EmailService.sendEmail({
+          to: candidateEmail,
+          subject: 'Votre candidature a bien été envoyée',
+          html: Templates.applicationSubmitted(candidateName, oppData.title, agencyName)
+        });
+
+        // Envoi au recruteur (s'il a une adresse e-mail définie)
+        const recruiterEmail = agencyData?.contactEmail;
+        if (recruiterEmail) {
+          const recruiterName = agencyData?.contactName || 'Recruteur';
+          await EmailService.sendEmail({
+            to: recruiterEmail,
+            subject: 'Vous avez reçu une nouvelle candidature',
+            html: Templates.newApplication(recruiterName, candidateName, oppData.title)
+          });
+        }
+
+        // Marquer l'e-mail comme envoyé pour éviter les doublons
+        if (candidateEmailSent) {
+          await snapshot.ref.update({ emailSent: true });
+        }
+      }
+
+
       const payload = {
         event: 'candidate.applied',
         opportunityId,
@@ -265,8 +325,75 @@ export const onCandidateApplied = functions.firestore
         clearTimeout(timeoutId);
       }
     } catch (error) {
-      logger.error('Error processing candidate webhook:', error);
+      logger.error('Error processing candidate webhook/email:', error);
       // Let it fail gracefully or throw if we want global retry
+    }
+  });
+
+// ----------------------------------------------------------------------
+// WEBHOOK TRIGGER: onCandidateUpdated
+// Triggered when a candidate's status is updated (e.g. accepted, rejected)
+// ----------------------------------------------------------------------
+export const onCandidateUpdated = functions.firestore
+  .document('opportunities/{opportunityId}/applicants/{candidateId}')
+  .onUpdate(async (change, context) => {
+    try {
+      const { opportunityId } = context.params;
+      const beforeData = change.before.data();
+      const afterData = change.after.data();
+
+      // Vérifier si le statut a changé
+      if (beforeData.status === afterData.status) {
+        return;
+      }
+
+      const newStatus = afterData.status;
+      const candidateEmail = afterData.email;
+      const candidateName = afterData.firstName || 'Candidat';
+
+      if (!candidateEmail) return;
+
+      // Récupérer l'opportunité pour obtenir le nom de l'entreprise et le titre
+      const oppDoc = await db.collection('opportunities').doc(opportunityId).get();
+      if (!oppDoc.exists) return;
+
+      const oppData = oppDoc.data();
+      const agencyDoc = await db.collection('agencies').doc(oppData?.companyId).get();
+      const agencyName = agencyDoc.data()?.name || "L'entreprise";
+
+      // Envoi de l'e-mail selon le nouveau statut
+      let emailTemplate = '';
+      let subject = '';
+
+      if (newStatus === 'hired') {
+        subject = 'Bonne nouvelle 🎉 Votre candidature a été retenue';
+        emailTemplate = Templates.applicationAccepted(candidateName, oppData?.title, agencyName);
+      } else if (newStatus === 'rejected') {
+        subject = 'Mise à jour concernant votre candidature';
+        emailTemplate = Templates.applicationRejected(candidateName, oppData?.title, agencyName);
+      } else {
+        // Pour les autres statuts (interview, etc.), on n'envoie pas forcément de mail automatique pour l'instant
+        return;
+      }
+
+      // Pour l'idempotence, on vérifie un champ spécifique au statut
+      const statusEmailField = `emailSent_${newStatus}`;
+      if (afterData[statusEmailField]) {
+        return; // E-mail déjà envoyé pour ce statut
+      }
+
+      const success = await EmailService.sendEmail({
+        to: candidateEmail,
+        subject: subject,
+        html: emailTemplate
+      });
+
+      if (success) {
+        await change.after.ref.update({ [statusEmailField]: true });
+      }
+
+    } catch (error) {
+      logger.error('Error processing candidate update email:', error);
     }
   });
 

@@ -216,3 +216,7 @@ exports.triggerOpportunityMatching = onCall(async (request) => {
 // KAIRO PRO API
 exports.kairoApi = require('./lib/api').kairoApi;
 exports.onCandidateApplied = require('./lib/api').onCandidateApplied;
+exports.onCandidateUpdated = require('./lib/api').onCandidateUpdated;
+
+// Auth Triggers
+exports.onUserCreated = require('./lib/triggers/auth.triggers').onUserCreated;
