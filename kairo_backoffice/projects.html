@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KAIRO - Projets</title>
+    <link rel="icon" type="image/png" href="./public/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="./src/css/main.css">
+  </head>
+  <body>
+    <div class="app-container">
+      
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <i class="ph-fill ph-rocket-launch"></i> Kaïro Admin
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="index.html" class="nav-item">
+            <i class="ph ph-squares-four"></i> Dashboard
+          </a>
+          <a href="users.html" class="nav-item">
+            <i class="ph ph-users"></i> Utilisateurs
+          </a>
+          <a href="verifications.html" class="nav-item">
+            <i class="ph ph-seal-check"></i> Vérifications
+          </a>
+          <a href="companies.html" class="nav-item">
+            <i class="ph ph-buildings"></i> Entreprises
+          </a>
+                    <a href="agencies.html" class="nav-item">
+            <i class="ph ph-buildings"></i> Agences
+          </a>
+          <a href="subscriptions.html" class="nav-item">
+            <i class="ph ph-credit-card"></i> Abonnements
+          </a>
+          <a href="applications.html" class="nav-item">
+            <i class="ph ph-file-text"></i> Candidatures
+          </a>
+          <a href="opportunities.html" class="nav-item">
+            <i class="ph ph-briefcase"></i> Opportunités
+          </a>
+          <a href="publications.html" class="nav-item">
+            <i class="ph ph-newspaper"></i> Publications
+          </a>
+          <a href="projects.html" class="nav-item active">
+            <i class="ph ph-lightbulb"></i> Projets
+          </a>
+          <a href="reports.html" class="nav-item">
+            <i class="ph ph-warning-circle"></i> Signalements
+          </a>
+          <a href="settings.html" class="nav-item">
+            <i class="ph ph-gear"></i> Paramètres
+          </a>
+        </nav>
+      </aside>
+
+      <div class="main-wrapper">
+        <header class="topbar">
+          <div class="topbar-left"></div>
+          <div class="topbar-right">
+            <div class="user-profile">
+              <div class="user-avatar" id="topbar-user-avatar">A</div>
+              <span id="topbar-user-name" class="font-medium">Admin</span>
+            </div>
+            <button id="logoutBtn" class="btn-icon" title="Se déconnecter">
+              <i class="ph ph-sign-out"></i>
+            </button>
+          </div>
+        </header>
+
+        <main class="main-content">
+          <div class="page-header">
+            <h1 class="page-title">Gestion des Projets</h1>
+            <div class="flex gap-2">
+              <button class="btn btn-secondary" id="refreshBtn">
+                <i class="ph ph-arrows-clockwise"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Titre</th>
+                  <th>Porteur du projet</th>
+                  <th>Catégorie</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="projectsTableBody">
+                <tr>
+                  <td colspan="5" style="text-align: center; padding: 3rem;">
+                    <i class="ph ph-spinner ph-spin text-2xl text-primary"></i>
+                    <p class="mt-4 text-secondary">Chargement...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Auth check -->
+    <script type="module" src="./src/js/auth.ts"></script>
+    <script type="module" src="./src/js/modules/projects.ts"></script>
+  </body>
+</html>

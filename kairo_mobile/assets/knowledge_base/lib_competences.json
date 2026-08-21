@@ -1,0 +1,40 @@
+{
+  "competences": [
+    {
+      "categorie": "Bureautique & Informatique",
+      "items": [
+        {"nom": "Microsoft Excel", "description": "Maîtrise des tableaux croisés dynamiques et macros", "niveau_recommande": "Avancé"},
+        {"nom": "Microsoft Word", "description": "Rédaction et mise en forme de documents professionnels", "niveau_recommande": "Intermédiaire"},
+        {"nom": "PowerPoint", "description": "Création de présentations impactantes", "niveau_recommande": "Intermédiaire"},
+        {"nom": "Suite Google (Workspace)", "description": "Travail collaboratif sur le cloud", "niveau_recommande": "Intermédiaire"}
+      ]
+    },
+    {
+      "categorie": "Développement Web & Mobile",
+      "items": [
+        {"nom": "Flutter / Dart", "description": "Développement d'applications mobiles cross-platform", "niveau_recommande": "Avancé"},
+        {"nom": "React / Next.js", "description": "Création d'interfaces web dynamiques", "niveau_recommande": "Avancé"},
+        {"nom": "Node.js", "description": "Développement de serveurs back-end", "niveau_recommande": "Intermédiaire"},
+        {"nom": "Python", "description": "Scripting, Data Science et IA", "niveau_recommande": "Avancé"}
+      ]
+    },
+    {
+      "categorie": "Communication & Création",
+      "items": [
+        {"nom": "Adobe Photoshop", "description": "Retouche photo et création graphique", "niveau_recommande": "Intermédiaire"},
+        {"nom": "Canva", "description": "Conception graphique rapide", "niveau_recommande": "Avancé"},
+        {"nom": "Copywriting", "description": "Rédaction persuasive pour le web", "niveau_recommande": "Avancé"},
+        {"nom": "Montage Vidéo (Premiere / CapCut)", "description": "Création de contenus vidéos courts", "niveau_recommande": "Intermédiaire"}
+      ]
+    },
+    {
+      "categorie": "Soft Skills (Savoir-être)",
+      "items": [
+        {"nom": "Résolution de problèmes", "description": "Capacité à trouver des solutions face aux imprévus", "niveau_recommande": "Requis"},
+        {"nom": "Adaptabilité", "description": "S'intégrer rapidement dans un nouvel environnement", "niveau_recommande": "Requis"},
+        {"nom": "Gestion du temps", "description": "Prioriser les tâches et respecter les délais", "niveau_recommande": "Requis"},
+        {"nom": "Travail en équipe", "description": "Collaborer efficacement pour atteindre un objectif commun", "niveau_recommande": "Requis"}
+      ]
+    }
+  ]
+}

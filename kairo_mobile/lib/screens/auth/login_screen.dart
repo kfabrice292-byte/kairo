@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -22,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
       SnackBar(
         content: Text(
           message,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+          style: TextStyle(fontWeight: FontWeight.w500),
         ),
         backgroundColor: Colors.redAccent,
         behavior: SnackBarBehavior.floating,
@@ -82,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (error == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text(
+            content: Text(
               "Email de réinitialisation envoyé.",
               style: TextStyle(fontWeight: FontWeight.w500),
             ),
@@ -104,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final isLoading = context.watch<AuthProvider>().isLoading;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -115,20 +116,20 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 40),
+                SizedBox(height: 40),
                 Center(
                   child: Image.asset(
                     'assets/images/logo.png',
                     height: 80,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
+                    errorBuilder: (context, error, stackTrace) => Icon(
                       Icons.school,
                       size: 64,
                       color: AppColors.primary,
                     ),
                   ),
                 ),
-                const SizedBox(height: 40),
-                const Text(
+                SizedBox(height: 40),
+                Text(
                   'Bon retour !',
                   style: TextStyle(
                     fontSize: 34,
@@ -137,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
                   'Connectez-vous pour retrouver le réseau privé des builders africains.',
                   style: TextStyle(
@@ -147,14 +148,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 48),
+                SizedBox(height: 48),
                 KairoTextField(
                   controller: _emailController,
                   hintText: 'Adresse email',
                   prefixIcon: PhosphorIcons.envelopeSimple(),
                   keyboardType: TextInputType.emailAddress,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 KairoTextField(
                   controller: _passwordController,
                   hintText: 'Mot de passe',
@@ -165,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: _handleForgotPassword,
-                    child: const Text(
+                    child: Text(
                       'Mot de passe oublié ?',
                       style: TextStyle(
                         color: AppColors.primary,
@@ -175,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: isLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
@@ -183,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     disabledBackgroundColor: AppColors.primary.withValues(
                       alpha: 0.6,
                     ),
-                    foregroundColor: Colors.white,
+                    foregroundColor: Theme.of(context).iconTheme.color,
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -191,15 +192,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   child: isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 24,
                           height: 24,
                           child: CircularProgressIndicator(
-                            color: Colors.white,
+                            color: Theme.of(context).cardColor,
                             strokeWidth: 2.5,
                           ),
                         )
-                      : const Text(
+                      : Text(
                           'Se connecter',
                           style: TextStyle(
                             fontSize: 17,
@@ -207,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 Row(
                   children: [
                     Expanded(child: Divider(color: Colors.grey.shade300)),
@@ -225,17 +226,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     Expanded(child: Divider(color: Colors.grey.shade300)),
                   ],
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 OutlinedButton.icon(
                   onPressed: isLoading ? null : _handleGoogleSignIn,
-                  icon: Image.network(
+                  icon: CachedNetworkImage(imageUrl: 
                     'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/120px-Google_%22G%22_logo.svg.png',
                     height: 20,
                   ),
-                  label: const Text(
+                  label: Text(
                     'Continuer avec Google',
                     style: TextStyle(
-                      color: Colors.black87,
+                      
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
@@ -243,14 +244,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     elevation: 0,
-                    backgroundColor: Colors.white,
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    side: BorderSide(color: Colors.grey.shade300, width: 1.5),
+                    side: BorderSide(color: Theme.of(context).dividerColor),
                   ),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -265,12 +266,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () => context.push('/register'),
                       style: TextButton.styleFrom(
                         foregroundColor: AppColors.primary,
-                        textStyle: const TextStyle(
+                        textStyle: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      child: const Text('Rejoindre'),
+                      child: Text('Rejoindre'),
                     ),
                   ],
                 ),

@@ -4,6 +4,7 @@ class OpportunityModel {
   final String id;
   final String title;
   final String company;
+  final String? imageUrl;
   final String location;
   final String type; // Stage, Emploi, Bourse, Concours
   final String description;
@@ -30,10 +31,15 @@ class OpportunityModel {
   final DateTime? closeDate;
   final DateTime? expectedStartDate;
 
+  final String? applicationType;
+  final String? externalLink;
+  final List<String> tags;
+
   OpportunityModel({
     required this.id,
     required this.title,
     required this.company,
+    this.imageUrl,
     required this.location,
     required this.type,
     required this.description,
@@ -58,6 +64,9 @@ class OpportunityModel {
     required this.createdAt,
     this.closeDate,
     this.expectedStartDate,
+    this.applicationType,
+    this.externalLink,
+    this.tags = const [],
   });
 
   factory OpportunityModel.fromFirestore(DocumentSnapshot doc) {
@@ -66,6 +75,7 @@ class OpportunityModel {
       id: doc.id,
       title: data['title'] ?? '',
       company: data['company'] ?? '',
+      imageUrl: data['imageUrl'] ?? data['companyLogoUrl'],
       location: data['location'] ?? '',
       type: data['type'] ?? 'Stage',
       description: data['description'] ?? '',
@@ -90,6 +100,8 @@ class OpportunityModel {
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       closeDate: (data['closeDate'] as Timestamp?)?.toDate(),
       expectedStartDate: (data['expectedStartDate'] as Timestamp?)?.toDate(),
+      applicationType: data['applicationType'] ?? 'internal_ats',
+      externalLink: data['externalLink'],
     );
   }
 
@@ -97,6 +109,7 @@ class OpportunityModel {
     return {
       'title': title,
       'company': company,
+      'imageUrl': imageUrl,
       'location': location,
       'type': type,
       'description': description,
@@ -121,6 +134,9 @@ class OpportunityModel {
       'createdAt': Timestamp.fromDate(createdAt),
       'closeDate': closeDate != null ? Timestamp.fromDate(closeDate!) : null,
       'expectedStartDate': expectedStartDate != null ? Timestamp.fromDate(expectedStartDate!) : null,
+      'applicationType': applicationType,
+      'externalLink': externalLink,
+      'tags': tags,
     };
   }
 }

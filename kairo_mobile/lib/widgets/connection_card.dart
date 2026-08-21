@@ -26,7 +26,22 @@ class ConnectionCard extends StatelessWidget {
 
     if (connection == null) {
       actionButton = OutlinedButton(
-        onPressed: () => networkProvider.sendRequest(user.uid),
+        onPressed: () async {
+          try {
+            await networkProvider.sendRequest(user.uid);
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Demande de connexion envoyée !'), backgroundColor: Colors.green),
+              );
+            }
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+              );
+            }
+          }
+        },
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.primary),
@@ -35,7 +50,7 @@ class ConnectionCard extends StatelessWidget {
           ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
-        child: const Text(
+        child: Text(
           'Se connecter',
           style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
         ),
@@ -45,8 +60,8 @@ class ConnectionCard extends StatelessWidget {
         onPressed: () {
           // Open chat or show options
         },
-        icon: const Icon(Icons.check, size: 16, color: Colors.green),
-        label: const Text(
+        icon: Icon(Icons.check, size: 16, color: Colors.green),
+        label: Text(
           'Connecté',
           style: TextStyle(color: Colors.green, fontSize: 12),
         ),
@@ -55,8 +70,8 @@ class ConnectionCard extends StatelessWidget {
       // We sent the request
       actionButton = TextButton.icon(
         onPressed: () => networkProvider.cancelRequest(connection.id),
-        icon: const Icon(Icons.access_time, size: 16, color: Colors.grey),
-        label: const Text(
+        icon: Icon(Icons.access_time, size: 16, color: Colors.grey),
+        label: Text(
           'En attente',
           style: TextStyle(color: Colors.grey, fontSize: 12),
         ),
@@ -68,7 +83,7 @@ class ConnectionCard extends StatelessWidget {
         children: [
           IconButton(
             onPressed: () => networkProvider.rejectRequest(connection.id),
-            icon: const Icon(Icons.close, color: Colors.red, size: 20),
+            icon: Icon(Icons.close, color: Colors.red, size: 20),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),
@@ -83,7 +98,7 @@ class ConnectionCard extends StatelessWidget {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
-            child: const Text(
+            child: Text(
               'Accepter',
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             ),
@@ -97,7 +112,7 @@ class ConnectionCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(12),
@@ -131,7 +146,7 @@ class ConnectionCard extends StatelessWidget {
           },
           child: Text(
             user.name,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           ),
         ),
         subtitle: Column(

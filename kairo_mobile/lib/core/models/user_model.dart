@@ -1,5 +1,93 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+class Language {
+  final String name;
+  final int level; // 1 to 5
+
+  Language({required this.name, this.level = 3});
+
+  factory Language.fromMap(Map<String, dynamic> map) {
+    return Language(
+      name: map['name'] ?? '',
+      level: map['level'] ?? 3,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {'name': name, 'level': level};
+  }
+}
+
+class Certification {
+  final String name;
+  final String issuer;
+  final String date;
+  final String url;
+
+  Certification({
+    required this.name,
+    required this.issuer,
+    this.date = '',
+    this.url = '',
+  });
+
+  factory Certification.fromMap(Map<String, dynamic> map) {
+    return Certification(
+      name: map['name'] ?? '',
+      issuer: map['issuer'] ?? '',
+      date: map['date'] ?? '',
+      url: map['url'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {'name': name, 'issuer': issuer, 'date': date, 'url': url};
+  }
+}
+
+class PortfolioProject {
+  final String id;
+  final String title;
+  final String description;
+  final String result;
+  final List<String> technologies;
+  final String link;
+  final String imageUrl;
+
+  PortfolioProject({
+    required this.id,
+    required this.title,
+    required this.description,
+    this.result = '',
+    this.technologies = const [],
+    this.link = '',
+    this.imageUrl = '',
+  });
+
+  factory PortfolioProject.fromMap(Map<String, dynamic> map) {
+    return PortfolioProject(
+      id: map['id'] ?? '',
+      title: map['title'] ?? '',
+      description: map['description'] ?? '',
+      result: map['result'] ?? '',
+      technologies: List<String>.from(map['technologies'] ?? []),
+      link: map['link'] ?? '',
+      imageUrl: map['imageUrl'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'result': result,
+      'technologies': technologies,
+      'link': link,
+      'imageUrl': imageUrl,
+    };
+  }
+}
 class Skill {
   final String name;
   final String level;
@@ -58,6 +146,42 @@ class Experience {
   }
 }
 
+class Education {
+  final String id;
+  final String title;
+  final String institution;
+  final String period;
+  final String description;
+
+  Education({
+    required this.id,
+    required this.title,
+    required this.institution,
+    required this.period,
+    this.description = '',
+  });
+
+  factory Education.fromMap(Map<String, dynamic> map) {
+    return Education(
+      id: map['id'] ?? '',
+      title: map['title'] ?? '',
+      institution: map['institution'] ?? '',
+      period: map['period'] ?? '',
+      description: map['description'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'institution': institution,
+      'period': period,
+      'description': description,
+    };
+  }
+}
+
 class UserModel {
   final String uid;
 
@@ -80,13 +204,24 @@ class UserModel {
   // Expériences
   final List<Experience> experiences;
 
+  // Formations
+  final List<Education> educations;
+
   // Projets (références ou résumé des projets auxquels on participe)
-  // On stockera les IDs des projets ou un résumé
   final List<String> projectIds;
+  
+  // Projets de Portfolio (spécifiques au candidat)
+  final List<PortfolioProject> portfolioProjects;
+
+  // Certifications & Langues
+  final List<Certification> certifications;
+  final List<Language> languages;
+  final List<String> interests;
 
   // Portfolio & Documents (liens d'images, PDF, etc.)
   final List<String> portfolioLinks;
   final List<String> documents; // CV, certificats
+  final String videoPitchUrl; // Pitch vidéo 60s
 
   // Contacts
   final String phone;
@@ -100,17 +235,26 @@ class UserModel {
   final List<String> savedPosts;
 
   // Connections (Network)
-  final List<String> connections;
-  final List<String> sentRequests;
-  final List<String> receivedRequests;
   final List<String> followers;
   final List<String> following;
   final List<String> savedOpportunities;
 
   // CV Builder Data
   final String lastCvTitle;
+  final List<String> tags;
   final String lastCvBio;
   final String lastCvTemplate;
+
+  final bool isVerified;
+  final bool pendingVerification;
+  final bool isPremium; // Computed: true if raw isPremium is true AND premiumUntil is valid
+  final DateTime? premiumUntil;
+  final int cvCredits;
+  final String role; // 'user' or 'admin'
+  final String subscriptionStatus; // FREE, PREMIUM_PAID, PREMIUM_GIFT, PREMIUM_CODE, PREMIUM_ADMIN, BANNED
+
+  bool get isAdmin => role == 'admin';
+  bool get isBanned => subscriptionStatus == 'BANNED';
 
   UserModel({
     required this.uid,
@@ -127,9 +271,15 @@ class UserModel {
     this.studyLevel = '',
     this.skills = const [],
     this.experiences = const [],
+    this.educations = const [],
     this.projectIds = const [],
+    this.portfolioProjects = const [],
+    this.certifications = const [],
+    this.languages = const [],
+    this.interests = const [],
     this.portfolioLinks = const [],
     this.documents = const [],
+    this.videoPitchUrl = '',
     this.phone = '',
     this.email = '',
     this.linkedin = '',
@@ -137,19 +287,45 @@ class UserModel {
     this.behance = '',
     this.website = '',
     this.savedPosts = const [],
-    this.connections = const [],
-    this.sentRequests = const [],
-    this.receivedRequests = const [],
     this.followers = const [],
     this.following = const [],
     this.savedOpportunities = const [],
     this.lastCvTitle = '',
+    this.tags = const [],
     this.lastCvBio = '',
     this.lastCvTemplate = 'moderne',
+    this.isVerified = false,
+    this.pendingVerification = false,
+    this.isPremium = false,
+    this.premiumUntil,
+    this.cvCredits = 0,
+    this.role = 'user',
+    this.subscriptionStatus = 'FREE',
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
+
+    // Calcul de l'abonnement actif
+    bool rawPremium = data['isPremium'] ?? false;
+    String status = data['subscriptionStatus'] ?? 'FREE';
+    if (status != 'FREE' && status != 'BANNED') {
+      rawPremium = true;
+    }
+    
+    DateTime? pUntil;
+    if (data['premiumUntil'] != null) {
+      if (data['premiumUntil'] is Timestamp) {
+        pUntil = (data['premiumUntil'] as Timestamp).toDate();
+      }
+    }
+    bool activePremium = rawPremium;
+    if (rawPremium && pUntil != null) {
+      activePremium = pUntil.isAfter(DateTime.now());
+      if (!activePremium) {
+        status = 'FREE'; // Si expiré
+      }
+    }
 
     return UserModel(
       uid: doc.id,
@@ -175,9 +351,23 @@ class UserModel {
       experiences: (data['experiences'] as List<dynamic>? ?? [])
           .map((e) => Experience.fromMap(e as Map<String, dynamic>))
           .toList(),
+      educations: (data['educations'] as List<dynamic>? ?? [])
+          .map((e) => Education.fromMap(e as Map<String, dynamic>))
+          .toList(),
       projectIds: List<String>.from(data['projectIds'] ?? []),
+      portfolioProjects: (data['portfolioProjects'] as List<dynamic>? ?? [])
+          .map((e) => PortfolioProject.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      certifications: (data['certifications'] as List<dynamic>? ?? [])
+          .map((e) => Certification.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      languages: (data['languages'] as List<dynamic>? ?? [])
+          .map((e) => Language.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      interests: List<String>.from(data['interests'] ?? []),
       portfolioLinks: List<String>.from(data['portfolioLinks'] ?? []),
       documents: List<String>.from(data['documents'] ?? []),
+      videoPitchUrl: data['videoPitchUrl'] ?? '',
       phone: data['phone'] ?? '',
       email: data['email'] ?? '',
       linkedin: data['linkedin'] ?? '',
@@ -185,15 +375,19 @@ class UserModel {
       behance: data['behance'] ?? '',
       website: data['website'] ?? '',
       savedPosts: List<String>.from(data['savedPosts'] ?? []),
-      connections: List<String>.from(data['connections'] ?? []),
-      sentRequests: List<String>.from(data['sentRequests'] ?? []),
-      receivedRequests: List<String>.from(data['receivedRequests'] ?? []),
       followers: List<String>.from(data['followers'] ?? []),
       following: List<String>.from(data['following'] ?? []),
       savedOpportunities: List<String>.from(data['savedOpportunities'] ?? []),
       lastCvTitle: data['lastCvTitle'] ?? '',
       lastCvBio: data['lastCvBio'] ?? '',
       lastCvTemplate: data['lastCvTemplate'] ?? 'moderne',
+      isVerified: data['isVerified'] ?? false,
+      pendingVerification: data['pendingVerification'] ?? false,
+      isPremium: activePremium,
+      premiumUntil: pUntil,
+      cvCredits: data['cvCredits'] ?? 0,
+      role: data['role'] ?? 'user',
+      subscriptionStatus: status,
     );
   }
 
@@ -212,9 +406,15 @@ class UserModel {
       'studyLevel': studyLevel,
       'skills': skills.map((s) => s.toMap()).toList(),
       'experiences': experiences.map((e) => e.toMap()).toList(),
+      'educations': educations.map((e) => e.toMap()).toList(),
       'projectIds': projectIds,
+      'portfolioProjects': portfolioProjects.map((p) => p.toMap()).toList(),
+      'certifications': certifications.map((c) => c.toMap()).toList(),
+      'languages': languages.map((l) => l.toMap()).toList(),
+      'interests': interests,
       'portfolioLinks': portfolioLinks,
       'documents': documents,
+      'videoPitchUrl': videoPitchUrl,
       'phone': phone,
       'email': email,
       'linkedin': linkedin,
@@ -222,15 +422,20 @@ class UserModel {
       'behance': behance,
       'website': website,
       'savedPosts': savedPosts,
-      'connections': connections,
-      'sentRequests': sentRequests,
-      'receivedRequests': receivedRequests,
       'followers': followers,
       'following': following,
       'savedOpportunities': savedOpportunities,
       'lastCvTitle': lastCvTitle,
+      'tags': tags,
       'lastCvBio': lastCvBio,
       'lastCvTemplate': lastCvTemplate,
+      'isVerified': isVerified,
+      'pendingVerification': pendingVerification,
+      'isPremium': isPremium,
+      'premiumUntil': premiumUntil,
+      'cvCredits': cvCredits,
+      'role': role,
+      'subscriptionStatus': subscriptionStatus,
     };
   }
 }

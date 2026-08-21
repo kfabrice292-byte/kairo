@@ -5,5 +5,32 @@
   },
   "storage": {
     "rules": "storage.rules"
+  },
+  "functions": {
+    "source": "functions",
+    "ignore": [
+      "node_modules/**",
+      ".git/**",
+      "firebase-debug.log",
+      "firebase-debug.*.log"
+    ]
+  },
+  "hosting": {
+    "public": "dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "functions/**",
+      "kairo_mobile/**",
+      "kairo_recruit_pro/**",
+      "kairo_backoffice/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/app/**",
+        "destination": "/app/index.html"
+      }
+    ]
   }
 }

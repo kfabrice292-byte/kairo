@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Public - Kaïro</title>
+    <link rel="icon" type="image/png" href="assets/img/Favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="assets/css/base.css">
+</head>
+<body class="bg-slate-50 flex flex-col min-h-screen text-slate-800 font-sans relative">
+
+    <div class="absolute inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-100/30 via-white to-white pointer-events-none"></div>
+
+    <!-- Header -->
+    <header class="w-full sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-200 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-1 hover:opacity-80 transition-opacity">
+                <img src="assets/img/logo.png" alt="Kaïro" class="h-8 object-contain">
+            </a>
+            <a href="login.html" class="text-sm font-bold px-5 py-2.5 rounded-full bg-[#F97316] text-white hover:bg-[#EA580C] shadow-lg shadow-[#F97316]/20 transition-all">
+                Rejoindre Kaïro
+            </a>
+        </div>
+    </header>
+
+    <main class="flex-1 w-full max-w-4xl mx-auto px-4 py-12" id="profileContent">
+        <!-- Loading State -->
+        <div id="loadingState" class="flex flex-col items-center justify-center py-20">
+            <i class="ph ph-spinner-gap text-5xl animate-spin text-[#F97316] mb-4"></i>
+            <p class="text-slate-500 font-medium">Chargement du profil...</p>
+        </div>
+
+        <!-- Content (Hidden initially) -->
+        <div id="mainContent" class="hidden animate-[slideUpFade_0.4s_ease-out]">
+            
+            <!-- Hero Card -->
+            <div class="bg-white border border-slate-200 rounded-3xl p-8 md:p-12 shadow-sm relative overflow-hidden mb-8">
+                <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-orange-500 to-rose-500"></div>
+                <div class="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8 mt-12">
+                    <img id="userPhoto" src="https://ui-avatars.com/api/?name=User&background=F97316&color=fff" alt="Avatar" class="w-32 h-32 rounded-full border-4 border-white shadow-xl object-cover bg-white">
+                    <div class="text-center md:text-left flex-1">
+                        <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 font-outfit mb-2 flex items-center justify-center md:justify-start gap-2">
+                            <span id="userName">Chargement...</span>
+                            <i id="premiumBadge" class="ph-fill ph-seal-check text-blue-500 text-2xl hidden" title="Kaïro Premium"></i>
+                        </h1>
+                        <p id="userTitle" class="text-lg md:text-xl text-[#F97316] font-semibold mb-4">...</p>
+                        <div class="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-slate-600 font-medium">
+                            <span id="userLocation" class="flex items-center gap-1.5"><i class="ph-fill ph-map-pin text-slate-400"></i> <span id="locText">...</span></span>
+                            <a id="userEmail" href="#" class="flex items-center gap-1.5 hover:text-[#F97316] transition-colors"><i class="ph-fill ph-envelope-simple text-slate-400"></i> Contacter</a>
+                            <a id="userLinkedin" href="#" target="_blank" class="flex items-center gap-1.5 hover:text-[#F97316] transition-colors hidden"><i class="ph-fill ph-linkedin-logo text-slate-400"></i> LinkedIn</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About -->
+            <div id="aboutSection" class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm mb-8 hidden">
+                <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2"><i class="ph-fill ph-user text-[#F97316]"></i> À Propos</h2>
+                <p id="userBio" class="text-slate-600 leading-relaxed text-sm md:text-base"></p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <!-- Info Grid -->
+                <div class="space-y-8">
+                    
+                    <!-- Experiences (If available) -->
+                    <div id="expSection" class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm hidden">
+                        <h2 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2"><i class="ph-fill ph-briefcase text-[#F97316]"></i> Expériences</h2>
+                        <div id="expList" class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
+                            <!-- Dynamic Content -->
+                        </div>
+                    </div>
+                    
+                    <!-- Education -->
+                    <div id="eduSection" class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm hidden">
+                        <h2 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2"><i class="ph-fill ph-graduation-cap text-[#F97316]"></i> Formation</h2>
+                        <div id="eduList" class="space-y-4">
+                            <!-- Dynamic Content -->
+                        </div>
+                    </div>
+                    
+                </div>
+                
+                <div class="space-y-8">
+                    
+                    <!-- Skills -->
+                    <div id="skillsSection" class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm hidden">
+                        <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2"><i class="ph-fill ph-star text-[#F97316]"></i> Compétences</h2>
+                        <div id="skillsList" class="flex flex-wrap gap-2">
+                            <!-- Dynamic Content -->
+                        </div>
+                    </div>
+                    
+                    <!-- Languages -->
+                    <div id="langSection" class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm hidden">
+                        <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2"><i class="ph-fill ph-translate text-[#F97316]"></i> Langues</h2>
+                        <div id="langList" class="space-y-3">
+                            <!-- Dynamic Content -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="errorState" class="hidden flex-col items-center justify-center py-20 text-center">
+            <i class="ph-fill ph-warning-circle text-5xl text-red-500 mb-4"></i>
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">Profil introuvable</h2>
+            <p class="text-slate-500 mb-6">Ce profil n'existe pas ou n'est plus public.</p>
+            <a href="index.html" class="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all">Retour à l'accueil</a>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full bg-white border-t border-slate-200 mt-auto py-8">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-slate-500 text-sm">© 2026 Kaïro. Propulsé pour les talents africains.</p>
+        </div>
+    </footer>
+
+    <script type="module">
+        import API from './assets/js/api.js';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const uid = params.get('uid');
+
+            if (!uid) {
+                showError();
+                return;
+            }
+
+            try {
+                const user = await API.getPublicUserProfile(uid);
+                if (!user) {
+                    showError();
+                    return;
+                }
+                
+                renderProfile(user);
+            } catch (err) {
+                console.error(err);
+                showError();
+            }
+        });
+
+        function showError() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+            document.getElementById('errorState').classList.add('flex');
+        }
+
+        function renderProfile(user) {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+
+            document.title = `${user.name || 'Candidat'} - Profil Kaïro`;
+
+            // Basic Info
+            document.getElementById('userName').textContent = user.name || 'Anonyme';
+            
+            if (user.isPremium) {
+                const badge = document.getElementById('premiumBadge');
+                if (badge) badge.classList.remove('hidden');
+            }
+            
+            const title = user.professionalTitle || user.specialty || user.fieldOfStudy;
+            document.getElementById('userTitle').textContent = title ? title : 'Candidat sur Kaïro';
+            
+            const location = [user.city, user.country].filter(Boolean).join(', ');
+            document.getElementById('locText').textContent = location || 'Non spécifié';
+            
+            if (user.photoURL) {
+                document.getElementById('userPhoto').src = user.photoURL;
+            } else {
+                document.getElementById('userPhoto').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=F97316&color=fff&size=256`;
+            }
+
+            if (user.email) {
+                document.getElementById('userEmail').href = `mailto:${user.email}`;
+            }
+
+            if (user.linkedin) {
+                const lnk = document.getElementById('userLinkedin');
+                lnk.href = user.linkedin.startsWith('http') ? user.linkedin : `https://${user.linkedin}`;
+                lnk.classList.remove('hidden');
+            }
+
+            // Bio
+            if (user.bio) {
+                document.getElementById('userBio').textContent = user.bio;
+                document.getElementById('aboutSection').classList.remove('hidden');
+            }
+
+            // Education (University / Field)
+            if (user.university || user.fieldOfStudy) {
+                document.getElementById('eduSection').classList.remove('hidden');
+                document.getElementById('eduList').innerHTML = `
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-orange-100 text-[#F97316] flex items-center justify-center flex-shrink-0">
+                            <i class="ph-fill ph-student text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800">${user.fieldOfStudy || 'Formation en cours'}</h3>
+                            <p class="text-sm text-slate-500">${user.university || 'Université'}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Skills
+            const skills = Array.isArray(user.skills) ? user.skills : (user.skills ? user.skills.split(',').map(s=>s.trim()) : []);
+            if (skills.length > 0) {
+                document.getElementById('skillsSection').classList.remove('hidden');
+                document.getElementById('skillsList').innerHTML = skills.map(s => 
+                    `<span class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">${s}</span>`
+                ).join('');
+            }
+
+            // Languages
+            const languages = Array.isArray(user.languages) ? user.languages : [];
+            if (languages.length > 0) {
+                document.getElementById('langSection').classList.remove('hidden');
+                document.getElementById('langList').innerHTML = languages.map(l => 
+                    `<div class="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <span class="font-bold text-slate-700 text-sm">${l.name || l}</span>
+                        <span class="text-xs font-semibold px-2 py-1 bg-orange-100 text-orange-700 rounded-md">${l.level || 'Intermédiaire'}</span>
+                    </div>`
+                ).join('');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -4,3 +4,9 @@ node_modules/
 dist/
 build/
 *.log
+
+# Ignore large release builds and apks
+kairo_backoffice/release/
+kairo_backoffice/release_alt/
+*.apk
+*.exe

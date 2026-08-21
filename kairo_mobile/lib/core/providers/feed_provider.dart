@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import '../../main.dart' as import_main;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
@@ -11,16 +14,24 @@ import '../models/user_model.dart';
 class FeedProvider extends ChangeNotifier {
   List<PostModel> _posts = [];
   bool _isLoading = false;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  int _currentLimit = 10;
+  StreamSubscription? _postSubscription;
   final Map<String, UserModel> usersCache = {};
+  
+  // Adding StreamSubscription to handle dynamic limits
+   // will remove later
 
   List<PostModel> get posts => _posts;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
+  bool get hasMore => _hasMore;
 
   FeedProvider() {
     _listenToPosts();
-    cleanDummyData();
+    // cleanDummyData removed to avoid permission denied before auth completes
   }
-
   Future<void> cleanDummyData() async {
     try {
       final snapshot = await FirebaseFirestore.instance
@@ -36,59 +47,108 @@ class FeedProvider extends ChangeNotifier {
       debugPrint('Error cleaning dummy data: $e');
     }
   }
+  DocumentSnapshot? _lastDocument;
+  static const int _pageSize = 15;
 
   void _listenToPosts() {
-    _isLoading = true;
-    notifyListeners();
-
-    FirebaseFirestore.instance
-        .collection('posts')
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .listen(
-          (snapshot) {
-            final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-            _posts = snapshot.docs.map((doc) {
-              final post = PostModel.fromFirestore(doc);
-              if (currentUserId != null) {
-                post.isLiked = post.likedBy.contains(currentUserId);
-                post.isSaved = post.savedBy.contains(currentUserId);
-              }
-              return post;
-            }).toList();
-            _isLoading = false;
-            notifyListeners();
-
-            // Fetch missing users for the cache
-            final missingUserIds = _posts
-                .map((p) => p.authorId)
-                .toSet()
-                .difference(usersCache.keys.toSet());
-
-            for (String uid in missingUserIds) {
-              if (uid.isNotEmpty) {
-                FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(uid)
-                    .get()
-                    .then((doc) {
-                      if (doc.exists) {
-                        usersCache[uid] = UserModel.fromFirestore(doc);
-                        notifyListeners();
-                      }
-                    })
-                    .catchError((_) {}); // Ignore errors
-              }
-            }
-          },
-          onError: (e) {
-            debugPrint('Error fetching posts: $e');
-            _isLoading = false;
-            notifyListeners();
-          },
-        );
+    loadPosts(refresh: true);
   }
 
+  Future<void> loadPosts({bool refresh = false}) async {
+    if (_isLoading || (!_hasMore && !refresh)) return;
+
+    if (refresh) {
+      _isLoading = true;
+      _hasMore = true;
+      _lastDocument = null;
+      _posts.clear();
+      notifyListeners();
+    } else {
+      _isLoadingMore = true;
+      notifyListeners();
+    }
+
+    try {
+      if (FirebaseAuth.instance.currentUser == null) {
+        // Handle anonymous or unauthenticated gracefully instead of crashing
+        if (refresh) {
+          _posts = [];
+          _isLoading = false;
+          notifyListeners();
+        }
+        return;
+      }
+
+      Query query = FirebaseFirestore.instance
+          .collection('posts')
+          .orderBy('createdAt', descending: true)
+          .limit(_pageSize);
+
+      if (_lastDocument != null) {
+        query = query.startAfterDocument(_lastDocument!);
+      }
+
+      final snapshot = await query.get();
+
+      if (snapshot.docs.isNotEmpty) {
+        _lastDocument = snapshot.docs.last;
+        final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+        
+        final newPosts = snapshot.docs.map((doc) {
+          final post = PostModel.fromFirestore(doc);
+          if (currentUserId != null) {
+            post.isLiked = post.likedBy.contains(currentUserId);
+            post.isSaved = post.savedBy.contains(currentUserId);
+          }
+          return post;
+        }).toList();
+
+        if (refresh) {
+          _posts = newPosts;
+        } else {
+          _posts.addAll(newPosts);
+        }
+        
+        _hasMore = snapshot.docs.length >= _pageSize;
+        _fetchMissingUsers(newPosts);
+      } else {
+        _hasMore = false;
+      }
+    } catch (e) {
+      debugPrint('Error fetching posts: $e');
+    } finally {
+      _isLoading = false;
+      _isLoadingMore = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadMorePosts() async {
+    await loadPosts(refresh: false);
+  }
+
+  void _fetchMissingUsers(List<PostModel> fetchedPosts) {
+    final missingUserIds = fetchedPosts
+        .map((p) => p.authorId)
+        .toSet()
+        .difference(usersCache.keys.toSet());
+
+    for (String uid in missingUserIds) {
+      if (uid.isNotEmpty) {
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .get()
+            .then((doc) {
+              if (doc.exists) {
+                usersCache[uid] = UserModel.fromFirestore(doc);
+                notifyListeners();
+              }
+            })
+            .catchError((_) {}); // Ignore errors
+      }
+    }
+  }
   Future<void> toggleLike(String postId) async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
@@ -140,10 +200,16 @@ class FeedProvider extends ChangeNotifier {
           post.likedBy.remove(userId);
         }
         notifyListeners();
+
+        import_main.rootScaffoldMessengerKey.currentState?.showSnackBar(
+          const SnackBar(
+            content: Text("Erreur réseau. Impossible d'aimer la publication."),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
-
   Future<void> toggleSave(String postId) async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
@@ -172,7 +238,6 @@ class FeedProvider extends ChangeNotifier {
         );
       } catch (e) {
         debugPrint('Error toggling save: $e');
-        // Revert optimistic update
         post.isSaved = isCurrentlySaved;
         if (isCurrentlySaved) {
           post.savedBy.add(userId);
@@ -180,10 +245,10 @@ class FeedProvider extends ChangeNotifier {
           post.savedBy.remove(userId);
         }
         notifyListeners();
+        import_main.rootScaffoldMessengerKey.currentState?.showSnackBar(const SnackBar(content: Text("Erreur réseau. Action annulée."), backgroundColor: Colors.red));
       }
     }
   }
-
   Future<void> addComment(
     String postId,
     String content, {
@@ -235,7 +300,6 @@ class FeedProvider extends ChangeNotifier {
       rethrow;
     }
   }
-
   Stream<List<CommentModel>> getComments(String postId) {
     return FirebaseFirestore.instance
         .collection('posts')
@@ -249,7 +313,26 @@ class FeedProvider extends ChangeNotifier {
               .toList(),
         );
   }
+  Future<void> deleteComment(String postId, String commentId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception("Utilisateur non connecté.");
 
+    try {
+      await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(postId)
+          .collection('comments')
+          .doc(commentId)
+          .delete();
+
+      await FirebaseFirestore.instance.collection('posts').doc(postId).update({
+        'comments': FieldValue.increment(-1),
+      });
+    } catch (e) {
+      debugPrint('Error deleting comment: $e');
+      throw Exception('Erreur lors de la suppression du commentaire : $e');
+    }
+  }
   Future<void> addPost(
     String content, {
     List<File>? images,
@@ -260,78 +343,83 @@ class FeedProvider extends ChangeNotifier {
     List<String> tags = const [],
   }) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    if (user == null) throw Exception("Utilisateur non connecté.");
 
-    // Fetch actual user data from Firestore to get their real name, fieldOfStudy, and photo
-    final userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .get();
-    final userData = userDoc.data() ?? {};
+    try {
+      // Fetch actual user data from Firestore to get their real name, fieldOfStudy, and photo
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      final userData = userDoc.data() ?? {};
 
-    final authorName = userData['name'] ?? user.displayName ?? 'Étudiant';
-    final authorRole =
-        userData['professionalTitle']?.toString().isNotEmpty == true
-        ? userData['professionalTitle']
-        : (userData['fieldOfStudy']?.toString().isNotEmpty == true
-              ? userData['fieldOfStudy']
-              : 'Ajouter un titre professionnel');
-    final authorAvatar =
-        userData['photoURL'] ??
-        user.photoURL ??
-        'https://ui-avatars.com/api/?name=${Uri.encodeComponent(authorName)}&background=F97316&color=fff';
+      final authorName = userData['name'] ?? user.displayName ?? 'Étudiant';
+      final authorRole =
+          userData['professionalTitle']?.toString().isNotEmpty == true
+          ? userData['professionalTitle']
+          : (userData['fieldOfStudy']?.toString().isNotEmpty == true
+                ? userData['fieldOfStudy']
+                : 'Ajouter un titre professionnel');
+      final authorAvatar =
+          userData['photoURL'] ??
+          user.photoURL ??
+          'https://ui-avatars.com/api/?name=${Uri.encodeComponent(authorName)}&background=F97316&color=fff';
 
-    List<String> uploadedImageUrls = [];
+      List<String> uploadedImageUrls = [];
 
-    if (images != null && images.isNotEmpty) {
-      for (var image in images) {
-        try {
-          final bytes = await image.readAsBytes();
-          final base64Image = base64Encode(bytes);
+      if (images != null && images.isNotEmpty) {
+        for (var image in images) {
+          try {
+            final bytes = await image.readAsBytes();
+            final base64Image = base64Encode(bytes);
 
-          final response = await http.post(
-            Uri.parse('https://api.imgbb.com/1/upload'),
-            body: {
-              'key': '42583eab8962481f83526a0882f3d384',
-              'image': base64Image,
-            },
-          );
+            final response = await http.post(
+              Uri.parse('https://api.imgbb.com/1/upload'),
+              body: {
+                'key': '42583eab8962481f83526a0882f3d384',
+                'image': base64Image,
+              },
+            );
 
-          if (response.statusCode == 200) {
-            final jsonResponse = jsonDecode(response.body);
-            uploadedImageUrls.add(jsonResponse['data']['display_url']);
-          } else {
-            debugPrint('ImgBB API Error: ${response.body}');
+            if (response.statusCode == 200) {
+              final jsonResponse = jsonDecode(response.body);
+              uploadedImageUrls.add(jsonResponse['data']['display_url']);
+            } else {
+              debugPrint('ImgBB API Error: ${response.body}');
+              throw Exception('Erreur lors du téléchargement de l\'image.');
+            }
+          } catch (e) {
+            debugPrint('ImgBB Upload Exception: $e');
+            throw Exception('Erreur réseau lors du téléchargement de l\'image.');
           }
-        } catch (e) {
-          debugPrint('ImgBB Upload Exception: $e');
         }
       }
+      final newPost = PostModel(
+        id: '', // Generated by Firestore
+        authorId: user.uid,
+        authorName: authorName,
+        authorRole: authorRole,
+        authorAvatar: authorAvatar,
+        content: content,
+        category: category,
+        customFields: customFields,
+        tags: tags,
+        imageUrls: uploadedImageUrls,
+        isStylized: isStylized,
+        styleIndex: styleIndex,
+        likedBy: [],
+        createdAt: DateTime.now(),
+      );
+
+      await FirebaseFirestore.instance.collection('posts').add(newPost.toMap());
+    } catch (e) {
+      debugPrint('Error adding post: $e');
+      throw Exception('Erreur lors de la publication : $e');
     }
-
-    final newPost = PostModel(
-      id: '', // Generated by Firestore
-      authorId: user.uid,
-      authorName: authorName,
-      authorRole: authorRole,
-      authorAvatar: authorAvatar,
-      content: content,
-      category: category,
-      customFields: customFields,
-      tags: tags,
-      imageUrls: uploadedImageUrls,
-      isStylized: isStylized,
-      styleIndex: styleIndex,
-      likedBy: [],
-      createdAt: DateTime.now(),
-    );
-
-    await FirebaseFirestore.instance.collection('posts').add(newPost.toMap());
   }
-
   Future<void> deletePost(String postId) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    if (user == null) throw Exception("Utilisateur non connecté.");
 
     try {
       await FirebaseFirestore.instance.collection('posts').doc(postId).delete();
@@ -339,6 +427,12 @@ class FeedProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Error deleting post: $e');
+      throw Exception('Erreur lors de la suppression de la publication : $e');
     }
+  }
+  @override
+  void dispose() {
+    _postSubscription?.cancel();
+    super.dispose();
   }
 }

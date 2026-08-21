@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../core/providers/project_provider.dart';
 import '../core/models/project_model.dart';
 import '../widgets/shimmer_loading.dart';
+import '../widgets/empty_state_widget.dart';
 import 'package:kairo_mobile/core/theme/app_colors.dart';
 import 'project_detail_screen.dart';
 
@@ -34,12 +35,12 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Filtres',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'Domaine',
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
@@ -61,7 +62,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                             selected: isSelected,
                             selectedColor: AppColors.primary,
                             labelStyle: TextStyle(
-                              color: isSelected ? Colors.white : Colors.black87,
+                              color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
                             ),
                             onSelected: (selected) {
                               if (selected) {
@@ -73,7 +74,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                         }).toList(),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'Statut',
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
@@ -94,7 +95,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                             selected: isSelected,
                             selectedColor: AppColors.primary,
                             labelStyle: TextStyle(
-                              color: isSelected ? Colors.white : Colors.black87,
+                              color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
                             ),
                             onSelected: (selected) {
                               if (selected) {
@@ -121,10 +122,10 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Appliquer les filtres',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -144,13 +145,13 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: Colors.grey.shade50,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          title: const Text(
+          title: Text(
             'Projets',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           elevation: 0,
           actions: [
             IconButton(
@@ -203,11 +204,11 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
 
             return TabBarView(
               children: [
-                _buildList(
+                _buildList(context, 
                   discoverOps,
                   'Aucun projet trouvé avec ces filtres.',
                 ),
-                _buildList(
+                _buildList(context, 
                   myProjects,
                   'Vous ne participez à aucun projet pour le moment.',
                 ),
@@ -219,24 +220,12 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     );
   }
 
-  Widget _buildList(List<ProjectModel> projects, String emptyMessage) {
-    if (projects.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              PhosphorIcons.rocketLaunch(PhosphorIconsStyle.light),
-              size: 64,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              emptyMessage,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-            ),
-          ],
-        ),
+  Widget _buildList(BuildContext context, List<ProjectModel> projects, String emptyMessage) {
+    if (projects.isEmpty && !context.watch<ProjectProvider>().isLoading) {
+      return EmptyStateWidget(
+        title: 'Aucun projet',
+        message: emptyMessage,
+        icon: PhosphorIconsLight.rocketLaunch,
       );
     }
 
@@ -276,7 +265,7 @@ class _ProjectCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.grey.shade200),
+          side: BorderSide(color: Theme.of(context).dividerColor),
         ),
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -289,7 +278,7 @@ class _ProjectCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       project.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                       ),
@@ -375,7 +364,7 @@ class _ProjectCard extends StatelessWidget {
                         ),
                         child: Text(
                           project.domain,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.primary,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -403,15 +392,15 @@ class _ProjectCard extends StatelessWidget {
                     ],
                   ),
                   if (isFounder)
-                    const Icon(Icons.star, color: Colors.orange, size: 20)
+                    Icon(Icons.star, color: Colors.orange, size: 20)
                   else if (isMember)
-                    const Icon(
+                    Icon(
                       Icons.check_circle,
                       color: Colors.green,
                       size: 20,
                     )
                   else if (hasRequested)
-                    const Icon(
+                    Icon(
                       Icons.access_time,
                       color: Colors.orange,
                       size: 20,

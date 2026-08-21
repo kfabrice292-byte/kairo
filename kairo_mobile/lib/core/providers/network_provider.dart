@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,71 +9,119 @@ class NetworkProvider extends ChangeNotifier {
   List<ConnectionModel> _connections = [];
   bool _isLoading = false;
   final Map<String, UserModel> usersCache = {};
+  
+  StreamSubscription? _authSub;
+  StreamSubscription? _sentSub;
+  StreamSubscription? _receivedSub;
 
   List<ConnectionModel> get connections => _connections;
   bool get isLoading => _isLoading;
 
   NetworkProvider() {
-    _listenToConnections();
+    _authSub = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user == null) {
+        _cancelSubscriptions();
+        _connections.clear();
+        _sentConnections.clear();
+        _receivedConnections.clear();
+        usersCache.clear();
+        notifyListeners();
+      } else {
+        _listenToConnections(user.uid);
+      }
+    });
   }
 
-  void _listenToConnections() {
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-    if (currentUserId == null) return;
+  void _cancelSubscriptions() {
+    _sentSub?.cancel();
+    _sentSub = null;
+    _receivedSub?.cancel();
+    _receivedSub = null;
+  }
 
+  List<ConnectionModel> _sentConnections = [];
+  List<ConnectionModel> _receivedConnections = [];
+
+  void _listenToConnections(String currentUserId) {
+    _cancelSubscriptions();
+    
     _isLoading = true;
     notifyListeners();
 
-    // Listen to connections where current user is either sender or receiver
-    FirebaseFirestore.instance
+    // Listen to connections where current user is sender
+    _sentSub = FirebaseFirestore.instance
         .collection('connections')
-        .where(
-          Filter.or(
-            Filter('senderId', isEqualTo: currentUserId),
-            Filter('receiverId', isEqualTo: currentUserId),
-          ),
-        )
+        .where('senderId', isEqualTo: currentUserId)
         .snapshots()
         .listen(
           (snapshot) {
-            _connections = snapshot.docs
+            _sentConnections = snapshot.docs
                 .map((doc) => ConnectionModel.fromFirestore(doc))
                 .toList();
-            _isLoading = false;
-            notifyListeners();
-
-            // Fetch missing users for the cache
-            final missingUserIds = <String>{};
-            for (var conn in _connections) {
-              if (conn.senderId != currentUserId)
-                missingUserIds.add(conn.senderId);
-              if (conn.receiverId != currentUserId)
-                missingUserIds.add(conn.receiverId);
-            }
-
-            final toFetch = missingUserIds.difference(usersCache.keys.toSet());
-            for (String uid in toFetch) {
-              if (uid.isNotEmpty) {
-                FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(uid)
-                    .get()
-                    .then((doc) {
-                      if (doc.exists) {
-                        usersCache[uid] = UserModel.fromFirestore(doc);
-                        notifyListeners();
-                      }
-                    })
-                    .catchError((_) {});
-              }
-            }
+            _updateConnections();
           },
           onError: (e) {
-            debugPrint('Error fetching connections: $e');
-            _isLoading = false;
-            notifyListeners();
+            debugPrint('Error fetching sent connections: $e');
+            _updateConnections();
           },
         );
+
+    // Listen to connections where current user is receiver
+    _receivedSub = FirebaseFirestore.instance
+        .collection('connections')
+        .where('receiverId', isEqualTo: currentUserId)
+        .snapshots()
+        .listen(
+          (snapshot) {
+            _receivedConnections = snapshot.docs
+                .map((doc) => ConnectionModel.fromFirestore(doc))
+                .toList();
+            _updateConnections();
+          },
+          onError: (e) {
+            debugPrint('Error fetching received connections: $e');
+            _updateConnections();
+          },
+        );
+  }
+
+  void _updateConnections() {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserId == null) return;
+
+    // Merge sent and received connections without duplicates
+    final all = <ConnectionModel>[..._sentConnections, ..._receivedConnections];
+    final map = <String, ConnectionModel>{};
+    for (var c in all) {
+      map[c.id] = c;
+    }
+    _connections = map.values.toList();
+    _isLoading = false;
+    notifyListeners();
+
+    // Fetch missing users for the cache
+    final missingUserIds = <String>{};
+    for (var conn in _connections) {
+      if (conn.senderId != currentUserId) missingUserIds.add(conn.senderId);
+      if (conn.receiverId != currentUserId) missingUserIds.add(conn.receiverId);
+    }
+
+    final toFetch = missingUserIds.difference(usersCache.keys.toSet());
+    for (String uid in toFetch) {
+      if (uid.isNotEmpty) {
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .get()
+            .then((doc) {
+              if (doc.exists) {
+                usersCache[uid] = UserModel.fromFirestore(doc);
+                notifyListeners();
+              }
+            })
+            .catchError((_) {});
+      }
+    }
   }
 
   ConnectionModel? getConnectionWith(String targetUserId) {
@@ -104,6 +153,17 @@ class NetworkProvider extends ChangeNotifier {
       'status': 'pending',
       'createdAt': FieldValue.serverTimestamp(),
     });
+
+    // Optimistic update
+    final newConn = ConnectionModel(
+      id: docRef.id,
+      senderId: currentUserId,
+      receiverId: receiverId,
+      status: 'pending',
+      createdAt: DateTime.now(),
+    );
+    _connections.add(newConn);
+    notifyListeners();
 
     // Send Notification
     await _sendNotification(
@@ -165,5 +225,12 @@ class NetworkProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error sending network notification: $e');
     }
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    _cancelSubscriptions();
+    super.dispose();
   }
 }

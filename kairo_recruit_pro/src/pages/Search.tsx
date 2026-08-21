@@ -3,12 +3,13 @@ import { useTalentStore } from "../store/useTalentStore";
 import type { TalentProfile } from "../store/useTalentStore";
 import { CandidateCard } from "../components/CandidateCard";
 import { CandidateProfileModal } from "../components/CandidateProfileModal";
-import { Search as SearchIcon, Filter, Loader2 } from "lucide-react";
+import { Search as SearchIcon, Filter, MapPin, Loader2, Sparkles } from "lucide-react";
 
 export function Search() {
   const { filteredTalents, isLoading, fetchTalents, searchTalents } = useTalentStore();
   const [query, setQuery] = useState("");
   const [skillFilter, setSkillFilter] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
   const [selectedTalent, setSelectedTalent] = useState<TalentProfile | null>(null);
 
   useEffect(() => {
@@ -16,43 +17,63 @@ export function Search() {
   }, [fetchTalents]);
 
   useEffect(() => {
-    searchTalents(query, skillFilter);
-  }, [query, skillFilter, searchTalents]);
+    searchTalents(query, skillFilter, locationFilter);
+  }, [query, skillFilter, locationFilter, searchTalents]);
 
   return (
     <div className="h-full flex flex-col">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Recherche de Talents</h1>
-        <p className="text-slate-500 dark:text-slate-400">
-          Explorez la base de profils numériques Kaïro. Trouvez les meilleurs candidats par compétences, université ou mots-clés.
-        </p>
+      <div className="mb-8 flex justify-between items-end">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+            Pipeline de Sourcing Inversé <Sparkles className="w-5 h-5 text-primary" />
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400">
+            Ne publiez plus d'offres. Chassez directement parmi notre base de talents pré-qualifiés.
+          </p>
+        </div>
+        <div className="text-sm font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full">
+          {filteredTalents.length} profils correspondants
+        </div>
       </div>
 
       {/* Search Bar & Filters */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm mb-6 flex flex-col sm:flex-row gap-4">
+      <div className="glass-card p-4 mb-6 flex flex-col md:flex-row gap-4 relative z-10 border border-slate-200 shadow-sm">
         <div className="flex-1 relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <SearchIcon className="h-5 w-5 text-slate-400" />
           </div>
           <input
             type="text"
-            className="block w-full pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg leading-5 bg-white dark:bg-slate-950 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-colors"
-            placeholder="Rechercher par nom, titre ou mot-clé dans la bio..."
+            className="block w-full pl-10 pr-3 py-3 border border-slate-300 dark:border-slate-700 rounded-xl leading-5 bg-white dark:bg-slate-950/50 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-colors shadow-sm"
+            placeholder="Mots-clés (ex: React, Ingénieur...)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
         
-        <div className="sm:w-64 relative">
+        <div className="md:w-64 relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Filter className="h-5 w-5 text-slate-400" />
           </div>
           <input
             type="text"
-            className="block w-full pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg leading-5 bg-white dark:bg-slate-950 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-colors"
-            placeholder="Filtrer par compétence..."
+            className="block w-full pl-10 pr-3 py-3 border border-slate-300 dark:border-slate-700 rounded-xl leading-5 bg-white dark:bg-slate-950/50 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-colors shadow-sm"
+            placeholder="Compétence cible..."
             value={skillFilter}
             onChange={(e) => setSkillFilter(e.target.value)}
+          />
+        </div>
+
+        <div className="md:w-64 relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <MapPin className="h-5 w-5 text-slate-400" />
+          </div>
+          <input
+            type="text"
+            className="block w-full pl-10 pr-3 py-3 border border-slate-300 dark:border-slate-700 rounded-xl leading-5 bg-white dark:bg-slate-950/50 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-colors shadow-sm"
+            placeholder="Localisation (Pays/Ville)"
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
           />
         </div>
       </div>

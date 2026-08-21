@@ -3,184 +3,586 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administration - Kaïro</title>
+    <title>Administration Premium - Kaïro</title>
     <link rel="icon" type="image/png" href="assets/img/Favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/base.css">
+    <style>
+        .tab-content { display: none; animation: slideUpFade 0.4s ease-out; }
+        .tab-content.active { display: block; }
+        .tab-btn.active { 
+            border-bottom-width: 2px; 
+            border-color: #F97316; 
+            color: #F97316; 
+            background: linear-gradient(to top, rgba(249, 115, 22, 0.05), transparent);
+        }
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        }
+    </style>
 </head>
-<body class="bg-slate-50 flex flex-col min-h-screen text-slate-800 font-sans relative">
+<body class="bg-slate-50 flex flex-col min-h-screen text-slate-800 font-sans relative overflow-x-hidden">
 
-    <div class="absolute inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-100 via-slate-50 to-slate-50 pointer-events-none"></div>
+    <!-- Premium Background Gradient (Mirrors Mobile) -->
+    <div class="fixed inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-100/50 via-slate-50 to-purple-50/30 pointer-events-none"></div>
 
-    <header class="w-full sticky top-0 bg-slate-900 text-white shadow-md z-50">
+    <header class="w-full sticky top-0 bg-slate-900/95 backdrop-blur-md text-white shadow-lg z-50 border-b border-slate-700">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="dashboard.html" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <a href="dashboard.html" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
                 <img src="assets/img/logo.png" alt="Kaïro" class="h-8 object-contain filter brightness-0 invert">
-                <span class="px-2 py-1 bg-red-500 text-white text-[10px] font-bold rounded uppercase">Admin</span>
+                <span class="px-2 py-1 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] font-black rounded-md uppercase tracking-wider shadow-sm">Admin Pro</span>
             </a>
-            <nav class="flex items-center gap-6">
-                <a href="dashboard.html" class="text-sm font-medium px-4 py-2 rounded-lg border border-slate-700 hover:bg-slate-800 transition-all">
-                    Retour au site
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-2 mr-4 text-sm font-medium text-slate-300">
+                    <i class="ph-fill ph-shield-check text-emerald-400"></i> Accès Sécurisé
+                </div>
+                <a href="dashboard.html" class="text-sm font-semibold px-5 py-2 rounded-full border border-slate-700 bg-slate-800 hover:bg-slate-700 hover:border-slate-500 transition-all shadow-inner">
+                    Quitter l'Admin
                 </a>
-            </nav>
+            </div>
         </div>
     </header>
 
-    <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-8 animate-[slideUpFade_0.4s_ease-out]">
+    <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-8">
         
-        <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <h1 class="text-3xl font-extrabold text-slate-900 font-outfit">Panel d'Administration</h1>
-                <p class="text-slate-500">Gérez les utilisateurs et publiez des opportunités.</p>
-            </div>
-            <div class="flex gap-4">
-                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center gap-4 min-w-[160px]">
-                    <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl"><i class="ph-fill ph-users"></i></div>
+        <div class="mb-8">
+            <h1 class="text-4xl font-black text-slate-900 font-outfit tracking-tight mb-2">Centre de Contrôle <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#F97316] to-purple-600">Kaïro</span></h1>
+            <p class="text-slate-500 font-medium">Gérez votre écosystème B2B/B2C, vos utilisateurs et vos offres promotionnelles.</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-slate-200 mb-8 overflow-x-auto no-scrollbar">
+            <button class="tab-btn active px-6 py-4 font-bold text-sm text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-2 whitespace-nowrap" data-target="tab-overview">
+                <i class="ph-fill ph-squares-four text-lg"></i> Vue d'ensemble
+            </button>
+            <button class="tab-btn px-6 py-4 font-bold text-sm text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-2 whitespace-nowrap" data-target="tab-users">
+                <i class="ph-fill ph-users text-lg"></i> Utilisateurs
+            </button>
+            <button class="tab-btn px-6 py-4 font-bold text-sm text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-2 whitespace-nowrap" data-target="tab-opps">
+                <i class="ph-fill ph-briefcase text-lg"></i> Opportunités (B2B/B2C)
+            </button>
+            <button class="tab-btn px-6 py-4 font-bold text-sm text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-2 whitespace-nowrap" data-target="tab-promo">
+                <i class="ph-fill ph-ticket text-lg"></i> Codes Promo
+            </button>
+        </div>
+
+        <!-- TAB 1: OVERVIEW -->
+        <div id="tab-overview" class="tab-content active">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Stats Cards -->
+                <div class="glass-panel rounded-2xl p-6 flex items-center gap-5 hover:-translate-y-1 transition-transform cursor-default">
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600 flex items-center justify-center text-2xl shadow-inner"><i class="ph-fill ph-users-three"></i></div>
                     <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase">Utilisateurs</p>
-                        <p class="text-2xl font-black text-slate-800" id="totalUsers">0</p>
+                        <p class="text-xs font-black text-slate-400 uppercase tracking-wider mb-1">Total Utilisateurs</p>
+                        <p class="text-3xl font-black text-slate-800 font-outfit" id="statUsers">0</p>
                     </div>
                 </div>
-                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center gap-4 min-w-[160px]">
-                    <div class="w-12 h-12 rounded-full bg-orange-100 text-[#F97316] flex items-center justify-center text-xl"><i class="ph-fill ph-briefcase"></i></div>
+                <div class="glass-panel rounded-2xl p-6 flex items-center gap-5 hover:-translate-y-1 transition-transform cursor-default">
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 text-purple-600 flex items-center justify-center text-2xl shadow-inner"><i class="ph-fill ph-crown"></i></div>
                     <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase">Offres</p>
-                        <p class="text-2xl font-black text-slate-800" id="totalOpps">0</p>
+                        <p class="text-xs font-black text-slate-400 uppercase tracking-wider mb-1">Comptes Premium</p>
+                        <p class="text-3xl font-black text-slate-800 font-outfit" id="statPremium">0</p>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-2xl p-6 flex items-center gap-5 hover:-translate-y-1 transition-transform cursor-default">
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 text-[#F97316] flex items-center justify-center text-2xl shadow-inner"><i class="ph-fill ph-briefcase"></i></div>
+                    <div>
+                        <p class="text-xs font-black text-slate-400 uppercase tracking-wider mb-1">Offres Actives</p>
+                        <p class="text-3xl font-black text-slate-800 font-outfit" id="statOpps">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="glass-panel rounded-3xl p-8">
+                <h3 class="text-xl font-bold text-slate-800 mb-8 flex items-center gap-2"><i class="ph-fill ph-chart-polar text-purple-500"></i> Analytics B2B / B2C</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div style="height: 300px;" class="relative">
+                        <canvas id="oppsChart"></canvas>
+                    </div>
+                    <div style="height: 300px;" class="relative">
+                        <canvas id="usersChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <!-- Add Opportunity Form -->
-            <div class="lg:col-span-1">
-                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm sticky top-24">
-                    <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2"><i class="ph-fill ph-plus-circle text-[#F97316]"></i> Publier une offre</h3>
-                    <form id="oppForm" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Titre de l'offre *</label>
-                            <input type="text" id="oppTitle" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all" required placeholder="Ex: Développeur Backend">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Entreprise *</label>
-                            <input type="text" id="oppCompany" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all" required placeholder="Ex: Kaïro SA">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Type d'offre *</label>
-                            <select id="oppType" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all" required>
-                                <option value="Stage">Stage</option>
-                                <option value="Emploi">Emploi</option>
-                                <option value="Bourse">Bourse</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Localisation *</label>
-                            <input type="text" id="oppLocation" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all" required placeholder="Ex: Ouagadougou">
-                        </div>
-                        <div id="oppMessage" class="hidden text-emerald-500 font-medium text-sm pt-2 flex items-center gap-1">
-                            <i class="ph-fill ph-check-circle"></i> Offre publiée avec succès !
-                        </div>
-                        <button type="submit" class="w-full mt-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all">
-                            Publier
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Users List -->
-            <div class="lg:col-span-2">
-                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2"><i class="ph-fill ph-users-three text-[#F97316]"></i> Utilisateurs Inscrits</h3>
-                        <div class="relative">
-                            <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" placeholder="Rechercher..." class="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-slate-300">
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm text-slate-600">
-                            <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
-                                <tr>
-                                    <th class="px-6 py-4">Nom</th>
-                                    <th class="px-6 py-4">Email</th>
-                                    <th class="px-6 py-4">Points</th>
-                                    <th class="px-6 py-4">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usersTableBody" class="divide-y divide-slate-100">
-                                <tr class="hover:bg-slate-50 transition-colors">
-                                    <td class="px-6 py-4 font-medium text-slate-800">Jean Dupont</td>
-                                    <td class="px-6 py-4">jean.dupont@email.com</td>
-                                    <td class="px-6 py-4"><span class="px-2 py-1 bg-orange-100 text-[#F97316] font-bold rounded-md text-xs">150 pts</span></td>
-                                    <td class="px-6 py-4">
-                                        <button class="text-slate-400 hover:text-slate-800 transition-colors"><i class="ph-bold ph-pencil-simple"></i></button>
-                                        <button class="text-slate-400 hover:text-red-500 transition-colors ml-2"><i class="ph-bold ph-trash"></i></button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+        <!-- TAB 2: USERS -->
+        <div id="tab-users" class="tab-content">
+            <div class="glass-panel rounded-3xl overflow-hidden">
+                <div class="p-6 border-b border-slate-200/50 flex flex-col md:flex-row justify-between items-center gap-4 bg-white/50">
+                    <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2"><i class="ph-fill ph-users text-blue-500"></i> Base Utilisateurs</h3>
+                    <div class="relative w-full md:w-64">
+                        <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="searchUsers" placeholder="Rechercher un email..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm">
                     </div>
                 </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-100/50 text-slate-500 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200/50">
+                            <tr>
+                                <th class="px-6 py-4">Profil</th>
+                                <th class="px-6 py-4">Contact</th>
+                                <th class="px-6 py-4">Statut</th>
+                                <th class="px-6 py-4">Crédits CV</th>
+                                <th class="px-6 py-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody" class="divide-y divide-slate-100/50 bg-white/30">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
-
         </div>
+
+        <!-- TAB 3: OPPORTUNITIES (B2B/B2C) -->
+        <div id="tab-opps" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1">
+                    <div class="glass-panel rounded-3xl p-6 sticky top-24">
+                        <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"><i class="ph-fill ph-rocket-launch text-[#F97316]"></i> Nouvelle Offre</h3>
+                        <form id="oppForm" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Titre de l'offre *</label>
+                                <input type="text" id="oppTitle" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all shadow-sm" required placeholder="Ex: Lead Développeur Flutter">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Type *</label>
+                                    <select id="oppType" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all shadow-sm" required>
+                                        <option value="Emploi">Emploi</option>
+                                        <option value="Stage">Stage</option>
+                                        <option value="Bourse">Bourse</option>
+                                        <option value="Freelance">Freelance</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Audience *</label>
+                                    <select id="oppAudience" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all shadow-sm" required>
+                                        <option value="B2C">B2C (Candidats)</option>
+                                        <option value="B2B">B2B (Entreprises)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Entreprise / Organisation *</label>
+                                <input type="text" id="oppCompany" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all shadow-sm" required placeholder="Nom de l'entreprise">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Compétences (Séparées par virgule)</label>
+                                <input type="text" id="oppSkills" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all shadow-sm" placeholder="Ex: React, Node.js, Agile">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Localisation</label>
+                                <input type="text" id="oppLocation" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all shadow-sm" required placeholder="Ville, Pays ou Remote">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Description *</label>
+                                <textarea id="oppDesc" rows="4" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all shadow-sm resize-none" required placeholder="Détails de l'opportunité..."></textarea>
+                            </div>
+                            <button type="submit" id="btnPublishOpp" class="w-full mt-2 py-3.5 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white font-bold rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                                <i class="ph-bold ph-paper-plane-tilt"></i> Publier l'offre
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="lg:col-span-2">
+                    <div class="glass-panel rounded-3xl p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-slate-500"></i> Offres Publiées</h3>
+                        <div id="oppsList" class="space-y-4">
+                            <!-- Populated via JS -->
+                            <div class="text-center py-10 text-slate-400">Chargement...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: PROMO CODES -->
+        <div id="tab-promo" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Promo Form -->
+                <div class="lg:col-span-1">
+                    <div class="glass-panel rounded-3xl p-6 sticky top-24 border-2 border-purple-100">
+                        <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"><i class="ph-fill ph-ticket text-purple-500"></i> Générer un Code Promo</h3>
+                        <form id="promoForm" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Code Personnalisé *</label>
+                                <div class="relative">
+                                    <i class="ph-bold ph-tag absolute left-3 top-1/2 -translate-y-1/2 text-purple-400"></i>
+                                    <input type="text" id="promoCodeVal" class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm uppercase font-bold text-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm" required placeholder="Ex: KAIRO2026">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Type de Code *</label>
+                                <select id="promoType" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm">
+                                    <option value="SINGLE">Usage Unique (1 fois par personne)</option>
+                                    <option value="UNLIMITED">Illimité (Jusqu'au quota max)</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Quota Max *</label>
+                                    <input type="number" id="promoMaxUses" min="1" value="100" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Durée Premium (Jours)</label>
+                                    <input type="number" id="promoDuration" min="1" value="30" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm" required>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Date d'Expiration (Optionnel)</label>
+                                <input type="date" id="promoExpiry" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm">
+                            </div>
+                            <button type="submit" id="btnCreatePromo" class="w-full mt-2 py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                                <i class="ph-bold ph-magic-wand"></i> Créer le Code
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Promo List -->
+                <div class="lg:col-span-2">
+                    <div class="glass-panel rounded-3xl overflow-hidden border border-purple-100">
+                        <div class="p-6 border-b border-slate-200/50 flex justify-between items-center bg-purple-50/30">
+                            <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2"><i class="ph-fill ph-list-numbers text-purple-500"></i> Suivi des Codes Promo</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-600">
+                                <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200/50">
+                                    <tr>
+                                        <th class="px-6 py-4">Code</th>
+                                        <th class="px-6 py-4">Type & Durée</th>
+                                        <th class="px-6 py-4">Utilisations</th>
+                                        <th class="px-6 py-4">Expiration</th>
+                                        <th class="px-6 py-4 text-right">Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="promoTableBody" class="divide-y divide-slate-100/50 bg-white/50">
+                                    <!-- Populated via JS -->
+                                    <tr><td colspan="5" class="text-center py-10 text-slate-400">Chargement...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
+
+    <!-- Toast Notification -->
+    <div id="toastNotif" class="fixed bottom-6 right-6 transform translate-y-20 opacity-0 transition-all duration-300 z-50 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3">
+        <i id="toastIcon" class="ph-fill ph-check-circle text-emerald-400 text-2xl"></i>
+        <p id="toastMessage" class="font-medium text-sm">Action effectuée avec succès.</p>
+    </div>
 
     <script type="module">
         import API from './assets/js/api.js';
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const oppForm = document.getElementById('oppForm');
-            const totalUsers = document.getElementById('totalUsers');
-            const totalOpps = document.getElementById('totalOpps');
-            const usersTableBody = document.getElementById('usersTableBody');
+            // Check Admin Access
+            const currentUser = await API.getCurrentUser();
+            if (!currentUser || currentUser.role !== 'admin') {
+                alert("Accès strictement réservé aux administrateurs.");
+                window.location.href = 'dashboard.html';
+                return;
+            }
 
-            // Load initial data
-            const loadData = async () => {
-                const users = await API.getAllUsers();
-                const opps = await API.getOpportunities();
+            // --- TAB SYSTEM ---
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById(btn.dataset.target).classList.add('active');
+                });
+            });
 
-                totalUsers.textContent = users.length;
-                totalOpps.textContent = opps.length;
+            // --- TOAST NOTIFICATION ---
+            const showToast = (message, isError = false) => {
+                const toast = document.getElementById('toastNotif');
+                const icon = document.getElementById('toastIcon');
+                document.getElementById('toastMessage').textContent = message;
+                
+                if(isError) {
+                    icon.className = 'ph-fill ph-warning-circle text-red-400 text-2xl';
+                } else {
+                    icon.className = 'ph-fill ph-check-circle text-emerald-400 text-2xl';
+                }
 
-                usersTableBody.innerHTML = users.map(user => `
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-6 py-4 font-medium text-slate-800">${user.name || 'N/A'}</td>
-                        <td class="px-6 py-4">${user.email}</td>
-                        <td class="px-6 py-4"><span class="px-2 py-1 bg-orange-100 text-[#F97316] font-bold rounded-md text-xs">${user.points || 0} pts</span></td>
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                }, 4000);
+            };
+
+            // --- DATA LOADING & CHARTS ---
+            let oppsChartInstance = null;
+            let usersChartInstance = null;
+
+            const renderCharts = (users, opps) => {
+                const typeCounts = { 'Stage': 0, 'Emploi': 0, 'Bourse': 0, 'Freelance': 0 };
+                const audCounts = { 'B2B': 0, 'B2C': 0 };
+
+                opps.forEach(o => {
+                    if (typeCounts[o.type] !== undefined) typeCounts[o.type]++;
+                    if (o.audience === 'B2B') audCounts['B2B']++;
+                    else audCounts['B2C']++;
+                });
+
+                // Chart 1 : Offres
+                const ctxOpps = document.getElementById('oppsChart').getContext('2d');
+                if (oppsChartInstance) oppsChartInstance.destroy();
+                oppsChartInstance = new Chart(ctxOpps, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['B2B (Entreprises)', 'B2C (Candidats)'],
+                        datasets: [{
+                            data: [audCounts['B2B'], audCounts['B2C']],
+                            backgroundColor: ['#6366F1', '#F97316'],
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        cutout: '75%',
+                        plugins: { legend: { position: 'bottom' } } 
+                    }
+                });
+
+                // Chart 2 : Utilisateurs
+                const premiumCount = users.filter(u => u.isPremium).length;
+                const freeCount = users.length - premiumCount;
+                const ctxUsers = document.getElementById('usersChart').getContext('2d');
+                if (usersChartInstance) usersChartInstance.destroy();
+                usersChartInstance = new Chart(ctxUsers, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Premium', 'Standard'],
+                        datasets: [{
+                            data: [premiumCount, freeCount],
+                            backgroundColor: ['#A855F7', '#E2E8F0'],
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        cutout: '75%',
+                        plugins: { legend: { position: 'bottom' } } 
+                    }
+                });
+            };
+
+            const renderUsersTable = (users) => {
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = users.map(user => `
+                    <tr class="hover:bg-slate-50/80 transition-colors group">
                         <td class="px-6 py-4">
-                            <button class="text-slate-400 hover:text-slate-800 transition-colors"><i class="ph-bold ph-pencil-simple"></i></button>
-                            <button class="text-slate-400 hover:text-red-500 transition-colors ml-2"><i class="ph-bold ph-trash"></i></button>
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-slate-200 flex justify-center items-center font-bold text-slate-500 overflow-hidden">
+                                    ${user.photoURL ? `<img src="${user.photoURL}" class="w-full h-full object-cover">` : (user.name ? user.name.charAt(0) : 'U')}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-slate-800">${user.name || 'Anonyme'}</p>
+                                    <p class="text-xs text-slate-400">${user.professionalTitle || 'Aucun titre'}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-xs font-medium">${user.email || 'N/A'}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 ${user.isPremium ? 'bg-gradient-to-r from-purple-100 to-fuchsia-100 text-purple-700' : 'bg-slate-100 text-slate-500'} font-black rounded-md text-[10px] tracking-wide shadow-sm border border-white/50">
+                                ${user.isPremium ? 'PREMIUM' : 'STANDARD'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4"><span class="px-2 py-1 bg-orange-100 text-[#F97316] font-bold rounded-md text-xs shadow-sm">${user.cvCredits || 0}</span></td>
+                        <td class="px-6 py-4 text-right">
+                            <button class="text-slate-300 hover:text-blue-500 transition-colors p-2" title="Gérer"><i class="ph-bold ph-gear"></i></button>
                         </td>
                     </tr>
                 `).join('');
             };
 
-            await loadData();
+            const renderOppsList = (opps) => {
+                const container = document.getElementById('oppsList');
+                if (opps.length === 0) {
+                    container.innerHTML = '<p class="text-center text-slate-400 py-8">Aucune opportunité publiée.</p>';
+                    return;
+                }
+                container.innerHTML = opps.map(opp => `
+                    <div class="p-4 border border-slate-100 bg-white/50 rounded-2xl hover:border-orange-200 transition-colors flex items-center justify-between group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-orange-50 text-[#F97316] flex items-center justify-center text-xl shrink-0"><i class="ph-fill ph-briefcase"></i></div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-slate-800">${opp.title}</h4>
+                                    <span class="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded uppercase">${opp.audience || 'B2C'}</span>
+                                </div>
+                                <p class="text-sm text-slate-500 font-medium">${opp.company} • ${opp.location}</p>
+                            </div>
+                        </div>
+                        <button class="text-red-300 hover:text-red-500 transition-colors p-2 opacity-0 group-hover:opacity-100"><i class="ph-bold ph-trash"></i></button>
+                    </div>
+                `).join('');
+            };
 
-            oppForm.addEventListener('submit', async (e) => {
+            const renderPromoList = (codes) => {
+                const tbody = document.getElementById('promoTableBody');
+                if (codes.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-slate-400">Aucun code promo créé.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = codes.map(c => {
+                    const isExpired = c.expiresAt && (c.expiresAt.toDate ? c.expiresAt.toDate() : new Date(c.expiresAt)) < new Date();
+                    const isMaxed = c.currentUses >= c.maxUses;
+                    const isActive = !isExpired && !isMaxed;
+                    
+                    let statusBadge = isActive 
+                        ? '<span class="px-2 py-1 bg-emerald-100 text-emerald-700 font-bold rounded text-[10px]">ACTIF</span>'
+                        : '<span class="px-2 py-1 bg-red-100 text-red-600 font-bold rounded text-[10px]">INACTIF</span>';
+
+                    let expStr = "Jamais";
+                    if(c.expiresAt) {
+                        const d = c.expiresAt.toDate ? c.expiresAt.toDate() : new Date(c.expiresAt);
+                        expStr = d.toLocaleDateString();
+                    }
+
+                    return `
+                    <tr class="hover:bg-purple-50/30 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-black text-purple-700 tracking-wider">${c.code}</div>
+                        </td>
+                        <td class="px-6 py-4 text-xs font-bold text-slate-600">${c.type} <span class="text-slate-400 font-normal">(${c.durationDays} jrs)</span></td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <div class="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-purple-500" style="width: ${(c.currentUses/c.maxUses)*100}%"></div>
+                                </div>
+                                <span class="text-xs font-bold text-slate-500">${c.currentUses}/${c.maxUses}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-xs text-slate-500">${expStr}</td>
+                        <td class="px-6 py-4 text-right">${statusBadge}</td>
+                    </tr>
+                `}).join('');
+            };
+
+            const loadAllData = async () => {
+                try {
+                    const [users, opps, promos] = await Promise.all([
+                        API.getAllUsers(),
+                        API.getOpportunities(),
+                        API.getPromoCodes()
+                    ]);
+
+                    // Stats
+                    document.getElementById('statUsers').textContent = users.length;
+                    document.getElementById('statPremium').textContent = users.filter(u => u.isPremium).length;
+                    document.getElementById('statOpps').textContent = opps.length;
+
+                    renderCharts(users, opps);
+                    renderUsersTable(users);
+                    renderOppsList(opps);
+                    renderPromoList(promos);
+                } catch(e) {
+                    showToast("Erreur de chargement des données", true);
+                    console.error(e);
+                }
+            };
+
+            // Init Load
+            await loadAllData();
+
+            // --- FORMS LOGIC ---
+            
+            // 1. Publish Opportunity
+            document.getElementById('oppForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const title = document.getElementById('oppTitle').value;
-                const company = document.getElementById('oppCompany').value;
-                const type = document.getElementById('oppType').value;
-                const location = document.getElementById('oppLocation').value;
+                const btn = document.getElementById('btnPublishOpp');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Publication...';
 
                 try {
-                    await API.publishOpportunity({ title, company, type, location });
-                    const msg = document.getElementById('oppMessage');
-                    msg.classList.remove('hidden');
-                    setTimeout(() => msg.classList.add('hidden'), 3000);
-                    
-                    oppForm.reset();
-                    await loadData(); // Refresh counts
+                    const oppData = {
+                        title: document.getElementById('oppTitle').value,
+                        company: document.getElementById('oppCompany').value,
+                        type: document.getElementById('oppType').value,
+                        audience: document.getElementById('oppAudience').value,
+                        location: document.getElementById('oppLocation').value,
+                        description: document.getElementById('oppDesc').value,
+                        mandatorySkills: document.getElementById('oppSkills').value.split(',').map(s => s.trim()).filter(s => s),
+                    };
+
+                    await API.publishOpportunity(oppData);
+                    showToast("Offre B2B/B2C publiée avec succès !");
+                    e.target.reset();
+                    await loadAllData();
                 } catch (error) {
-                    alert(error.message);
+                    showToast(error.message, true);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Publier l\'offre';
                 }
             });
+
+            // 2. Create Promo Code
+            document.getElementById('promoForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btnCreatePromo');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Création...';
+
+                try {
+                    const promoData = {
+                        code: document.getElementById('promoCodeVal').value,
+                        type: document.getElementById('promoType').value,
+                        maxUses: document.getElementById('promoMaxUses').value,
+                        durationDays: document.getElementById('promoDuration').value,
+                        expiresAt: document.getElementById('promoExpiry').value || null
+                    };
+
+                    await API.createPromoCode(promoData);
+                    showToast("Code promo généré avec succès !");
+                    e.target.reset();
+                    await loadAllData();
+                } catch (error) {
+                    showToast(error.message, true);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="ph-bold ph-magic-wand"></i> Créer le Code';
+                }
+            });
+
+            // 3. User Search
+            document.getElementById('searchUsers').addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const rows = document.getElementById('usersTableBody').querySelectorAll('tr');
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(term) ? '' : 'none';
+                });
+            });
+
         });
     </script>
 </body>

@@ -1,0 +1,29 @@
+{
+  "domaines_formation": [
+    {
+      "domaine": "Informatique et Numérique",
+      "diplomes_typiques": ["Licence en Informatique", "Master en Génie Logiciel", "BTS Informatique de Gestion"],
+      "competences_acquises": ["Algorithmique", "Base de données", "Programmation orientée objet", "Réseaux informatiques"]
+    },
+    {
+      "domaine": "Communication et Marketing",
+      "diplomes_typiques": ["Licence en Communication", "Master en Stratégie Digitale", "DTS Marketing"],
+      "competences_acquises": ["Stratégie de communication", "Relations publiques", "Rédaction web", "Marketing opérationnel"]
+    },
+    {
+      "domaine": "Comptabilité et Finance",
+      "diplomes_typiques": ["Licence en Finance Comptabilité", "Master en Audit et Contrôle de Gestion", "BTS Finances"],
+      "competences_acquises": ["Comptabilité générale", "Analyse financière", "Fiscalité", "Contrôle budgétaire"]
+    },
+    {
+      "domaine": "Ressources Humaines",
+      "diplomes_typiques": ["Licence en GRH", "Master en Management des RH"],
+      "competences_acquises": ["Administration du personnel", "Recrutement", "Gestion de la paie", "Droit du travail"]
+    },
+    {
+      "domaine": "Génie Civil et BTP",
+      "diplomes_typiques": ["Diplôme d'Ingénieur en Génie Civil", "BTS Bâtiment", "Licence en Topographie"],
+      "competences_acquises": ["Dessin assisté par ordinateur (AutoCAD)", "Calcul de structure", "Gestion de chantier", "Topographie"]
+    }
+  ]
+}

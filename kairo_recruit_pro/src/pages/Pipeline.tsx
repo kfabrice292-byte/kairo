@@ -6,7 +6,7 @@ import { usePipelineStore } from "../store/usePipelineStore";
 import { CandidateCard } from "../components/CandidateCard";
 import { CandidateProfileModal } from "../components/CandidateProfileModal";
 import { PipelineActionModal } from "../components/PipelineActionModal";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Share2, Check } from "lucide-react";
 
 import type { PipelineItem } from "../store/usePipelineStore";
 
@@ -18,6 +18,15 @@ export function Pipeline() {
   const { data, setActiveJob, moveItem } = usePipelineStore();
   const [selectedItem, setSelectedItem] = useState<PipelineItem | null>(null);
   const [actionCandidate, setActionCandidate] = useState<{ item: PipelineItem, action: 'interview' | 'reject' | 'hire' } | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleExportShortlist = () => {
+    // Generate a dummy shareable link
+    const link = `https://recruit.kairo.com/shortlist/${jobId}`;
+    navigator.clipboard.writeText(link);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   useEffect(() => {
     if (jobId) {
@@ -60,17 +69,27 @@ export function Pipeline() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <div className="mb-6 flex items-center">
-        <button 
-          onClick={() => navigate('/jobs')}
-          className="mr-4 p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-500 hover:text-primary transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Pipeline de recrutement</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">Faites glisser les candidats pour les faire avancer dans le processus.</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center">
+          <button 
+            onClick={() => navigate('/jobs')}
+            className="mr-4 p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-500 hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Pipeline de recrutement</h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">Faites glisser les candidats pour les faire avancer dans le processus.</p>
+          </div>
         </div>
+        
+        <button 
+          onClick={handleExportShortlist}
+          className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+        >
+          {isCopied ? <Check className="w-4 h-4 text-green-500" /> : <Share2 className="w-4 h-4" />}
+          {isCopied ? 'Lien copié !' : 'Exporter la Shortlist (Client)'}
+        </button>
       </div>
 
       <div className="flex-1 overflow-x-auto overflow-y-hidden">
@@ -81,10 +100,10 @@ export function Pipeline() {
               const items = column.itemIds.map(itemId => data.items[itemId]);
 
               return (
-                <div key={column.id} className="flex flex-col w-80 flex-shrink-0 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                  <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex justify-between items-center">
+                <div key={column.id} className="flex flex-col w-80 flex-shrink-0 glass-card overflow-hidden">
+                  <div className="p-4 border-b border-slate-200/50 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-950/30 flex justify-between items-center">
                     <h3 className="font-bold text-slate-700 dark:text-slate-300">{column.title}</h3>
-                    <span className="bg-white dark:bg-slate-800 text-slate-500 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                    <span className="glass text-slate-500 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
                       {items.length}
                     </span>
                   </div>

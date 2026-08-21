@@ -135,7 +135,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onPressed: _nextPage,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: Theme.of(context).iconTheme.color,
                       elevation: 0,
                       padding: EdgeInsets.symmetric(
                         horizontal: _currentPage == _pages.length - 1 ? 24 : 20,
@@ -152,7 +152,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           _currentPage == _pages.length - 1
                               ? "Commencer"
                               : "Suivant",
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
                           ),

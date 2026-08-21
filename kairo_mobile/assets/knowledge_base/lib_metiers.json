@@ -1,0 +1,76 @@
+{
+  "metiers": [
+    {
+      "id": "cm_01",
+      "titre": "Community Manager",
+      "missions": [
+        "Élaboration de la stratégie éditoriale",
+        "Création de contenu (textuel, visuel, vidéo)",
+        "Animation et modération des réseaux sociaux",
+        "Analyse des performances (KPIs)"
+      ],
+      "competences_requises": ["Copywriting", "Suite Adobe", "Analyse de données", "Gestion de crise"],
+      "outils": ["Meta Business Suite", "Canva", "Hootsuite", "Google Analytics"],
+      "kpi": ["Taux d'engagement", "Croissance de l'audience", "Taux de conversion"],
+      "realisations_types": [
+        "Création d'une campagne ayant généré +10K abonnés",
+        "Gestion d'un bad buzz et restauration de l'image de marque",
+        "Mise en place d'un calendrier éditorial automatisé"
+      ]
+    },
+    {
+      "id": "dev_01",
+      "titre": "Développeur Mobile",
+      "missions": [
+        "Analyse des besoins techniques",
+        "Développement de l'application",
+        "Tests et débogage",
+        "Déploiement sur les stores (App Store, Play Store)"
+      ],
+      "competences_requises": ["Algorithmique", "Architecture logicielle", "Clean Code", "Intégration UI/UX"],
+      "outils": ["Flutter", "Dart", "Firebase", "Git", "Android Studio"],
+      "kpi": ["Crash-free sessions (%)", "Temps de chargement", "Couverture de code"],
+      "realisations_types": [
+        "Développement from scratch d'une application e-commerce avec 50K téléchargements",
+        "Refonte de l'architecture réduisant la dette technique de 40%",
+        "Implémentation de paiements locaux (Mobile Money, Orange Money)"
+      ]
+    },
+    {
+      "id": "rh_01",
+      "titre": "Chargé de Ressources Humaines",
+      "missions": [
+        "Recrutement et onboarding des talents",
+        "Gestion administrative du personnel",
+        "Développement des compétences et formations",
+        "Gestion de la paie"
+      ],
+      "competences_requises": ["Droit du travail burkinabè", "Entretien structuré", "Gestion des conflits", "GPEC"],
+      "outils": ["LinkedIn Recruiter", "Excel", "Logiciel de paie (Sage)", "SIRH"],
+      "kpi": ["Time-to-hire", "Taux de rétention", "Satisfaction employé"],
+      "realisations_types": [
+        "Réduction du turnover de 15% via un programme d'onboarding",
+        "Mise en place d'un SIRH centralisant les données de 500 employés",
+        "Recrutement de 30 profils techniques en 6 mois"
+      ]
+    },
+    {
+      "id": "journaliste_01",
+      "titre": "Journaliste",
+      "missions": [
+        "Recherche et vérification d'informations",
+        "Rédaction d'articles et reportages",
+        "Interviews et couverture d'événements",
+        "Veille informationnelle"
+      ],
+      "competences_requises": ["Techniques d'interview", "Vérification des faits (Fact-checking)", "Aisance rédactionnelle", "Éthique journalistique"],
+      "outils": ["CMS (WordPress)", "Dictaphone", "Appareil photo/Caméra", "Réseaux sociaux (Twitter)"],
+      "kpi": ["Nombre de vues/lectures", "Partages sociaux", "Citations par d'autres médias"],
+      "realisations_types": [
+        "Couverture exclusive des élections ayant généré +100k vues uniques",
+        "Réalisation d'un documentaire primé sur l'agriculture locale",
+        "Développement d'une nouvelle rubrique 'Tech en Afrique'"
+      ]
+    }
+  ]
+}

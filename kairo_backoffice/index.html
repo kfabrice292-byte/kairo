@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KAIRO - Dashboard Administrateur</title>
+    <meta name="theme-color" content="#F97316" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" type="image/png" href="./public/icon.png" />
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(err => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+        });
+      }
+    </script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="./src/css/main.css">
+  </head>
+  <body>
+    <!-- App Container -->
+    <div class="app-container">
+      
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <i class="ph-fill ph-rocket-launch"></i> Kaïro Admin
+          </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+          <a href="index.html" class="nav-item active">
+            <i class="ph ph-squares-four"></i> Dashboard
+          </a>
+          <a href="users.html" class="nav-item">
+            <i class="ph ph-users"></i> Utilisateurs
+          </a>
+          <a href="verifications.html" class="nav-item">
+            <i class="ph ph-seal-check"></i> Vérifications
+          </a>
+          <a href="companies.html" class="nav-item">
+            <i class="ph ph-buildings"></i> Entreprises
+          </a>
+          <a href="agencies.html" class="nav-item">
+            <i class="ph ph-buildings"></i> Agences
+          </a>
+          <a href="subscriptions.html" class="nav-item">
+            <i class="ph ph-credit-card"></i> Abonnements
+          </a>
+          <a href="applications.html" class="nav-item">
+            <i class="ph ph-file-text"></i> Candidatures
+          </a>
+          <a href="opportunities.html" class="nav-item">
+            <i class="ph ph-briefcase"></i> Opportunités
+          </a>
+          <a href="publications.html" class="nav-item">
+            <i class="ph ph-newspaper"></i> Publications
+          </a>
+          <a href="projects.html" class="nav-item">
+            <i class="ph ph-lightbulb"></i> Projets
+          </a>
+          <a href="reports.html" class="nav-item">
+            <i class="ph ph-warning-circle"></i> Signalements
+          </a>
+          <a href="settings.html" class="nav-item">
+            <i class="ph ph-gear"></i> Paramètres
+          </a>
+        </nav>
+      </aside>
+
+      <!-- Main Wrapper -->
+      <div class="main-wrapper">
+        
+        <!-- Topbar -->
+        <header class="topbar">
+          <div class="topbar-left">
+            <!-- Breadcrumbs or Search could go here -->
+          </div>
+          
+          <div class="topbar-right">
+            <div class="user-profile">
+              <div class="user-avatar" id="topbar-user-avatar">A</div>
+              <span id="topbar-user-name" class="font-medium">Admin</span>
+            </div>
+            <button id="logoutBtn" class="btn-icon" title="Se déconnecter">
+              <i class="ph ph-sign-out"></i>
+            </button>
+          </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+          <div class="page-header" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <h1 class="page-title">Tableau de bord</h1>
+              <p class="text-secondary" style="margin-top: 0.5rem; font-size: 1.05rem;">Bienvenue sur votre espace d'administration Kaïro.</p>
+            </div>
+            <button class="btn btn-secondary" id="refreshDashboardBtn" style="display: flex; gap: 0.5rem; align-items: center; border-radius: 12px; padding: 0.75rem 1.5rem; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+              <i class="ph ph-arrows-clockwise"></i> <span style="font-weight: 600;">Rafraîchir</span>
+            </button>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="grid-cards">
+            <!-- Users Stat -->
+            <div class="stat-card">
+              <span class="stat-card-title">Utilisateurs Totaux</span>
+              <span class="stat-card-value" id="stat-users">...</span>
+              <i class="ph ph-users stat-card-icon"></i>
+            </div>
+            
+            <!-- Publications Stat -->
+            <div class="stat-card">
+              <span class="stat-card-title">Publications</span>
+              <span class="stat-card-value" id="stat-posts">...</span>
+              <i class="ph ph-newspaper stat-card-icon"></i>
+            </div>
+            
+            <!-- Projects Stat -->
+            <div class="stat-card">
+              <span class="stat-card-title">Projets</span>
+              <span class="stat-card-value" id="stat-projects">...</span>
+              <i class="ph ph-lightbulb stat-card-icon"></i>
+            </div>
+            
+            <!-- Agencies Stat -->
+            <div class="stat-card">
+              <span class="stat-card-title">Agences (RH)</span>
+              <span class="stat-card-value" id="stat-agencies">...</span>
+              <i class="ph ph-buildings stat-card-icon" style="color: var(--info);"></i>
+            </div>
+            
+            <!-- Expiring Subs Stat -->
+            <div class="stat-card">
+              <span class="stat-card-title">Abonnements Expirés</span>
+              <span class="stat-card-value text-danger" id="stat-expired-subs">...</span>
+              <i class="ph ph-credit-card stat-card-icon text-danger"></i>
+            </div>
+            
+            <!-- Opportunities Stat -->
+            <div class="stat-card">
+              <span class="stat-card-title">Opportunités</span>
+              <span class="stat-card-value" id="stat-opportunities">...</span>
+              <i class="ph ph-briefcase stat-card-icon"></i>
+            </div>
+            
+            <!-- ATS Applications Stat -->
+            <div class="stat-card">
+              <span class="stat-card-title">Candidatures (ATS)</span>
+              <span class="stat-card-value text-success" id="stat-ats-applications">...</span>
+              <i class="ph ph-file-text stat-card-icon text-success"></i>
+            </div>
+          </div>
+
+          <!-- Second row of stats -->
+          <div class="grid-cards mt-4">
+            <!-- Verified Profiles -->
+            <div class="stat-card">
+              <span class="stat-card-title">Profils Vérifiés</span>
+              <span class="stat-card-value" id="stat-verified">...</span>
+              <i class="ph-fill ph-seal-check stat-card-icon" style="color: var(--primary);"></i>
+            </div>
+            
+            <!-- Premium Profiles -->
+            <div class="stat-card" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%); border-color: rgba(59, 130, 246, 0.2);">
+              <span class="stat-card-title text-blue-600">Abonnés Premium</span>
+              <span class="stat-card-value text-blue-700" id="stat-premium">...</span>
+              <i class="ph-fill ph-star stat-card-icon text-blue-500"></i>
+            </div>
+            
+            <!-- Revenue -->
+            <div class="stat-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-color: rgba(16, 185, 129, 0.2);">
+              <span class="stat-card-title text-emerald-600">Revenus Estimés (Premium)</span>
+              <span class="stat-card-value text-emerald-700" id="stat-revenue" style="font-size: 1.5rem;">...</span>
+              <i class="ph-fill ph-money stat-card-icon text-emerald-500"></i>
+            </div>
+            
+            <!-- Pending Reports -->
+            <div class="stat-card">
+              <span class="stat-card-title">Signalements</span>
+              <span class="stat-card-value" id="stat-reports">...</span>
+              <i class="ph ph-warning stat-card-icon" style="color: var(--danger);"></i>
+            </div>
+          </div>
+
+        </main>
+      </div>
+    </div>
+
+    <!-- Auth check logic is imported first to guard the page -->
+    <script type="module" src="./src/js/auth.ts"></script>
+    <script type="module" src="./src/js/modules/dashboard.ts"></script>
+  </body>
+</html>

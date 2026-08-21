@@ -15,6 +15,7 @@ interface UserProfile {
   email: string;
   companyName?: string;
   role: 'recruiter' | 'student' | 'admin';
+  accountType?: 'cabinet' | 'entreprise';
   createdAt: string;
 }
 
@@ -25,7 +26,7 @@ interface AuthState {
   isInitialized: boolean;
   error: string | null;
   login: (email: string, pass: string) => Promise<void>;
-  register: (email: string, pass: string, name: string, company: string) => Promise<void>;
+  register: (email: string, pass: string, name: string, company: string, accountType: 'cabinet' | 'entreprise') => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
 }
@@ -82,7 +83,7 @@ export const useAuthStore = create<AuthState>((set) => {
       }
     },
 
-    register: async (email, password, name, company) => {
+    register: async (email, password, name, company, accountType) => {
       set({ isLoading: true, error: null });
       try {
         const userCreds = await createUserWithEmailAndPassword(auth, email, password);
@@ -94,6 +95,7 @@ export const useAuthStore = create<AuthState>((set) => {
           email,
           companyName: company,
           role: 'recruiter',
+          accountType,
           createdAt: new Date().toISOString()
         };
 

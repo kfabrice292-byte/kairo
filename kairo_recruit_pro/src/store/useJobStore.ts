@@ -21,6 +21,9 @@ export interface Job {
   city?: string;
   remoteWork: string; // Télétravail, Hybride, Présentiel
   
+  // Cabinet de recrutement
+  clientName?: string;
+  
   // Advanced ATS Fields
   educationLevel: string; // e.g. "Bac+3", "Master"
   minExperience: number; // e.g. 2 (years)
@@ -80,6 +83,7 @@ export const useJobStore = create<JobState>((set, get) => ({
           country: data.country || '',
           city: data.city || '',
           remoteWork: data.remoteWork || 'Présentiel',
+          clientName: data.clientName || '',
           
           educationLevel: data.educationLevel || '',
           minExperience: data.minExperience || 0,

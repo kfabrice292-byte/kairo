@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/providers/chat_provider.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/providers/network_provider.dart';
 import '../../core/models/chat_model.dart';
 import 'package:kairo_mobile/core/theme/app_colors.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -102,7 +104,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     );
                     Navigator.pop(context);
                   },
-                  child: Text(emoji, style: const TextStyle(fontSize: 32)),
+                  child: Text(emoji, style: TextStyle(fontSize: 32)),
                 ),
               )
               .toList(),
@@ -122,13 +124,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Widget build(BuildContext context) {
     final authUser = context.watch<AuthProvider>().userModel;
     final myUserId = authUser?.uid ?? '';
-    final isConnected =
-        authUser?.connections.contains(widget.otherUserId) ?? false;
+    
+    final network = context.watch<NetworkProvider>();
+    final connection = network.getConnectionWith(widget.otherUserId);
+    final isConnected = true; // Allow chatting even if pending
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         title: Row(
           children: [
             CircleAvatar(
@@ -137,10 +141,38 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               ),
               radius: 18,
             ),
-            const SizedBox(width: 12),
-            Text(
-              widget.otherUserName,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            SizedBox(width: 12),
+            Expanded(
+              child: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      widget.otherUserName,
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance.collection('users').doc(widget.otherUserId).get(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData && snapshot.data!.exists) {
+                        final data = snapshot.data!.data() as Map<String, dynamic>;
+                        if (data['isVerified'] == true) {
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 4),
+                            child: Icon(
+                              PhosphorIcons.sealCheck(PhosphorIconsStyle.fill),
+                              color: AppColors.primary,
+                              size: 16,
+                            ),
+                          );
+                        }
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -152,14 +184,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               stream: context.read<ChatProvider>().getMessages(widget.chatId),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(child: CircularProgressIndicator());
                 }
 
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return Center(
                     child: Text(
                       'Envoyez un premier message à ${widget.otherUserName} !',
-                      style: const TextStyle(color: Colors.grey),
+                      style: TextStyle(color: Colors.grey),
                     ),
                   );
                 }
@@ -194,7 +226,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                 vertical: msg.imageUrl != null ? 4 : 10,
                               ),
                               decoration: BoxDecoration(
-                                color: isMe ? AppColors.primary : Colors.white,
+                                color: isMe ? AppColors.primary : Theme.of(context).cardColor,
                                 borderRadius: BorderRadius.only(
                                   topLeft: const Radius.circular(16),
                                   topRight: const Radius.circular(16),
@@ -203,7 +235,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.02),
+                                    color: (Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black).withValues(alpha: 0.02),
                                     blurRadius: 4,
                                     offset: const Offset(0, 2),
                                   ),
@@ -223,7 +255,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                         height: 200,
                                         fit: BoxFit.cover,
                                         errorWidget: (context, url, error) =>
-                                            const Icon(Icons.error),
+                                            Icon(Icons.error),
                                       ),
                                     ),
                                   if (msg.content.isNotEmpty)
@@ -239,7 +271,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                         style: TextStyle(
                                           color: isMe
                                               ? Colors.white
-                                              : Colors.black87,
+                                              : Theme.of(context).textTheme.bodyLarge?.color,
                                           fontSize: 15,
                                         ),
                                       ),
@@ -265,7 +297,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                           ),
                                         ),
                                         if (isMe) ...[
-                                          const SizedBox(width: 4),
+                                          SizedBox(width: 4),
                                           Icon(
                                             msg.isRead
                                                 ? PhosphorIcons.checks()
@@ -291,7 +323,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: Theme.of(context).cardColor,
                                     borderRadius: BorderRadius.circular(12),
                                     boxShadow: [
                                       BoxShadow(
@@ -304,7 +336,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                   ),
                                   child: Text(
                                     msg.reactions.values.join(' '),
-                                    style: const TextStyle(fontSize: 12),
+                                    style: TextStyle(fontSize: 12),
                                   ),
                                 ),
                               ),
@@ -324,9 +356,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               top: 12,
               bottom: MediaQuery.of(context).padding.bottom + 12,
             ),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
             ),
             child: Column(
               children: [
@@ -338,7 +370,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       );
                       final isTyping =
                           chat.typingStatus[widget.otherUserId] ?? false;
-                      if (!isTyping) return const SizedBox.shrink();
+                      if (!isTyping) return SizedBox.shrink();
                       return Padding(
                         padding: const EdgeInsets.only(left: 16, bottom: 8),
                         child: Row(
@@ -355,19 +387,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         ),
                       );
                     } catch (e) {
-                      return const SizedBox.shrink();
+                      return SizedBox.shrink();
                     }
                   },
                 ),
                 Row(
                   children: [
-                    IconButton(
-                      icon: Icon(
-                        PhosphorIcons.image(),
-                        color: AppColors.primary,
-                      ),
-                      onPressed: isConnected ? _pickImage : null,
-                    ),
                     Expanded(
                       child: TextField(
                         controller: _messageController,
@@ -382,7 +407,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                             borderSide: BorderSide.none,
                           ),
                           filled: true,
-                          fillColor: const Color(0xFFF1F5F9),
+                          fillColor: Theme.of(context).scaffoldBackgroundColor,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 10,
@@ -391,16 +416,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         textCapitalization: TextCapitalization.sentences,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     CircleAvatar(
                       backgroundColor: isConnected
                           ? AppColors.primary
                           : Colors.grey,
                       radius: 24,
                       child: IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.send,
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           size: 20,
                         ),
                         onPressed: isConnected ? _sendMessage : null,

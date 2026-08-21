@@ -24,7 +24,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: TextField(
           controller: _searchController,
@@ -34,7 +34,7 @@ class _SearchScreenState extends State<SearchScreen> {
             hintStyle: TextStyle(color: Colors.grey.shade400),
           ),
           autofocus: true,
-          style: const TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 16),
           onChanged: (val) {
             setState(() {
               _searchQuery = val.trim();
@@ -44,7 +44,7 @@ class _SearchScreenState extends State<SearchScreen> {
         actions: [
           if (_searchController.text.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.close),
+              icon: Icon(Icons.close),
               onPressed: () {
                 _searchController.clear();
                 setState(() {
@@ -148,7 +148,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Filtres',
                         style: TextStyle(
                           fontSize: 18,
@@ -162,20 +162,20 @@ class _SearchScreenState extends State<SearchScreen> {
                             tempDomain = '';
                           });
                         },
-                        child: const Text('Réinitialiser'),
+                        child: Text('Réinitialiser'),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
 
-                  const Text(
+                  Text(
                     'Pays',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     value: tempCountry.isEmpty ? null : tempCountry,
-                    hint: const Text('Tous les pays'),
+                    hint: Text('Tous les pays'),
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -202,14 +202,14 @@ class _SearchScreenState extends State<SearchScreen> {
 
                   const SizedBox(height: 16),
 
-                  const Text(
+                  Text(
                     'Domaine d\'études',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     value: tempDomain.isEmpty ? null : tempDomain,
-                    hint: const Text('Tous les domaines'),
+                    hint: Text('Tous les domaines'),
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -245,13 +245,13 @@ class _SearchScreenState extends State<SearchScreen> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: Theme.of(context).iconTheme.color,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Appliquer',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),

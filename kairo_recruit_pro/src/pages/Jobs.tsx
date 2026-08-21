@@ -52,15 +52,15 @@ export function Jobs() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
           {jobs.map((job) => (
-            <div key={job.id} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col hover:shadow-md transition-shadow">
+            <div key={job.id} className="glass-card p-6 flex flex-col hover:-translate-y-1 transition-transform duration-200">
               <div className="flex justify-between items-start mb-4">
                 <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  job.status === 'ouvert' || job.status === 'active' as any ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                  job.status === 'suspendu' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                  job.status === 'clôturé' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                  'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                  job.status === 'ouvert' || job.status === 'active' as any ? 'bg-green-100/80 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                  job.status === 'suspendu' ? 'bg-orange-100/80 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
+                  job.status === 'clôturé' ? 'bg-red-100/80 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                  'bg-slate-100/80 text-slate-700 dark:bg-slate-800/80 dark:text-slate-400'
                 }`}>
                   {job.status}
                 </div>

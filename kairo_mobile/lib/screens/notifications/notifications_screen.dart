@@ -4,8 +4,11 @@ import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../core/providers/notification_provider.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/providers/network_provider.dart';
 import '../profile/public_profile_screen.dart';
 import '../post_detail_screen.dart';
+import '../../widgets/empty_state_widget.dart';
+import 'package:kairo_mobile/core/theme/app_colors.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -16,13 +19,13 @@ class NotificationsScreen extends StatelessWidget {
     final notifications = provider.notifications;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Notifications',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         actions: [
           if (provider.unreadCount > 0)
@@ -42,32 +45,28 @@ class NotificationsScreen extends StatelessWidget {
         ],
       ),
       body: notifications.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    PhosphorIcons.bellZ(),
-                    size: 64,
-                    color: Colors.grey.shade300,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Aucune notification',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-                  ),
-                ],
+          ? const Center(
+              child: EmptyStateWidget(
+                title: 'Aucune notification',
+                message: 'Vous n\'avez pas encore de nouvelles notifications.',
+                icon: PhosphorIconsLight.bellZ,
               ),
             )
           : ListView.builder(
               itemCount: notifications.length,
               itemBuilder: (context, index) {
                 final notif = notifications[index];
-                final myUser = context.watch<AuthProvider>().userModel;
-                final bool hasPendingRequest =
-                    notif.relatedId != null &&
-                    (myUser?.receivedRequests.contains(notif.relatedId) ??
-                        false);
+                final networkProvider = context.watch<NetworkProvider>();
+                
+                bool hasPendingRequest = false;
+                if (notif.relatedId != null) {
+                  final conn = networkProvider.getConnectionWith(notif.relatedId!);
+                  final currentUserId = context.read<AuthProvider>().userModel?.uid;
+                  hasPendingRequest = conn != null && 
+                                      conn.status == 'pending' && 
+                                      conn.receiverId == currentUserId;
+                }
+                
                 IconData icon;
                 Color color;
                 switch (notif.type) {
@@ -85,7 +84,7 @@ class NotificationsScreen extends StatelessWidget {
                     break;
                   case 'network':
                     icon = PhosphorIcons.userPlus();
-                    color = const Color(0xFF10B981);
+                    color = AppColors.success;
                     break;
                   case 'network_accepted':
                     icon = PhosphorIcons.checkCircle();
@@ -190,20 +189,23 @@ class _NetworkActionButtonsState extends State<_NetworkActionButtons> {
   Future<void> _handleAction(bool accept) async {
     setState(() => _isLoading = true);
     try {
-      if (accept) {
-        await context.read<AuthProvider>().acceptNetworkRequest(
-          widget.notif.relatedId!,
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invitation acceptée'),
-            backgroundColor: Color(0xFF10B981),
-          ),
-        );
-      } else {
-        await context.read<AuthProvider>().cancelOrRejectNetworkRequest(
-          widget.notif.relatedId!,
-        );
+      final network = context.read<NetworkProvider>();
+      final conn = network.getConnectionWith(widget.notif.relatedId!);
+      
+      if (conn != null) {
+        if (accept) {
+          await network.acceptRequest(conn.id);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Invitation acceptée'),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          }
+        } else {
+          await network.cancelRequest(conn.id);
+        }
       }
       widget.provider.markAsRead(widget.notif.id);
     } catch (e) {
@@ -233,12 +235,12 @@ class _NetworkActionButtonsState extends State<_NetworkActionButtons> {
         ElevatedButton(
           onPressed: () => _handleAction(true),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF10B981),
-            foregroundColor: Colors.white,
+            backgroundColor: AppColors.success,
+            foregroundColor: Theme.of(context).iconTheme.color,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
             minimumSize: const Size(0, 32),
           ),
-          child: const Text('Accepter', style: TextStyle(fontSize: 12)),
+          child: Text('Accepter', style: TextStyle(fontSize: 12)),
         ),
         const SizedBox(width: 8),
         OutlinedButton(
@@ -247,7 +249,7 @@ class _NetworkActionButtonsState extends State<_NetworkActionButtons> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
             minimumSize: const Size(0, 32),
           ),
-          child: const Text('Refuser', style: TextStyle(fontSize: 12)),
+          child: Text('Refuser', style: TextStyle(fontSize: 12)),
         ),
       ],
     );

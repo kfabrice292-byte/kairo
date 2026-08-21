@@ -52,7 +52,7 @@ interface TalentState {
   isLoading: boolean;
   error: string | null;
   fetchTalents: () => Promise<void>;
-  searchTalents: (queryText: string, filterSkill?: string) => void;
+  searchTalents: (queryText: string, filterSkill?: string, filterLocation?: string) => void;
 }
 
 export const useTalentStore = create<TalentState>((set, get) => ({
@@ -96,7 +96,7 @@ export const useTalentStore = create<TalentState>((set, get) => ({
     }
   },
 
-  searchTalents: (queryText: string, filterSkill?: string) => {
+  searchTalents: (queryText: string, filterSkill?: string, filterLocation?: string) => {
     const { talents } = get();
     const lowerQuery = queryText.toLowerCase();
 
@@ -105,7 +105,7 @@ export const useTalentStore = create<TalentState>((set, get) => ({
       const matchTitle = t.professionalTitle?.toLowerCase().includes(lowerQuery);
       const matchBio = t.bio?.toLowerCase().includes(lowerQuery);
       
-      const matchesSearch = matchName || matchTitle || matchBio;
+      const matchesSearch = matchName || matchTitle || matchBio || lowerQuery === '';
       
       let matchesSkill = true;
       if (filterSkill && filterSkill.trim() !== '') {
@@ -113,7 +113,15 @@ export const useTalentStore = create<TalentState>((set, get) => ({
         matchesSkill = t.skills?.some(s => s.name.toLowerCase().includes(lowerFilter)) || false;
       }
 
-      return matchesSearch && matchesSkill;
+      let matchesLocation = true;
+      if (filterLocation && filterLocation.trim() !== '') {
+        const lowerLoc = filterLocation.toLowerCase();
+        const countryMatch = t.country?.toLowerCase().includes(lowerLoc) || false;
+        const cityMatch = t.city?.toLowerCase().includes(lowerLoc) || false;
+        matchesLocation = countryMatch || cityMatch;
+      }
+
+      return matchesSearch && matchesSkill && matchesLocation;
     });
 
     set({ filteredTalents: filtered });

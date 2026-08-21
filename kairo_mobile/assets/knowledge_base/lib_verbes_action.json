@@ -1,0 +1,28 @@
+{
+  "verbes_action": [
+    {
+      "categorie": "Management & Leadership",
+      "verbes": ["Piloté", "Supervisé", "Coordonné", "Dirigé", "Encadré", "Orchestré", "Délégué"]
+    },
+    {
+      "categorie": "Création & Conception",
+      "verbes": ["Conçu", "Imaginé", "Créé", "Élaboré", "Développé", "Façonné", "Designé"]
+    },
+    {
+      "categorie": "Analyse & Résolution",
+      "verbes": ["Analysé", "Audité", "Évalué", "Diagnostiqué", "Résolu", "Identifié", "Optimisé"]
+    },
+    {
+      "categorie": "Communication & Relations",
+      "verbes": ["Négocié", "Présenté", "Animé", "Convaincu", "Rédigé", "Promu", "Fidélisé"]
+    },
+    {
+      "categorie": "Organisation & Logistique",
+      "verbes": ["Planifié", "Organisé", "Structuré", "Géré", "Programmé", "Déployé", "Administré"]
+    },
+    {
+      "categorie": "Finance & Résultats",
+      "verbes": ["Augmenté", "Réduit", "Généré", "Économisé", "Maximisé", "Rentabilisé", "Multiplié"]
+    }
+  ]
+}

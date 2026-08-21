@@ -20,7 +20,7 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   final List<Widget> _screens = [
     const FeedScreen(),
-    const OpportunitiesScreen(),
+    OpportunitiesScreen(),
     const ProjectsScreen(),
     const ProfileScreen(),
   ];
@@ -28,7 +28,10 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -64,7 +67,7 @@ class _MainScaffoldState extends State<MainScaffold> {
           _showPublishModal(context);
         },
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -87,9 +90,9 @@ class _MainScaffoldState extends State<MainScaffold> {
             const SizedBox(height: 24),
             _buildPublishOption(
               context,
-              icon: PhosphorIcons.article(),
-              title: 'Un partage d\'expérience',
-              subtitle: 'Partager une réussite, une difficulté ou un conseil',
+              icon: PhosphorIcons.rocketLaunch(),
+              title: 'Un projet (Portfolio Communautaire)',
+              subtitle: 'Partager une interface, un code, ou un plan et vos leçons apprises',
               onTap: () {
                 Navigator.pop(context);
                 showDialog(
@@ -166,7 +169,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),

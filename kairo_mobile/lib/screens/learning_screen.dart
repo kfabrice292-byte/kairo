@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/providers/learning_provider.dart';
+import '../widgets/empty_state_widget.dart';
 
 class LearningScreen extends StatelessWidget {
   const LearningScreen({super.key});
@@ -8,10 +9,20 @@ class LearningScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Formations')),
+      appBar: AppBar(title: Text('Formations')),
       body: Consumer<LearningProvider>(
         builder: (context, provider, child) {
           final courses = provider.courses;
+          if (provider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (courses.isEmpty) {
+            return const EmptyStateWidget(
+              icon: Icons.school,
+              title: "Aucune formation",
+              message: "Il n'y a pas encore de cours disponibles.",
+            );
+          }
           return GridView.builder(
             padding: const EdgeInsets.all(16),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -27,7 +38,7 @@ class LearningScreen extends StatelessWidget {
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: Colors.grey.shade200, width: 1),
+                  side: BorderSide(color: Theme.of(context).dividerColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,7 +67,7 @@ class LearningScreen extends StatelessWidget {
                         children: [
                           Text(
                             course.title,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(fontWeight: FontWeight.bold),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../widgets/kairo_text_field.dart';
@@ -71,7 +72,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
       SnackBar(
         content: Text(
           message,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+          style: TextStyle(fontWeight: FontWeight.w500),
         ),
         backgroundColor: isError ? Colors.red : Colors.green,
         behavior: SnackBarBehavior.floating,
@@ -122,11 +123,15 @@ class _SecurityScreenState extends State<SecurityScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final user = FirebaseAuth.instance.currentUser;
+    final isGoogleAuthOnly = user != null && 
+        user.providerData.length == 1 && 
+        user.providerData.first.providerId == 'google.com';
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Sécurité',
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
         ),
@@ -139,8 +144,9 @@ class _SecurityScreenState extends State<SecurityScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              "Modifier votre mot de passe",
+            if (!isGoogleAuthOnly) ...[
+              Text(
+                "Modifier votre mot de passe",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -185,7 +191,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                 disabledBackgroundColor: AppColors.primary.withValues(
                   alpha: 0.6,
                 ),
-                foregroundColor: Colors.white,
+                foregroundColor: Theme.of(context).iconTheme.color,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 elevation: 0,
                 shape: RoundedRectangleBorder(
@@ -193,28 +199,53 @@ class _SecurityScreenState extends State<SecurityScreen> {
                 ),
               ),
               child: _isLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 24,
                       height: 24,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
+                        color: Theme.of(context).cardColor,
                         strokeWidth: 2.5,
                       ),
                     )
-                  : const Text(
+                  : Text(
                       'Mettre à jour le mot de passe',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-            ),
+              ),
 
-            const SizedBox(height: 48),
-            const Divider(),
-            const SizedBox(height: 32),
+              const SizedBox(height: 48),
+              const Divider(),
+              const SizedBox(height: 32),
+            ] else ...[
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(PhosphorIcons.googleLogo(), color: AppColors.primary),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        "Votre compte est géré par Google. La modification du mot de passe se fait via votre compte Google.",
+                        style: TextStyle(
+                          color: theme.textTheme.bodyMedium?.color,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 48),
+            ],
 
-            const Text(
+            Text(
               "Changer d'adresse email",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -249,11 +280,11 @@ class _SecurityScreenState extends State<SecurityScreen> {
             ElevatedButton(
               onPressed: _isLoadingEmail ? null : _handleChangeEmail,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.secondary,
-                disabledBackgroundColor: AppColors.secondary.withValues(
+                backgroundColor: AppColors.primary,
+                disabledBackgroundColor: AppColors.primary.withValues(
                   alpha: 0.6,
                 ),
-                foregroundColor: Colors.white,
+                foregroundColor: Theme.of(context).iconTheme.color,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 elevation: 0,
                 shape: RoundedRectangleBorder(
@@ -261,15 +292,15 @@ class _SecurityScreenState extends State<SecurityScreen> {
                 ),
               ),
               child: _isLoadingEmail
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 24,
                       height: 24,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
+                        color: Theme.of(context).cardColor,
                         strokeWidth: 2.5,
                       ),
                     )
-                  : const Text(
+                  : Text(
                       'Mettre à jour l\'email',
                       style: TextStyle(
                         fontSize: 16,

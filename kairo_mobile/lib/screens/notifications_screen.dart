@@ -11,9 +11,9 @@ class NotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Notifications',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
@@ -52,17 +52,17 @@ class NotificationsScreen extends StatelessWidget {
                       color: AppColors.primary,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  const Text(
+                  SizedBox(height: 24),
+                  Text(
                     'Aucune notification',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
+                      color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     "Vous êtes à jour ! Nous vous préviendrons\ndès qu'il y aura du nouveau.",
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 15, color: Colors.grey),
@@ -88,7 +88,7 @@ class NotificationsScreen extends StatelessWidget {
                   // Optionally navigate if it's an application update
                 },
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                tileColor: notif.isRead ? Colors.white : AppColors.primary.withValues(alpha: 0.05),
+                tileColor: notif.isRead ? Theme.of(context).cardColor : AppColors.primary.withValues(alpha: 0.05),
                 leading: CircleAvatar(
                   backgroundColor: isApplication ? AppColors.primary.withValues(alpha: 0.1) : Colors.grey.shade100,
                   child: Icon(

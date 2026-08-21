@@ -10,7 +10,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/base.css">
 </head>
 <body class="bg-slate-50 flex flex-col min-h-screen text-slate-800 font-sans">
@@ -29,15 +28,16 @@
                 <nav class="hidden md:flex items-center gap-6">
                     <a href="#" class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Modèles</a>
                     <a href="#" class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Ressources</a>
+                    <a href="privacy.html" class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Confidentialité</a>
                     <a href="#" class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Tarifs</a>
                 </nav>
 
                 <!-- Auth Actions -->
                 <div class="flex items-center gap-3">
-                    <a href="login.html" class="hidden md:inline-flex items-center justify-center text-sm font-medium h-10 px-6 rounded-full border border-[#F97316] text-[#F97316] hover:bg-slate-50 transition-all">
+                    <a href="/app/" class="hidden md:inline-flex items-center justify-center text-sm font-medium h-10 px-6 rounded-full border border-[#F97316] text-[#F97316] hover:bg-slate-50 transition-all">
                         Connexion
                     </a>
-                    <a href="register.html" class="inline-flex items-center justify-center text-sm font-medium h-10 px-6 rounded-full bg-[#F97316] text-white hover:bg-[#F97316]/90 transition-all">
+                    <a href="/app/" class="inline-flex items-center justify-center text-sm font-medium h-10 px-6 rounded-full bg-[#F97316] text-white hover:bg-[#F97316]/90 transition-all">
                         Démarrer
                     </a>
                 </div>
@@ -50,12 +50,12 @@
     <main class="flex-1 flex flex-col justify-center relative pt-40 pb-20 overflow-hidden">
         
         <!-- Decorative Background -->
-        <div class="absolute inset-0 z-[-1] bg-gradient-to-br from-orange-100 via-white to-blue-50 animate-mesh"></div>
+        <div class="absolute inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-100/50 via-white to-white"></div>
 
         <div class="w-full max-w-5xl mx-auto px-4 flex flex-col items-center text-center">
             
             <!-- Badge -->
-            <div data-aos="fade-down" class="mb-8 inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-1 shadow-sm transition-all hover:bg-slate-50 cursor-pointer group">
+            <div class="mb-8 inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-1 shadow-sm transition-all hover:bg-slate-50 cursor-pointer group">
                 <div class="flex items-center gap-2 text-sm font-medium text-slate-600">
                     <span class="flex items-center justify-center rounded-full bg-slate-900 text-white text-[10px] uppercase font-bold px-2 py-0.5">Nouveau</span>
                     Créer une lettre de motivation professionnelle
@@ -64,7 +64,7 @@
             </div>
 
             <!-- Avatars / Social Proof -->
-            <div data-aos="fade-up" data-aos-delay="100" class="mb-6 flex flex-col sm:flex-row items-center gap-4">
+            <div class="mb-6 flex flex-col sm:flex-row items-center gap-4">
                 <div class="flex -space-x-3">
                     <img class="w-10 h-10 rounded-full border-2 border-white object-cover bg-slate-200" src="https://i.pravatar.cc/100?img=1" alt="User">
                     <img class="w-10 h-10 rounded-full border-2 border-white object-cover bg-slate-200" src="https://i.pravatar.cc/100?img=2" alt="User">
@@ -81,22 +81,22 @@
             </div>
 
             <!-- Hero Headline -->
-            <h1 data-aos="zoom-in" data-aos-delay="200" class="text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-800 mb-6 leading-[1.1]">
+            <h1 class="text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-800 mb-6 leading-[1.1]">
                 Crée ton meilleur CV <br> en quelques minutes <br>
                 <span class="text-[#F97316]">pour partager ton potentiel</span>
             </h1>
 
             <!-- Hero Subtitle -->
-            <p data-aos="fade-up" data-aos-delay="300" class="text-lg lg:text-xl text-slate-500 font-medium max-w-2xl mx-auto mb-10">
+            <p class="text-lg lg:text-xl text-slate-500 font-medium max-w-2xl mx-auto mb-10">
                 Construis gratuitement ton CV professionnel avec l'IA en quelques clics et accède à des opportunités d'emploi partout dans le monde.
             </p>
 
             <!-- CTA Buttons -->
-            <div data-aos="fade-up" data-aos-delay="400" class="flex flex-col sm:flex-row items-center gap-4 w-full max-w-md mx-auto">
-                <a href="register.html" class="w-full sm:w-1/2 flex items-center justify-center h-14 rounded-xl bg-[#F97316] text-white font-semibold text-base shadow-lg shadow-[#F97316]/20 hover:bg-[#EA580C] transition-colors animate-glow">
+            <div class="flex flex-col sm:flex-row items-center gap-4 w-full max-w-md mx-auto">
+                <a href="/app/" class="w-full sm:w-1/2 flex items-center justify-center h-14 rounded-xl bg-[#F97316] text-white font-semibold text-base shadow-lg shadow-[#F97316]/20 hover:bg-[#EA580C] transition-colors">
                     Créer mon CV
                 </a>
-                <a href="register.html" class="w-full sm:w-1/2 flex items-center justify-center h-14 rounded-xl bg-white border border-[#F97316] text-[#F97316] font-semibold text-base hover:bg-slate-50 transition-colors">
+                <a href="/app/" class="w-full sm:w-1/2 flex items-center justify-center h-14 rounded-xl bg-white border border-[#F97316] text-[#F97316] font-semibold text-base hover:bg-slate-50 transition-colors">
                     Créer ma lettre
                 </a>
             </div>
@@ -106,15 +106,5 @@
     </main>
 
     <script type="module" src="/assets/js/navbar.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            AOS.init({
-                duration: 800,
-                once: true,
-                offset: 50
-            });
-        });
-    </script>
 </body>
 </html>

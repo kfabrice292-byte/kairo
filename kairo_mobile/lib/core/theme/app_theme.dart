@@ -12,7 +12,7 @@ class AppTheme {
   ); // Very clean white-grey
   static const Color lightSurface = Colors.white;
   static const Color lightTextPrimary = Color(0xFF111827); // Gray-900
-  static const Color lightTextSecondary = Color(0xFF6B7280); // Gray-500
+  static const Color lightTextSecondary = AppColors.textSecondary; // Gray-500
   static const Color lightDivider = Color(0xFFE5E7EB); // Gray-200
 
   // Dark Mode Colors (Espresso / Warm Dark)

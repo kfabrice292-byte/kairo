@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KAIRO - Administrateurs</title>
+    <link rel="icon" type="image/png" href="./public/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="./src/css/main.css">
+    <style>
+      .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(4px);
+      }
+      .modal-overlay.active {
+        display: flex;
+      }
+      .modal-content {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 2rem;
+        box-shadow: var(--shadow-glass);
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+      .modal-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0;
+      }
+      .permissions-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+      }
+      .permission-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background: var(--bg-dark);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+      }
+      .permission-item:hover {
+        border-color: var(--primary);
+      }
+      .permission-item input {
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <i class="ph-fill ph-rocket-launch"></i> Kaïro Admin
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="index.html" class="nav-item">
+            <i class="ph ph-squares-four"></i> Dashboard
+          </a>
+          <a href="users.html" class="nav-item">
+            <i class="ph ph-users"></i> Utilisateurs
+          </a>
+          <a href="verifications.html" class="nav-item">
+            <i class="ph ph-seal-check"></i> Vérifications
+          </a>
+          <a href="companies.html" class="nav-item">
+            <i class="ph ph-buildings"></i> Entreprises
+          </a>
+          <a href="agencies.html" class="nav-item">
+            <i class="ph ph-buildings"></i> Agences
+          </a>
+          <a href="subscriptions.html" class="nav-item">
+            <i class="ph ph-credit-card"></i> Abonnements
+          </a>
+          <a href="applications.html" class="nav-item">
+            <i class="ph ph-file-text"></i> Candidatures
+          </a>
+          <a href="opportunities.html" class="nav-item">
+            <i class="ph ph-briefcase"></i> Opportunités
+          </a>
+          <a href="publications.html" class="nav-item">
+            <i class="ph ph-newspaper"></i> Publications
+          </a>
+          <a href="projects.html" class="nav-item">
+            <i class="ph ph-lightbulb"></i> Projets
+          </a>
+          <a href="reports.html" class="nav-item">
+            <i class="ph ph-warning-circle"></i> Signalements
+          </a>
+          <a href="admin.html" class="nav-item active">
+            <i class="ph ph-shield-check"></i> Administrateurs
+          </a>
+          <a href="settings.html" class="nav-item">
+            <i class="ph ph-gear"></i> Paramètres
+          </a>
+        </nav>
+      </aside>
+
+      <div class="main-wrapper">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="btn-icon mobile-menu-btn" id="mobileMenuBtn">
+              <i class="ph ph-list"></i>
+            </button>
+          </div>
+          <div class="topbar-right">
+            <div class="user-profile">
+              <div class="user-avatar" id="topbar-user-avatar">A</div>
+              <span id="topbar-user-name" class="font-medium">Admin</span>
+            </div>
+            <button id="logoutBtn" class="btn-icon" title="Se déconnecter">
+              <i class="ph ph-sign-out"></i>
+            </button>
+          </div>
+        </header>
+
+        <main class="main-content">
+          <div class="page-header">
+            <h1 class="page-title">Gestion des Administrateurs</h1>
+            <div class="flex gap-2">
+              <button class="btn btn-primary" id="addBtn">
+                <i class="ph ph-user-plus"></i> Inviter un collaborateur
+              </button>
+            </div>
+          </div>
+
+          <div class="table-container mt-6">
+            <table class="table" id="adminsTable">
+              <thead>
+                <tr>
+                  <th>Nom & Email</th>
+                  <th>Rôle</th>
+                  <th>Accès Autorisés (Modules)</th>
+                  <th>Date d'ajout</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adminsTableBody">
+                <tr>
+                  <td colspan="5" class="text-center text-secondary py-8">
+                    <i class="ph ph-spinner ph-spin text-2xl text-primary"></i>
+                    <p class="mt-2">Chargement des administrateurs...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Modal Nouvel Admin -->
+    <div class="modal-overlay" id="addModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title" id="modalTitle">Inviter un Administrateur</h2>
+          <button class="btn-icon" id="closeModalBtn">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        
+        <form id="addForm">
+          <input type="hidden" id="editAdminId">
+          <div class="form-group">
+            <label class="form-label" for="adminName">Nom complet <span class="text-primary">*</span></label>
+            <input type="text" id="adminName" class="form-control" required placeholder="Ex: Jean Dupont">
+          </div>
+          
+          <div class="form-group" id="emailGroup">
+            <label class="form-label" for="adminEmail">Adresse Email <span class="text-primary">*</span></label>
+            <input type="email" id="adminEmail" class="form-control" required placeholder="jean@kaïro.com">
+          </div>
+          
+          <div class="form-group" id="passwordGroup">
+            <label class="form-label" for="adminPassword">Mot de passe temporaire <span class="text-primary">*</span></label>
+            <input type="text" id="adminPassword" class="form-control" required placeholder="Sera envoyé à l'utilisateur" minlength="6">
+            <span class="text-secondary text-sm mt-1" style="display: block;">L'utilisateur pourra le modifier plus tard depuis l'application. Au moins 6 caractères.</span>
+          </div>
+          
+          <div class="form-group" style="margin-top: 1.5rem;">
+            <label class="form-label">Autorisations (Modules accessibles) <span class="text-primary">*</span></label>
+            <p class="text-secondary text-sm mb-2">Sélectionnez les sections auxquelles ce collaborateur aura accès.</p>
+            <div class="permissions-grid">
+              <label class="permission-item">
+                <input type="checkbox" name="permissions" value="dashboard" checked> Dashboard
+              </label>
+              <label class="permission-item">
+                <input type="checkbox" name="permissions" value="users"> Utilisateurs
+              </label>
+              <label class="permission-item">
+                <input type="checkbox" name="permissions" value="verifications"> Vérifications
+              </label>
+              <label class="permission-item">
+                <input type="checkbox" name="permissions" value="companies"> Entreprises
+              </label>
+              <label class="permission-item">
+                <input type="checkbox" name="permissions" value="agencies"> Agences
+              </label>
+              <label class="permission-item">
+                <input type="checkbox" name="permissions" value="subscriptions"> Abonnements
+              </label>
+              <label class="permission-item">
+                <input type="checkbox" name="permissions" value="applications"> Candidatures
+              </label>
+              <label class="permission-item">
+                <input type="checkbox" name="permissions" value="opportunities"> Opportunités
+              </label>
+              <label class="permission-item">
+                <input type="checkbox" name="permissions" value="publications"> Publications
+              </label>
+              <label class="permission-item">
+                <input type="checkbox" name="permissions" value="projects"> Projets
+              </label>
+              <label class="permission-item">
+                <input type="checkbox" name="permissions" value="reports"> Signalements
+              </label>
+              <label class="permission-item">
+                <input type="checkbox" name="permissions" value="admins"> Gestion Admins (Super)
+              </label>
+            </div>
+          </div>
+          
+          <div class="flex justify-end gap-3 mt-6 border-t pt-4" style="border-color: var(--border-color-light);">
+            <button type="button" class="btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary);" id="cancelBtn">Annuler</button>
+            <button type="submit" class="btn btn-primary" id="saveBtn">
+              <i class="ph-bold ph-paper-plane-tilt"></i> Envoyer l'invitation
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Scripts Firebase -->
+    <script type="module" src="./src/js/auth.ts"></script>
+    <script type="module" src="./src/js/modules/admins.ts"></script>
+  </body>
+</html>

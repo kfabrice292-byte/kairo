@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -24,7 +25,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       SnackBar(
         content: Text(
           message,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+          style: TextStyle(fontWeight: FontWeight.w500),
         ),
         backgroundColor: Colors.redAccent,
         behavior: SnackBarBehavior.floating,
@@ -38,6 +39,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _emailController.text.trim().isEmpty ||
         _passwordController.text.trim().isEmpty) {
       _showError("Veuillez remplir tous les champs.");
+      return;
+    }
+
+    // Strong password validation
+    final password = _passwordController.text.trim();
+    if (password.length < 8 || 
+        !password.contains(RegExp(r'[A-Z]')) || 
+        !password.contains(RegExp(r'[0-9]')) || 
+        !password.contains(RegExp(r'[!@#\$&*~%]'))) {
+      _showError("Le mot de passe doit contenir au moins 8 caractères, une majuscule, un chiffre et un caractère spécial.");
       return;
     }
 
@@ -57,7 +68,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (mounted) {
       if (error == null) {
-        context.go('/main');
+        context.go('/profile-setup');
       } else {
         _showError(error);
       }
@@ -70,7 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (mounted) {
       if (error == null) {
-        context.go('/main');
+        context.go('/profile-setup');
       } else {
         _showError(error);
       }
@@ -82,12 +93,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final isLoading = context.watch<AuthProvider>().isLoading;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(PhosphorIcons.arrowLeft(), color: Colors.black87),
+          icon: Icon(PhosphorIcons.arrowLeft()),
           onPressed: () => context.pop(),
         ),
       ),
@@ -105,15 +116,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Image.asset(
                     'assets/images/logo.png',
                     height: 60,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
+                    errorBuilder: (context, error, stackTrace) => Icon(
                       Icons.school,
                       size: 48,
                       color: AppColors.primary,
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
-                const Text(
+                SizedBox(height: 32),
+                Text(
                   'Rejoignez l\'élite',
                   style: TextStyle(
                     fontSize: 34,
@@ -122,7 +133,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
                   'Créez votre compte et accédez au réseau privé des builders africains.',
                   style: TextStyle(
@@ -132,27 +143,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 48),
+                SizedBox(height: 48),
                 KairoTextField(
                   controller: _nameController,
                   hintText: 'Nom complet',
                   prefixIcon: PhosphorIcons.user(),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 KairoTextField(
                   controller: _emailController,
                   hintText: 'Adresse email',
                   prefixIcon: PhosphorIcons.envelopeSimple(),
                   keyboardType: TextInputType.emailAddress,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 KairoTextField(
                   controller: _passwordController,
                   hintText: 'Mot de passe',
                   prefixIcon: PhosphorIcons.lockKey(),
                   obscureText: true,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -169,7 +180,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
@@ -188,7 +199,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: isLoading ? null : _handleRegister,
                   style: ElevatedButton.styleFrom(
@@ -196,7 +207,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     disabledBackgroundColor: AppColors.primary.withValues(
                       alpha: 0.6,
                     ),
-                    foregroundColor: Colors.white,
+                    foregroundColor: Theme.of(context).iconTheme.color,
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -204,15 +215,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   child: isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 24,
                           height: 24,
                           child: CircularProgressIndicator(
-                            color: Colors.white,
+                            color: Theme.of(context).cardColor,
                             strokeWidth: 2.5,
                           ),
                         )
-                      : const Text(
+                      : Text(
                           'Créer mon compte',
                           style: TextStyle(
                             fontSize: 17,
@@ -220,7 +231,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 Row(
                   children: [
                     Expanded(child: Divider(color: Colors.grey.shade300)),
@@ -238,17 +249,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Expanded(child: Divider(color: Colors.grey.shade300)),
                   ],
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 OutlinedButton.icon(
                   onPressed: isLoading ? null : _handleGoogleSignIn,
-                  icon: Image.network(
+                  icon: CachedNetworkImage(imageUrl: 
                     'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/120px-Google_%22G%22_logo.svg.png',
                     height: 20,
                   ),
-                  label: const Text(
+                  label: Text(
                     'S\'inscrire avec Google',
                     style: TextStyle(
-                      color: Colors.black87,
+                      
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
@@ -256,14 +267,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     elevation: 0,
-                    backgroundColor: Colors.white,
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    side: BorderSide(color: Colors.grey.shade300, width: 1.5),
+                    side: BorderSide(color: Theme.of(context).dividerColor),
                   ),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -278,12 +289,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onPressed: () => context.pop(),
                       style: TextButton.styleFrom(
                         foregroundColor: AppColors.primary,
-                        textStyle: const TextStyle(
+                        textStyle: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      child: const Text('Se connecter'),
+                      child: Text('Se connecter'),
                     ),
                   ],
                 ),

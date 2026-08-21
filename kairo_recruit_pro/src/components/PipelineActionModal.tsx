@@ -48,6 +48,14 @@ export function PipelineActionModal({ action, item, onClose }: PipelineActionMod
         read: false,
         createdAt: serverTimestamp()
       });
+      
+      // Communication automatique WhatsApp
+      if (action === 'interview' || action === 'hire') {
+          const confirmWa = window.confirm("Statut mis à jour !\nVoulez-vous notifier automatiquement le candidat sur WhatsApp ?");
+          if (confirmWa && item.candidate.phone) {
+             window.open(`https://wa.me/${item.candidate.phone.replace(/[^0-9]/g, '')}?text=Bonjour ${encodeURIComponent(item.candidate.name)}, suite à votre candidature pour le poste, nous souhaiterions échanger avec vous.`, '_blank');
+          }
+      }
 
       setIsSubmitting(false);
       onClose();

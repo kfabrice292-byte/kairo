@@ -1,12 +1,14 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'dart:async';
 import '../models/user_model.dart';
+import '../services/push_notification_service.dart';
+import '../services/activity_logger_service.dart';
 
-class AuthProvider extends ChangeNotifier {
+class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
   bool _isLoading = false;
   Map<String, dynamic>? _userData;
   UserModel? _userModel;
@@ -19,6 +21,7 @@ class AuthProvider extends ChangeNotifier {
 
   AuthProvider() {
     _initAuthListener();
+    WidgetsBinding.instance.addObserver(this);
   }
 
   StreamSubscription<DocumentSnapshot>? _userSubscription;
@@ -28,6 +31,7 @@ class AuthProvider extends ChangeNotifier {
       _userSubscription?.cancel();
       if (user != null) {
         await fetchUserData(user.uid);
+        await PushNotificationService.updateToken();
         _userSubscription = FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
@@ -50,7 +54,16 @@ class AuthProvider extends ChangeNotifier {
   @override
   void dispose() {
     _userSubscription?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && currentUser != null) {
+      // Refresh user data when app resumes (e.g. after returning from HTech Pay browser checkout)
+      fetchUserData(currentUser!.uid);
+    }
   }
 
   Future<void> fetchUserData(String uid) async {
@@ -112,6 +125,9 @@ class AuthProvider extends ChangeNotifier {
       final userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
       await fetchUserData(userCredential.user!.uid);
+      
+      await ActivityLoggerService.logAction(actionType: ActivityLoggerService.ACTION_LOGIN, metadata: {'method': 'email'});
+
       _isLoading = false;
       notifyListeners();
       return null;
@@ -168,6 +184,9 @@ class AuthProvider extends ChangeNotifier {
           'country': '',
           'skills': [],
           'interests': <String>[],
+          'languages': [],
+          'certifications': [],
+          'portfolioProjects': [],
           'portfolioLinks': <String>[],
           'createdAt': DateTime.now().toIso8601String(),
         };
@@ -177,6 +196,8 @@ class AuthProvider extends ChangeNotifier {
             .set(newUser);
       }
       await fetchUserData(uid);
+
+      await ActivityLoggerService.logAction(actionType: ActivityLoggerService.ACTION_LOGIN, metadata: {'method': 'google'});
 
       _isLoading = false;
       notifyListeners();
@@ -214,6 +235,9 @@ class AuthProvider extends ChangeNotifier {
         'country': '',
         'skills': [],
         'interests': <String>[],
+        'languages': [],
+        'certifications': [],
+        'portfolioProjects': [],
         'portfolioLinks': <String>[],
         'createdAt': DateTime.now().toIso8601String(),
       };
@@ -240,15 +264,22 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> updateProfile(Map<String, dynamic> data) async {
     final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).update(data);
+    await fetchUserData(user.uid);
+  }
+
+  Future<void> requestVerification() async {
+    final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
         await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
-            .set(data, SetOptions(merge: true));
+            .update({'pendingVerification': true});
         await fetchUserData(user.uid);
       } catch (e) {
-        debugPrint('Error updating profile: $e');
+        debugPrint('Error requesting verification: $e');
         throw Exception("Erreur Firebase : $e");
       }
     }
@@ -304,119 +335,121 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> sendNetworkRequest(String otherUserId) async {
+  Future<void> addEducation(Education edu) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null || user.uid == otherUserId) return;
+    if (user == null || _userModel == null) return;
 
     try {
-      final batch = FirebaseFirestore.instance.batch();
-
-      final myRef = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid);
-      batch.update(myRef, {
-        'sentRequests': FieldValue.arrayUnion([otherUserId]),
+      final updatedEducations = List<Education>.from(_userModel!.educations)
+        ..add(edu);
+      await updateProfile({
+        'educations': updatedEducations.map((e) => e.toMap()).toList(),
       });
-
-      final otherRef = FirebaseFirestore.instance
-          .collection('users')
-          .doc(otherUserId);
-      batch.update(otherRef, {
-        'receivedRequests': FieldValue.arrayUnion([user.uid]),
-      });
-
-      final notifRef = FirebaseFirestore.instance
-          .collection('notifications')
-          .doc();
-      batch.set(notifRef, {
-        'userId': otherUserId,
-        'title': 'Invitation reçue',
-        'body':
-            '${_userModel?.name ?? "Quelqu'un"} souhaite vous ajouter à son réseau.',
-        'type': 'network',
-        'isRead': false,
-        'createdAt': FieldValue.serverTimestamp(),
-        'relatedId': user.uid,
-      });
-
-      await batch.commit();
-      await fetchUserData(user.uid);
     } catch (e) {
-      debugPrint('Error sending network request: $e');
+      debugPrint('Error adding education: $e');
+      throw Exception("Erreur ajout formation : $e");
     }
   }
 
-  Future<void> acceptNetworkRequest(String otherUserId) async {
+  Future<void> updateEducation(Education edu) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null || user.uid == otherUserId) return;
+    if (user == null || _userModel == null) return;
 
     try {
-      final batch = FirebaseFirestore.instance.batch();
-
-      final myRef = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid);
-      batch.update(myRef, {
-        'receivedRequests': FieldValue.arrayRemove([otherUserId]),
-        'connections': FieldValue.arrayUnion([otherUserId]),
+      final updatedEducations = _userModel!.educations
+          .map((e) => e.id == edu.id ? edu : e)
+          .toList();
+      await updateProfile({
+        'educations': updatedEducations.map((e) => e.toMap()).toList(),
       });
-
-      final otherRef = FirebaseFirestore.instance
-          .collection('users')
-          .doc(otherUserId);
-      batch.update(otherRef, {
-        'sentRequests': FieldValue.arrayRemove([user.uid]),
-        'connections': FieldValue.arrayUnion([user.uid]),
-      });
-
-      final notifRef = FirebaseFirestore.instance
-          .collection('notifications')
-          .doc();
-      batch.set(notifRef, {
-        'userId': otherUserId,
-        'title': 'Invitation acceptée',
-        'body':
-            '${_userModel?.name ?? "Quelqu'un"} a accepté votre invitation.',
-        'type': 'network_accepted',
-        'isRead': false,
-        'createdAt': FieldValue.serverTimestamp(),
-        'relatedId': user.uid,
-      });
-
-      await batch.commit();
-      await fetchUserData(user.uid);
     } catch (e) {
-      debugPrint('Error accepting network request: $e');
+      debugPrint('Error updating education: $e');
+      throw Exception("Erreur modification formation : $e");
     }
   }
 
-  Future<void> cancelOrRejectNetworkRequest(String otherUserId) async {
+  Future<void> deleteEducation(String eduId) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null || user.uid == otherUserId) return;
+    if (user == null || _userModel == null) return;
 
     try {
-      final batch = FirebaseFirestore.instance.batch();
-
-      final myRef = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid);
-      batch.update(myRef, {
-        'sentRequests': FieldValue.arrayRemove([otherUserId]),
-        'receivedRequests': FieldValue.arrayRemove([otherUserId]),
+      final updatedEducations = _userModel!.educations
+          .where((e) => e.id != eduId)
+          .toList();
+      await updateProfile({
+        'educations': updatedEducations.map((e) => e.toMap()).toList(),
       });
-
-      final otherRef = FirebaseFirestore.instance
-          .collection('users')
-          .doc(otherUserId);
-      batch.update(otherRef, {
-        'receivedRequests': FieldValue.arrayRemove([user.uid]),
-        'sentRequests': FieldValue.arrayRemove([user.uid]),
-      });
-
-      await batch.commit();
-      await fetchUserData(user.uid);
     } catch (e) {
-      debugPrint('Error cancelling network request: $e');
+      debugPrint('Error deleting education: $e');
+      throw Exception("Erreur suppression formation : $e");
+    }
+  }
+
+  Future<void> deleteSkill(String skillName) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || _userModel == null) return;
+
+    try {
+      final updatedSkills = _userModel!.skills
+          .where((s) => s.name != skillName)
+          .toList();
+      await updateProfile({
+        'skills': updatedSkills.map((s) => s.toMap()).toList(),
+      });
+    } catch (e) {
+      debugPrint('Error deleting skill: $e');
+      throw Exception("Erreur suppression compétence : $e");
+    }
+  }
+
+  Future<void> deleteLanguage(String langName) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || _userModel == null) return;
+
+    try {
+      final updatedLanguages = _userModel!.languages
+          .where((l) => l.name != langName)
+          .toList();
+      await updateProfile({
+        'languages': updatedLanguages.map((l) => l.toMap()).toList(),
+      });
+    } catch (e) {
+      debugPrint('Error deleting language: $e');
+      throw Exception("Erreur suppression langue : $e");
+    }
+  }
+
+  Future<void> deleteInterest(String interest) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || _userModel == null) return;
+
+    try {
+      final updatedInterests = _userModel!.interests
+          .where((i) => i != interest)
+          .toList();
+      await updateProfile({
+        'interests': updatedInterests,
+      });
+    } catch (e) {
+      debugPrint('Error deleting interest: $e');
+      throw Exception("Erreur suppression intérêt : $e");
+    }
+  }
+
+  Future<void> deletePortfolioProject(String projectId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || _userModel == null) return;
+
+    try {
+      final updatedProjects = _userModel!.portfolioProjects
+          .where((p) => p.id != projectId)
+          .toList();
+      await updateProfile({
+        'portfolioProjects': updatedProjects.map((p) => p.toMap()).toList(),
+      });
+    } catch (e) {
+      debugPrint('Error deleting portfolio project: $e');
+      throw Exception("Erreur suppression projet : $e");
     }
   }
 

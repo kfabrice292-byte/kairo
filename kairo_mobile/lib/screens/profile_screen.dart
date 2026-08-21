@@ -10,13 +10,24 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../core/providers/auth_provider.dart';
 import '../core/models/user_model.dart';
 import '../core/utils/portfolio_generator.dart';
+import '../core/utils/payment_utils.dart';
+import '../core/services/activity_logger_service.dart';
 import 'profile/cv_edit_screen.dart';
 import 'settings/settings_screen.dart';
+import 'profile/cover_letter_screen.dart';
+import 'profile/portfolio_edit_screen.dart';
 import '../widgets/kairo_text_field.dart';
 import 'package:kairo_mobile/core/theme/app_colors.dart';
 import 'profile/add_skill_sheet.dart';
 import 'profile/add_experience_sheet.dart';
+import 'profile/add_portfolio_project_sheet.dart';
+import 'profile/add_language_sheet.dart';
+import 'profile/add_education_sheet.dart';
 import 'package:kairo_mobile/screens/profile/cover_letter_screen.dart';
+import 'profile/add_tags_sheet.dart';
+
+import 'profile/add_tags_sheet.dart';
+import 'premium/premium_subscription_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -32,6 +43,33 @@ class ProfileScreen extends StatelessWidget {
     if (user.skills.isNotEmpty) current++;
     if (user.experiences.isNotEmpty) current++;
     return current / total;
+  }
+
+  void _showDeleteConfirmation(BuildContext context, String itemName, VoidCallback onConfirm) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Confirmer la suppression'),
+        content: Text('Voulez-vous vraiment supprimer $itemName ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () {
+              Navigator.pop(ctx);
+              onConfirm();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Supprimé avec succès')),
+              );
+            },
+            child: const Text('Supprimer', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -85,7 +123,7 @@ class ProfileScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
+                    color: (Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black).withValues(alpha: 0.04),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -142,9 +180,9 @@ class ProfileScreen extends StatelessWidget {
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Colors.white,
+                                  color: Theme.of(context).cardColor,
                                 ),
                                 child: CircleAvatar(
                                   radius: 46,
@@ -163,14 +201,14 @@ class ProfileScreen extends StatelessWidget {
                                     color: AppColors.primary,
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: Colors.white,
+                                      color: Theme.of(context).cardColor,
                                       width: 2,
                                     ),
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.edit,
                                     size: 14,
-                                    color: Colors.white,
+                                    color: Theme.of(context).cardColor,
                                   ),
                                 ),
                               ),
@@ -178,22 +216,48 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Text(
-                          name,
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: theme.textTheme.bodyLarge?.color,
-                            letterSpacing: -0.5,
-                          ),
-                          textAlign: TextAlign.center,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              name,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: theme.textTheme.bodyLarge?.color,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            if (user.isPremium)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 6),
+                                child: Tooltip(
+                                  message: user.premiumUntil != null 
+                                      ? 'Premium jusqu\'au ${user.premiumUntil!.day.toString().padLeft(2, '0')}/${user.premiumUntil!.month.toString().padLeft(2, '0')}/${user.premiumUntil!.year}'
+                                      : 'Premium à vie',
+                                  child: const Icon(Icons.verified, color: Colors.blue, size: 20),
+                                ),
+                              ),
+                          ],
                         ),
+                        if (user.isPremium && user.premiumUntil != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              'Valide jusqu\'au ${user.premiumUntil!.day.toString().padLeft(2, '0')}/${user.premiumUntil!.month.toString().padLeft(2, '0')}/${user.premiumUntil!.year}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.blue.shade700,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
                         if (user.professionalTitle.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(
                               user.professionalTitle,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w600,
@@ -312,7 +376,12 @@ class ProfileScreen extends StatelessWidget {
                             Expanded(
                               child: OutlinedButton.icon(
                                 onPressed: () {
-                                  PortfolioGenerator.generatePortfolio(user);
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PortfolioEditScreen(user: user),
+                                    ),
+                                  );
                                 },
                                 icon: Icon(PhosphorIcons.briefcase(), size: 18),
                                 label: const Text('Portfolio'),
@@ -345,7 +414,7 @@ class ProfileScreen extends StatelessWidget {
                               );
                             },
                             icon: Icon(PhosphorIcons.robot(), size: 18),
-                            label: const Text('Lettre de motivation IA'),
+                            label: const Text('Générer Lettre'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: theme.textTheme.bodyLarge?.color,
                               side: BorderSide(color: theme.dividerColor),
@@ -356,8 +425,42 @@ class ProfileScreen extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if (!user.isPremium) ...[
+                          const SizedBox(height: 16),
+                          InkWell(
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumSubscriptionScreen()));
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(PhosphorIcons.briefcase(PhosphorIconsStyle.fill), color: AppColors.primary, size: 20),
+                                  const SizedBox(width: 12),
+                                  const Text(
+                                    'Découvrir Kaïro Pro',
+                                    style: TextStyle(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
 
                         const SizedBox(height: 24),
+
                         if (user.bio.isNotEmpty)
                           _buildSection('À propos', [
                             Text(
@@ -370,6 +473,10 @@ class ProfileScreen extends StatelessWidget {
                               ),
                             ),
                           ], theme),
+                        const SizedBox(height: 24),
+                        _buildTagsSection(context, user, theme),
+                        const SizedBox(height: 24),
+
                         _buildSection(
                           'Compétences',
                           [
@@ -387,57 +494,84 @@ class ProfileScreen extends StatelessWidget {
                                 runSpacing: 8,
                                 children: user.skills
                                     .map(
-                                      (skill) => Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primary.withValues(
-                                            alpha: 0.1,
+                                      (skill) => InkWell(
+                                        onTap: () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            shape: const RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.vertical(
+                                                top: Radius.circular(20),
+                                              ),
+                                            ),
+                                            builder: (context) => AddSkillSheet(user: user, initialSkill: skill),
+                                          );
+                                        },
+                                        child: Container(
+                                          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 64),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 8,
                                           ),
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                          border: Border.all(
+                                          decoration: BoxDecoration(
                                             color: AppColors.primary.withValues(
-                                              alpha: 0.2,
+                                              alpha: 0.1,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                            border: Border.all(
+                                              color: AppColors.primary.withValues(
+                                                alpha: 0.2,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              skill.name,
-                                              style: const TextStyle(
-                                                color: AppColors.primary,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 13,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 6),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 6,
-                                                    vertical: 2,
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  skill.name,
+                                                  style: TextStyle(
+                                                    color: AppColors.primary,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 13,
                                                   ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                              ),
-                                              child: Text(
-                                                skill.level,
-                                                style: const TextStyle(
-                                                  fontSize: 10,
-                                                  color: AppColors.primary,
-                                                  fontWeight: FontWeight.bold,
+                                                  overflow: TextOverflow.ellipsis,
                                                 ),
                                               ),
-                                            ),
-                                          ],
+                                              const SizedBox(width: 6),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 2,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: Theme.of(context).cardColor,
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                                child: Text(
+                                                  skill.level,
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    color: AppColors.primary,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              InkWell(
+                                                onTap: () {
+                                                  _showDeleteConfirmation(context, 'cette compétence', () {
+                                                    context.read<AuthProvider>().deleteSkill(skill.name);
+                                                  });
+                                                },
+                                                child: Icon(Icons.close, size: 14, color: AppColors.primary),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     )
@@ -446,7 +580,7 @@ class ProfileScreen extends StatelessWidget {
                           ],
                           theme,
                           trailing: IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.add_circle_outline,
                               color: AppColors.primary,
                             ),
@@ -460,6 +594,145 @@ class ProfileScreen extends StatelessWidget {
                                   ),
                                 ),
                                 builder: (context) => AddSkillSheet(user: user),
+                              );
+                            },
+                          ),
+                        ),
+                        
+                        _buildSection(
+                          'Langues',
+                          [
+                            if (user.languages.isEmpty)
+                              const Text(
+                                "Aucune langue ajoutée.",
+                                style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                              )
+                            else
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: user.languages.map((lang) => Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(lang.name, style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 13)),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context).cardColor,
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Text('${lang.level}/5', style: TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.bold)),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      InkWell(
+                                        onTap: () {
+                                          _showDeleteConfirmation(context, 'cette langue', () {
+                                            context.read<AuthProvider>().deleteLanguage(lang.name);
+                                          });
+                                        },
+                                        child: Icon(Icons.close, size: 14, color: AppColors.primary),
+                                      ),
+                                    ],
+                                  ),
+                                )).toList(),
+                              ),
+                          ],
+                          theme,
+                          trailing: IconButton(
+                            icon: Icon(Icons.add_circle_outline, color: AppColors.primary),
+                            onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                                builder: (context) => const AddLanguageSheet(),
+                              );
+                            },
+                          ),
+                        ),
+
+                        _buildSection(
+                          'Formation',
+                          [
+                            if (user.educations.isEmpty)
+                              const Text(
+                                "Aucune formation ajoutée.",
+                                style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                              )
+                            else
+                              ...user.educations.map((edu) => Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: theme.dividerColor),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Expanded(
+                                            child: Text(edu.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                          ),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(edu.period, style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                                              const SizedBox(width: 8),
+                                              InkWell(
+                                                onTap: () {
+                                                  showModalBottomSheet(
+                                                    context: context,
+                                                    isScrollControlled: true,
+                                                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                                                    builder: (context) => AddEducationSheet(education: edu),
+                                                  );
+                                                },
+                                                child: const Icon(Icons.edit, size: 16, color: Colors.grey),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              InkWell(
+                                                onTap: () {
+                                                  _showDeleteConfirmation(context, 'cette formation', () {
+                                                    context.read<AuthProvider>().deleteEducation(edu.id);
+                                                  });
+                                                },
+                                                child: const Icon(Icons.delete, size: 16, color: Colors.redAccent),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    const SizedBox(height: 4),
+                                    Text(edu.institution, style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8), fontSize: 14)),
+                                    if (edu.description.isNotEmpty) ...[
+                                      const SizedBox(height: 8),
+                                      Text(edu.description, style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7), fontSize: 13, height: 1.4)),
+                                    ],
+                                  ],
+                                ),
+                              )),
+                          ],
+                          theme,
+                          trailing: IconButton(
+                            icon: Icon(Icons.add_circle_outline, color: AppColors.primary),
+                            onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                                builder: (context) => const AddEducationSheet(),
                               );
                             },
                           ),
@@ -484,7 +757,7 @@ class ProfileScreen extends StatelessWidget {
                           ],
                           theme,
                           trailing: IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.add_circle_outline,
                               color: AppColors.primary,
                             ),
@@ -503,6 +776,120 @@ class ProfileScreen extends StatelessWidget {
                             },
                           ),
                         ),
+
+
+
+                        if (user.portfolioProjects.isNotEmpty || true)
+                          _buildSection(
+                            'Mes Projets Portfolio',
+                            [
+                              if (user.portfolioProjects.isEmpty)
+                                Text(
+                                  'Aucun projet ajouté pour le moment.',
+                                  style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6)),
+                                )
+                              else
+                                ...user.portfolioProjects.map((p) => Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: theme.dividerColor),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      if (p.imageUrl.isNotEmpty)
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(8),
+                                          child: CachedNetworkImage(
+                                            imageUrl: p.imageUrl,
+                                            width: 60,
+                                            height: 60,
+                                            fit: BoxFit.cover,
+                                            errorWidget: (c, u, e) => Container(
+                                              width: 60, height: 60,
+                                              color: Colors.grey.shade200,
+                                              child: const Icon(Icons.broken_image),
+                                            ),
+                                          ),
+                                        )
+                                      else
+                                        Container(
+                                          width: 60, height: 60,
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Icon(Icons.work, color: AppColors.primary),
+                                        ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Expanded(
+                                                  child: Text(p.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                                ),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    InkWell(
+                                                      onTap: () {
+                                                        showModalBottomSheet(
+                                                          context: context,
+                                                          isScrollControlled: true,
+                                                          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                                                          builder: (context) => AddPortfolioProjectSheet(projectToEdit: p),
+                                                        );
+                                                      },
+                                                      child: const Icon(Icons.edit, size: 16, color: Colors.grey),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    InkWell(
+                                                      onTap: () {
+                                                        _showDeleteConfirmation(context, 'ce projet', () {
+                                                          context.read<AuthProvider>().deletePortfolioProject(p.id);
+                                                        });
+                                                      },
+                                                      child: const Icon(Icons.delete, size: 16, color: Colors.redAccent),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(p.description, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8))),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )),
+                              if (true) ...[
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                                        builder: (context) => const AddPortfolioProjectSheet(),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.add, size: 20),
+                                    label: const Text('Ajouter un projet'),
+                                  ),
+                                ),
+                              ],
+                            ],
+                            theme,
+                          ),
 
                         if (user.github.isNotEmpty ||
                             user.linkedin.isNotEmpty ||
@@ -549,6 +936,65 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+
+  Widget _buildTagsSection(BuildContext context, UserModel user, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Centres d\'intérêt (Tags)',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.add_circle_outline, color: AppColors.primary),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => AddTagsSheet(user: user),
+                );
+              },
+            ),
+          ],
+        ),
+        if (user.tags.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(
+              'Ajoutez des mots-clés pour recevoir des offres ciblées.',
+              style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+            ),
+          )
+        else
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: user.tags.map((tag) {
+              return Chip(
+                label: Text(tag),
+                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                labelStyle: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                side: BorderSide.none,
+                deleteIcon: Icon(Icons.close, size: 14, color: AppColors.primary),
+                onDeleted: () {
+                  _showDeleteConfirmation(context, 'ce tag', () async {
+                     final updatedTags = List<String>.from(user.tags)..remove(tag);
+                     await context.read<AuthProvider>().updateProfile({'tags': updatedTags});
+                  });
+                },
+              );
+            }).toList(),
+          ),
+      ],
     );
   }
 
@@ -633,7 +1079,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert, size: 18),
+                    icon: Icon(Icons.more_vert, size: 18),
                     padding: EdgeInsets.zero,
                     onSelected: (val) async {
                       if (val == 'edit') {
@@ -750,7 +1196,7 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -937,7 +1383,7 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -978,16 +1424,16 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
                                   color: Colors.grey,
                                 ),
                               )
-                            : const Align(
+                            : Align(
                                 alignment: Alignment.bottomRight,
                                 child: Padding(
-                                  padding: EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.all(8.0),
                                   child: Icon(
                                     Icons.edit,
-                                    color: Colors.white,
+                                    color: Theme.of(context).cardColor,
                                     shadows: [
                                       Shadow(
-                                        color: Colors.black,
+                                        color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
                                         blurRadius: 4,
                                       ),
                                     ],
@@ -1014,7 +1460,7 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
                             child:
                                 _newImage == null &&
                                     widget.user.photoURL.isEmpty
-                                ? const Icon(
+                                ? Icon(
                                     Icons.person,
                                     size: 40,
                                     color: Colors.grey,
@@ -1030,10 +1476,10 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
                                 color: AppColors.primary,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.camera_alt,
                                 size: 14,
-                                color: Colors.white,
+                                color: Theme.of(context).cardColor,
                               ),
                             ),
                           ),
@@ -1131,20 +1577,20 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
                   ),
                 ),
                 child: _isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                         ),
                       )
-                    : const Text(
+                    : Text(
                         'Sauvegarder',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                         ),
                       ),
               ),

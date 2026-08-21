@@ -465,3 +465,29 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
 }
+
+/* Skeleton Loading Animation */
+.skeleton-shimmer {
+    background: #f1f5f9;
+    background-image: linear-gradient(90deg, #f1f5f9 0px, #e2e8f0 40px, #f1f5f9 80px);
+    background-size: 300px 100%;
+    animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -300px 0;
+    }
+    100% {
+        background-position: 300px 0;
+    }
+}
+
+/* Empty States */
+.empty-state-illustration {
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+.empty-state-card:hover .empty-state-illustration {
+    opacity: 0.8;
+}

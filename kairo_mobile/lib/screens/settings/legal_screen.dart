@@ -15,7 +15,7 @@ class LegalScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
         ),
         backgroundColor: theme.appBarTheme.backgroundColor,
         foregroundColor: theme.appBarTheme.foregroundColor,

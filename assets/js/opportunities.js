@@ -2,12 +2,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const listEl = document.getElementById('opportunitiesList');
     const filters = document.getElementById('filters');
 
-    // Show loading state
+    // Show skeleton loading state
     if (listEl) {
-        listEl.innerHTML = `<div style="text-align: center; padding: 2rem; color: var(--gray-dark);">
-            <i class="ph ph-spinner-gap" style="font-size: 2rem; animation: spin 1s linear infinite; margin-bottom: 1rem; color: var(--primary);"></i><br>
-            Chargement des opportunités...
-        </div>`;
+        listEl.innerHTML = `
+            <div class="card opp-card skeleton-shimmer" style="height: 180px; border-color: transparent;"></div>
+            <div class="card opp-card skeleton-shimmer" style="height: 180px; border-color: transparent; opacity: 0.8;"></div>
+            <div class="card opp-card skeleton-shimmer" style="height: 180px; border-color: transparent; opacity: 0.5;"></div>
+        `;
     }
 
     let opportunities = [];
@@ -15,7 +16,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         opportunities = await API.getOpportunities();
     } catch (e) {
         console.error("Erreur de chargement", e);
-        if (listEl) listEl.innerHTML = '<p>Erreur lors du chargement des opportunités.</p>';
+        if (listEl) {
+            listEl.innerHTML = `
+                <div class="empty-state-card" style="text-align: center; padding: 4rem 2rem; background: var(--light); border-radius: var(--border-radius-lg); border: 2px dashed var(--gray);">
+                    <i class="ph ph-warning-circle empty-state-illustration" style="font-size: 4rem; color: var(--danger); margin-bottom: 1rem;"></i>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--dark);">Erreur de connexion</h3>
+                    <p style="color: var(--gray-dark); margin-bottom: 1.5rem;">Impossible de charger les opportunités. Veuillez vérifier votre connexion.</p>
+                    <button class="btn btn-outline" onclick="window.location.reload()">Réessayer</button>
+                </div>
+            `;
+        }
         return;
     }
 
@@ -26,7 +36,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             : opportunities.filter(o => o.type === filterType);
         
         if (filtered.length === 0) {
-            listEl.innerHTML = '<p>Aucune opportunité trouvée pour cette catégorie.</p>';
+            listEl.innerHTML = `
+                <div class="empty-state-card" style="text-align: center; padding: 4rem 2rem; background: var(--light); border-radius: var(--border-radius-lg); border: 2px dashed var(--gray);">
+                    <i class="ph ph-magnifying-glass empty-state-illustration" style="font-size: 4rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--dark);">Aucune opportunité trouvée</h3>
+                    <p style="color: var(--gray-dark); margin-bottom: 1.5rem;">Nous n'avons trouvé aucune offre pour cette catégorie actuellement.</p>
+                    <button class="btn btn-primary" onclick="document.querySelector('.filter-btn[data-filter=\\'all\\']').click()">Voir toutes les offres</button>
+                </div>
+            `;
             return;
         }
 

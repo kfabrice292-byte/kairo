@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KAIRO - Entreprises</title>
+    <link rel="icon" type="image/png" href="./public/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="./src/css/main.css">
+  </head>
+  <body>
+    <div class="app-container">
+      
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <i class="ph-fill ph-rocket-launch"></i> Kaïro Admin
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="index.html" class="nav-item">
+            <i class="ph ph-squares-four"></i> Dashboard
+          </a>
+          <a href="users.html" class="nav-item">
+            <i class="ph ph-users"></i> Utilisateurs
+          </a>
+          <a href="verifications.html" class="nav-item">
+            <i class="ph ph-seal-check"></i> Vérifications
+          </a>
+          <a href="companies.html" class="nav-item">
+            <i class="ph ph-buildings"></i> Entreprises
+          </a>
+                    <a href="agencies.html" class="nav-item">
+            <i class="ph ph-buildings"></i> Agences
+          </a>
+          <a href="subscriptions.html" class="nav-item">
+            <i class="ph ph-credit-card"></i> Abonnements
+          </a>
+          <a href="applications.html" class="nav-item">
+            <i class="ph ph-file-text"></i> Candidatures
+          </a>
+          <a href="opportunities.html" class="nav-item">
+            <i class="ph ph-briefcase"></i> Opportunités
+          </a>
+          <a href="publications.html" class="nav-item">
+            <i class="ph ph-newspaper"></i> Publications
+          </a>
+          <a href="projects.html" class="nav-item">
+            <i class="ph ph-lightbulb"></i> Projets
+          </a>
+          <a href="reports.html" class="nav-item">
+            <i class="ph ph-warning-circle"></i> Signalements
+          </a>
+          <a href="settings.html" class="nav-item">
+            <i class="ph ph-gear"></i> Paramètres
+          </a>
+        </nav>
+      </aside>
+
+      <div class="main-wrapper">
+        <header class="topbar">
+          <div class="topbar-left"></div>
+          <div class="topbar-right">
+            <div class="user-profile">
+              <div class="user-avatar" id="topbar-user-avatar">A</div>
+              <span id="topbar-user-name" class="font-medium">Admin</span>
+            </div>
+            <button id="logoutBtn" class="btn-icon" title="Se déconnecter">
+              <i class="ph ph-sign-out"></i>
+            </button>
+          </div>
+        </header>
+
+        <main class="main-content">
+          <div class="page-header">
+            <h1 class="page-title">Gestion des Entreprises</h1>
+            <div class="flex gap-2">
+              <button class="btn btn-primary" id="addBtn">
+                <i class="ph ph-plus"></i> Nouvelle Entreprise
+              </button>
+              <input type="text" id="searchInput" class="form-control" placeholder="Rechercher..." style="width: 250px;">
+              <button class="btn btn-secondary" id="refreshBtn">
+                <i class="ph ph-arrows-clockwise"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Entreprise</th>
+                  <th>Secteur</th>
+                  <th>Localisation</th>
+                  <th>Site Web</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="companiesTableBody">
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 3rem;">
+                    <i class="ph ph-spinner ph-spin text-2xl text-primary"></i>
+                    <p class="mt-4 text-secondary">Chargement des utilisateurs...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    
+    <!-- Modal Nouvelle Entreprise -->
+    <div class="modal-overlay" id="addModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);">
+      <div class="modal-content" style="background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 2rem; box-shadow: var(--shadow-glass);">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h2 class="modal-title" style="font-size: 1.25rem; font-weight: 700; margin: 0;">Ajouter une Entreprise</h2>
+          <button class="btn-icon" id="closeModalBtn">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        <form id="addForm">
+          <div class="form-group">
+            <label class="form-label" for="compName">Nom de l'entreprise *</label>
+            <input type="text" id="compName" class="form-control" required placeholder="Ex: Kaïro Inc.">
+          </div>
+          
+          <div class="flex gap-4">
+            <div class="form-group w-full">
+              <label class="form-label" for="compSector">Secteur *</label>
+              <input type="text" id="compSector" class="form-control" required placeholder="Ex: Technologie, Finance">
+            </div>
+            <div class="form-group w-full">
+              <label class="form-label" for="compLocation">Localisation</label>
+              <input type="text" id="compLocation" class="form-control" placeholder="Ex: Abidjan">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="compWebsite">Site Web</label>
+            <input type="url" id="compWebsite" class="form-control" placeholder="https://...">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="compLogoFile">Logo (Fichier Image)</label>
+            <input type="file" id="compLogoFile" class="form-control" accept="image/*">
+            <div id="imagePreviewContainer" style="margin-top: 1rem; display: none;">
+              <img id="imagePreview" src="" alt="Aperçu" style="max-height: 100px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            </div>
+            <!-- Hidden input to store existing URL -->
+            <input type="hidden" id="compLogoUrl">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="compDesc">Description</label>
+            <textarea id="compDesc" class="form-control" rows="3" placeholder="Présentation de l'entreprise..."></textarea>
+          </div>
+          
+          <div class="flex justify-end gap-2 mt-4">
+            <button type="button" class="btn btn-secondary" id="cancelBtn">Annuler</button>
+            <button type="submit" class="btn btn-primary" id="submitFormBtn">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Auth check -->
+    <script type="module" src="./src/js/auth.ts"></script>
+    <script type="module" src="./src/js/modules/companies.ts"></script>
+  </body>
+</html>

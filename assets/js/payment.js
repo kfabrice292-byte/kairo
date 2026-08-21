@@ -13,7 +13,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (triggerPaymentBtn) {
         triggerPaymentBtn.addEventListener('click', () => {
-            paymentModal.classList.add('active');
+            const currentUser = Storage.getUser();
+            if (currentUser && currentUser.isPremium) {
+                // Bypass payment if premium
+                previewView.style.display = 'none';
+                successView.style.display = 'block';
+                successView.classList.add('active');
+                setTimeout(() => {
+                    downloadAllDocs();
+                }, 500);
+            } else {
+                paymentModal.classList.add('active');
+            }
         });
     }
 
@@ -51,64 +62,195 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (payNowBtn) {
-        payNowBtn.addEventListener('click', () => {
-            // Simulate Payment Processing
-            const originalText = payNowBtn.innerHTML;
-            payNowBtn.innerHTML = "Traitement du paiement...";
-            payNowBtn.disabled = true;
+        payNowBtn.addEventListener('click', async () => {
+            const currentUser = Storage.getUser();
+            if (!currentUser) {
+                alert("Utilisateur non connecté");
+                return;
+            }
 
-            setTimeout(() => {
+            const modalContent = document.querySelector('#paymentModal .modal-content') || paymentModal;
+            
+            modalContent.innerHTML = `
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-slate-900">Paiement Mobile Money</h3>
+                        <button id="closePaymentModal" class="text-slate-400 hover:text-slate-600">
+                            <i class="ph-bold ph-x text-xl"></i>
+                        </button>
+                    </div>
+                    <p class="text-slate-500 mb-4">Renseignez vos informations pour payer 350 FCFA</p>
+                    <div class="space-y-4 text-left">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Pays</label>
+                            <select id="ashtechCountry" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                                <option value="CI">Côte d'Ivoire</option>
+                                <option value="SN">Sénégal</option>
+                                <option value="CM">Cameroun</option>
+                                <option value="BF">Burkina Faso</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Opérateur</label>
+                            <select id="ashtechOperator" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                                <option value="Orange Money">Orange Money</option>
+                                <option value="MTN Mobile Money">MTN Mobile Money</option>
+                                <option value="Moov Money">Moov Money</option>
+                                <option value="Wave">Wave</option>
+                                <option value="Free Money">Free Money</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Numéro de téléphone</label>
+                            <input type="tel" id="ashtechPhone" value="${currentUser.phone || ''}" placeholder="Ex: 0700000000" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                        </div>
+                        <div id="ashtechError" class="text-red-500 text-sm hidden"></div>
+                        <button id="ashtechSubmitBtn" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-500/30 flex justify-center items-center gap-2">
+                            Payer 350 FCFA
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('closePaymentModal').addEventListener('click', () => {
                 paymentModal.classList.remove('active');
+                window.location.reload(); // Reload pour restaurer l'état original du modal
+            });
+
+            const submitBtn = document.getElementById('ashtechSubmitBtn');
+            submitBtn.addEventListener('click', async () => {
+                const phone = document.getElementById('ashtechPhone').value.trim();
+                const operator = document.getElementById('ashtechOperator').value;
+                const country = document.getElementById('ashtechCountry').value;
+                const errorDiv = document.getElementById('ashtechError');
                 
-                // --- Points & History Logic ---
-                const currentUser = Storage.getUser();
-                if (currentUser) {
-                    let users = Storage.get('kairo_users_db') || [];
-                    const userIndex = users.findIndex(u => u.email === currentUser.email);
+                if (!phone) {
+                    errorDiv.textContent = 'Veuillez entrer votre numéro de téléphone';
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+                
+                errorDiv.classList.add('hidden');
+                submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Traitement...';
+                submitBtn.disabled = true;
+
+                try {
+                    const CLOUD_FUNCTION_URL = "https://us-central1-kairo-522c2.cloudfunctions.net/initiateAshtechPayment"; 
                     
-                    if (userIndex !== -1) {
-                        // Déduire les points (ex: 100 points pour un pack complet)
-                        users[userIndex].points = Math.max(0, (users[userIndex].points || 1000) - 100);
+                    const response = await fetch(CLOUD_FUNCTION_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            uid: currentUser.uid,
+                            type: "cv",
+                            phone: phone,
+                            operator: operator,
+                            country_code: country
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (response.status === 202) {
+                        if (data.flow === 'wave') {
+                            modalContent.innerHTML = `
+                                <div class="p-6 text-center">
+                                    <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                        <i class="ph-fill ph-qr-code text-4xl"></i>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-slate-900 mb-2">Paiement Wave</h3>
+                                    <p class="text-slate-500 mb-4">Ouvrez l'application Wave pour confirmer le paiement.</p>
+                                    <a href="${data.wave_url}" target="_blank" class="block w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 mb-2">Ouvrir Wave</a>
+                                    <button id="paymentSuccessBtn" class="w-full py-3 bg-slate-100 text-slate-700 rounded-xl font-bold">J'ai payé</button>
+                                </div>
+                            `;
+                        } else {
+                            modalContent.innerHTML = `
+                                <div class="p-6 text-center">
+                                    <div class="w-16 h-16 bg-green-50 text-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                        <i class="ph-fill ph-device-mobile text-4xl"></i>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-slate-900 mb-2">Vérifiez votre téléphone</h3>
+                                    <p class="text-slate-500 mb-4">Veuillez valider le paiement sur votre téléphone portable.</p>
+                                    <button id="paymentSuccessBtn" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700">J'ai validé</button>
+                                </div>
+                            `;
+                        }
                         
-                        // Enregistrer dans l'historique
-                        const selectedDocs = Storage.get('kairo_selected_docs') || [];
-                        const docsLabels = {
-                            'cv': 'CV Professionnel',
-                            'motivation': 'Lettre de Motivation',
-                            'stage': 'Demande de Stage'
-                        };
-                        const docNames = selectedDocs.map(d => docsLabels[d] || d).join(' + ');
-                        
-                        if (!users[userIndex].history) users[userIndex].history = [];
-                        
-                        users[userIndex].history.unshift({
-                            title: `Pack : ${docNames}`,
-                            date: new Date().toLocaleDateString('fr-FR'),
-                            id: Date.now()
+                        document.getElementById('paymentSuccessBtn').addEventListener('click', () => {
+                            paymentModal.classList.remove('active');
+                            previewView.style.display = 'none';
+                            successView.style.display = 'block';
+                            successView.classList.add('active');
+                            setTimeout(() => { downloadAllDocs(); }, 500);
                         });
                         
-                        Storage.set('kairo_users_db', users);
-                        Storage.setUser({ ...currentUser, points: users[userIndex].points });
+                    } else if (response.status === 400 && data.error === 'otp_required') {
+                        modalContent.innerHTML = `
+                            <div class="p-6 text-center">
+                                <h3 class="text-xl font-bold text-slate-900 mb-2">Validation OTP</h3>
+                                <p class="text-slate-500 mb-4">
+                                    ${data.ussd_code ? 'Veuillez composer le <strong>' + data.ussd_code + '</strong> sur votre téléphone pour obtenir votre code.' : 'Un code OTP vous a été envoyé par SMS.'}
+                                </p>
+                                <input type="number" id="ashtechOtp" placeholder="Code OTP" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl mb-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                                <div id="otpError" class="text-red-500 text-sm hidden mb-4"></div>
+                                <button id="validateOtpBtn" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition">Valider</button>
+                            </div>
+                        `;
+                        
+                        document.getElementById('validateOtpBtn').addEventListener('click', async () => {
+                            const otpVal = document.getElementById('ashtechOtp').value.trim();
+                            if (!otpVal) return;
+                            
+                            const otpBtn = document.getElementById('validateOtpBtn');
+                            otpBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Validation...';
+                            otpBtn.disabled = true;
+                            
+                            try {
+                                const otpRes = await fetch(CLOUD_FUNCTION_URL, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        uid: currentUser.uid,
+                                        type: "cv",
+                                        phone: phone,
+                                        operator: operator,
+                                        country_code: country,
+                                        otp: otpVal,
+                                        reference: data.reference
+                                    })
+                                });
+                                const otpData = await otpRes.json();
+                                if (otpRes.status === 202) {
+                                    paymentModal.classList.remove('active');
+                                    previewView.style.display = 'none';
+                                    successView.style.display = 'block';
+                                    successView.classList.add('active');
+                                    setTimeout(() => { downloadAllDocs(); }, 500);
+                                } else {
+                                    document.getElementById('otpError').textContent = otpData.message || 'Erreur OTP';
+                                    document.getElementById('otpError').classList.remove('hidden');
+                                    otpBtn.innerHTML = 'Valider';
+                                    otpBtn.disabled = false;
+                                }
+                            } catch (e) {
+                                document.getElementById('otpError').textContent = 'Erreur réseau';
+                                document.getElementById('otpError').classList.remove('hidden');
+                                otpBtn.innerHTML = 'Valider';
+                                otpBtn.disabled = false;
+                            }
+                        });
+                    } else {
+                        throw new Error(data.message || data.error || "Erreur de paiement");
                     }
+                } catch (error) {
+                    console.error("Erreur de paiement:", error);
+                    errorDiv.textContent = error.message;
+                    errorDiv.classList.remove('hidden');
+                    submitBtn.innerHTML = 'Payer 350 FCFA';
+                    submitBtn.disabled = false;
                 }
-                // --- Fin Points & History ---
-
-                // Hide preview, show success
-                previewView.style.display = 'none';
-                successView.style.display = 'block';
-                successView.classList.add('active');
-
-                // Trigger ATS-friendly PDF generation via Print Dialog
-                // On met un léger délai pour laisser le temps au DOM de s'afficher
-                setTimeout(() => {
-                    downloadAllDocs();
-                }, 500);
-
-                payNowBtn.innerHTML = originalText;
-                payNowBtn.disabled = false;
-
-            }, 1500);
-        });
+            });
     }
 
     if (redownloadBtn) {

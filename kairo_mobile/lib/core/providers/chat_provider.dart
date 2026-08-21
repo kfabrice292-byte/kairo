@@ -74,10 +74,14 @@ class ChatProvider extends ChangeNotifier {
     final docRef = FirebaseFirestore.instance
         .collection('chats')
         .doc(deterministicId);
-    final docSnap = await docRef.get();
-
-    if (docSnap.exists) {
-      return deterministicId;
+    
+    try {
+      final docSnap = await docRef.get();
+      if (docSnap.exists) {
+        return deterministicId;
+      }
+    } catch (e) {
+      debugPrint('Warning: Could not get chat document (might not exist or permission denied): $e');
     }
 
     // 3. Créer un nouveau chat
@@ -187,12 +191,13 @@ class ChatProvider extends ChangeNotifier {
         .update({'reactions.$userId': emoji});
   }
 
-  Stream<List<MessageModel>> getMessages(String chatId) {
+  Stream<List<MessageModel>> getMessages(String chatId, {int limit = 50}) {
     return FirebaseFirestore.instance
         .collection('chats')
         .doc(chatId)
         .collection('messages')
         .orderBy('timestamp', descending: true)
+        .limit(limit)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs

@@ -3,6 +3,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/providers/project_provider.dart';
 import '../../core/models/project_model.dart';
 import '../../widgets/kairo_text_field.dart';
 import 'package:kairo_mobile/core/theme/app_colors.dart';
@@ -71,13 +72,11 @@ class _AddProjectDialogState extends State<AddProjectDialog> {
       );
 
       try {
-        final docRef = await FirebaseFirestore.instance
-            .collection('projects')
-            .add(newProject.toMap());
+        final projectProvider = context.read<ProjectProvider>();
+        final projectId = await projectProvider.addProject(newProject);
 
         // Ajouter le projet au profil (enrichissement auto)
-        final updatedProjects = List<String>.from(user.projectIds)
-          ..add(docRef.id);
+        final updatedProjects = List<String>.from(user.projectIds)..add(projectId);
         await auth.updateProfile({'projectIds': updatedProjects});
 
         if (mounted) {
@@ -93,7 +92,10 @@ class _AddProjectDialogState extends State<AddProjectDialog> {
         if (mounted) {
           setState(() => _isLoading = false);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: ', '')),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -115,12 +117,12 @@ class _AddProjectDialogState extends State<AddProjectDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Créer un projet',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -189,20 +191,20 @@ class _AddProjectDialogState extends State<AddProjectDialog> {
                   ),
                 ),
                 child: _isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                         ),
                       )
-                    : const Text(
+                    : Text(
                         'Publier le projet',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                         ),
                       ),
               ),

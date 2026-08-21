@@ -11,6 +11,10 @@ export default {
           dark: '#EA580C',
           light: '#FDBA74',
         },
+      },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        heading: ['Outfit', 'sans-serif'],
       }
     },
   },

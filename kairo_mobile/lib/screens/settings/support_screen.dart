@@ -12,7 +12,7 @@ class SupportScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Aide & Support',
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
         ),
@@ -23,7 +23,7 @@ class SupportScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20.0),
         children: [
-          const Text(
+          Text(
             "Foire aux questions",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
@@ -45,7 +45,7 @@ class SupportScreen extends StatelessWidget {
           ),
 
           const SizedBox(height: 40),
-          const Text(
+          Text(
             "Nous contacter",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
@@ -55,7 +55,7 @@ class SupportScreen extends StatelessWidget {
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: const Text(
+                  content: Text(
                     "Ouverture du client mail...",
                     style: TextStyle(fontWeight: FontWeight.w500),
                   ),
@@ -65,7 +65,7 @@ class SupportScreen extends StatelessWidget {
               );
             },
             icon: Icon(PhosphorIcons.envelopeSimple(), size: 20),
-            label: const Text('Envoyer un e-mail à support@kairo.com'),
+            label: Text('Envoyer un e-mail à kairo@agencegenio.com'),
             style: OutlinedButton.styleFrom(
               foregroundColor: theme.textTheme.bodyLarge?.color,
               padding: const EdgeInsets.symmetric(vertical: 16),

@@ -10,7 +10,6 @@ class PostModel {
   final String? category;
   final Map<String, dynamic> customFields;
   final List<String> tags;
-  final String? communityId; // Si null, c'est un post global
   final List<String> imageUrls;
   final bool isStylized;
   final int styleIndex;
@@ -31,7 +30,6 @@ class PostModel {
     this.category,
     this.customFields = const {},
     this.tags = const [],
-    this.communityId,
     this.imageUrls = const [],
     this.isStylized = false,
     this.styleIndex = 0,
@@ -57,7 +55,6 @@ class PostModel {
           ? Map<String, dynamic>.from(data['customFields'])
           : {},
       tags: List<String>.from(data['tags'] ?? []),
-      communityId: data['communityId'],
       imageUrls: List<String>.from(data['imageUrls'] ?? []),
       isStylized: data['isStylized'] ?? false,
       styleIndex: data['styleIndex'] ?? 0,
@@ -78,7 +75,6 @@ class PostModel {
       'category': category,
       'customFields': customFields,
       'tags': tags,
-      'communityId': communityId,
       'imageUrls': imageUrls,
       'isStylized': isStylized,
       'styleIndex': styleIndex,

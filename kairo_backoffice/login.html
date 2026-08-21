@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KAIRO - Connexion Administrateur</title>
+    
+    <meta name="theme-color" content="#F97316" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" type="image/png" href="./public/icon.png" />
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(err => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+        });
+      }
+    </script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Vite entry for CSS and Auth JS -->
+    <link rel="stylesheet" href="./src/css/main.css">
+    
+    <style>
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: var(--bg-dark);
+        background-image: radial-gradient(circle at top right, rgba(234, 88, 12, 0.1), transparent 40%),
+                          radial-gradient(circle at bottom left, rgba(234, 88, 12, 0.05), transparent 40%);
+      }
+      .login-container {
+        width: 100%;
+        max-width: 400px;
+        padding: 2.5rem;
+        margin: 1rem;
+      }
+      
+      @media (max-width: 480px) {
+        .login-container {
+          padding: 1.5rem;
+          margin: 1rem;
+        }
+        .login-logo {
+          font-size: 2rem;
+        }
+      }
+      
+      .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .login-logo {
+        font-family: var(--font-title);
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+      .login-logo i {
+        -webkit-text-fill-color: var(--primary);
+      }
+      .login-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+      }
+      .error-message {
+        display: none;
+        background-color: var(--danger-transparent);
+        color: var(--danger);
+        padding: 0.75rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.875rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="glass-panel login-container">
+      <div class="login-header">
+        <div class="login-logo">
+          <i class="ph-fill ph-rocket-launch"></i>
+          Kaïro
+        </div>
+        <div class="login-subtitle">Back Office Administrateur</div>
+      </div>
+      
+      <div id="errorMessage" class="error-message"></div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label class="form-label" for="email">Adresse E-mail</label>
+          <input type="email" id="email" class="form-control" placeholder="admin@kairo.com" required autocomplete="email" />
+        </div>
+        
+        <div class="form-group mb-8">
+          <label class="form-label" for="password">Mot de passe</label>
+          <input type="password" id="password" class="form-control" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+        
+        <button type="submit" id="submitBtn" class="btn btn-primary w-full" style="padding: 0.75rem; font-size: 1rem;">
+          Se connecter
+        </button>
+      </form>
+    </div>
+
+    <script type="module" src="./src/js/auth.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KAIRO PRO - ATS</title>
+    <link rel="icon" type="image/png" href="./public/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="./src/css/main.css">
+  </head>
+  <body>
+    <div class="app-container">
+      
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <i class="ph-fill ph-rocket-launch"></i> KAIRO PRO
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#" class="nav-item active" data-section="dashboardSection">
+            <i class="ph ph-squares-four"></i> Tableau de bord
+          </a>
+          <a href="#" class="nav-item" data-section="candidathequeSection">
+            <i class="ph ph-users-three"></i> Candidathèque
+          </a>
+          <a href="#" class="nav-item" data-section="teamSection" id="menu-team" style="display: none;">
+            <i class="ph ph-users"></i> Mon Équipe
+          </a>
+          <a href="#" class="nav-item" data-section="reportingSection" id="menu-reporting" style="display: none;">
+            <i class="ph ph-chart-bar"></i> Reporting
+          </a>
+          <a href="#" class="nav-item" data-section="companySection">
+            <i class="ph ph-buildings"></i> Mon Entreprise
+          </a>
+          <a href="#" class="nav-item" data-section="settingsSection">
+            <i class="ph ph-gear"></i> Paramètres
+          </a>
+        </nav>
+      </aside>
+
+      <div class="main-wrapper">
+        <header class="topbar">
+          <div class="topbar-left"></div>
+          <div class="topbar-right">
+            <div class="user-profile">
+              <div class="user-avatar" id="topbar-user-avatar">R</div>
+              <span id="topbar-user-name" class="font-medium">Recruteur</span>
+            </div>
+            <button id="logoutBtn" class="btn-icon" title="Se déconnecter">
+              <i class="ph ph-sign-out"></i>
+            </button>
+          </div>
+        </header>
+
+        <main class="main-content">
+          <div class="page-header" style="margin-bottom: 24px;">
+            <div>
+              <h1 class="page-title">KAIRO PRO <span style="font-size: 14px; background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px; margin-left: 8px;">ATS</span></h1>
+              <p style="color: var(--text-secondary); margin-top: 4px; font-size: 0.9rem;">Espace Recrutement & Agences</p>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-primary" id="addOfferBtn">
+                <i class="ph ph-plus"></i> Nouvelle Offre
+              </button>
+            </div>
+          </div>
+
+          <!-- DASHBOARD SECTION -->
+          <div id="dashboardSection" class="main-section active">
+            <!-- Tabs -->
+            <div class="kairo-pro-tabs" style="display: flex; gap: 24px; border-bottom: 1px solid var(--border-color); margin-bottom: 24px;">
+              <button class="kairo-tab active" data-target="pipelineView" style="padding: 12px 0; border: none; background: none; font-weight: 600; color: var(--primary); border-bottom: 3px solid var(--primary); cursor: pointer; font-size: 1rem;">
+                <i class="ph ph-kanban"></i> Pipeline (Candidats)
+              </button>
+              <button class="kairo-tab" data-target="offersView" style="padding: 12px 0; border: none; background: none; font-weight: 500; color: var(--text-secondary); border-bottom: 3px solid transparent; cursor: pointer; font-size: 1rem;">
+                <i class="ph ph-briefcase"></i> Mes Offres
+              </button>
+            </div>
+
+            <!-- Pipeline View (Kanban) -->
+            <div id="pipelineView" class="kairo-view active">
+              <!-- Offer Selector -->
+              <div style="margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+                <label style="font-weight: 600;">Afficher les candidats pour :</label>
+                <select id="offerSelector" class="form-control" style="max-width: 300px; padding: 8px;">
+                  <option value="">Chargement des offres...</option>
+                </select>
+              </div>
+
+              <!-- Kanban Board -->
+              <div class="kanban-board" style="display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; min-height: 60vh;">
+                <!-- Colonne Nouveaux -->
+                <div class="kanban-column" data-status="new" style="flex: 0 0 300px; background: rgba(0,0,0,0.02); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border-color);">
+                  <div class="kanban-header" style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--text-color);">
+                    <span><i class="ph-fill ph-sparkle" style="color: #F59E0B;"></i> Nouveaux</span>
+                    <span class="count-badge" id="count-new" style="background: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">0</span>
+                  </div>
+                  <div class="kanban-cards sortable-list" id="col-new" style="min-height: 100px; display: flex; flex-direction: column; gap: 12px;">
+                    <!-- Cards go here -->
+                  </div>
+                </div>
+
+                <!-- Colonne En cours -->
+                <div class="kanban-column" data-status="evaluating" style="flex: 0 0 300px; background: rgba(0,0,0,0.02); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border-color);">
+                  <div class="kanban-header" style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--text-color);">
+                    <span><i class="ph-fill ph-magnifying-glass" style="color: #3B82F6;"></i> Évaluation</span>
+                    <span class="count-badge" id="count-evaluating" style="background: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">0</span>
+                  </div>
+                  <div class="kanban-cards sortable-list" id="col-evaluating" style="min-height: 100px; display: flex; flex-direction: column; gap: 12px;">
+                  </div>
+                </div>
+
+                <!-- Colonne Entretien -->
+                <div class="kanban-column" data-status="interview" style="flex: 0 0 300px; background: rgba(0,0,0,0.02); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border-color);">
+                  <div class="kanban-header" style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--text-color);">
+                    <span><i class="ph-fill ph-users-three" style="color: #8B5CF6;"></i> Entretiens</span>
+                    <span class="count-badge" id="count-interview" style="background: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">0</span>
+                  </div>
+                  <div class="kanban-cards sortable-list" id="col-interview" style="min-height: 100px; display: flex; flex-direction: column; gap: 12px;">
+                  </div>
+                </div>
+
+                <!-- Colonne Embauché -->
+                <div class="kanban-column" data-status="hired" style="flex: 0 0 300px; background: rgba(0,0,0,0.02); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border-color);">
+                  <div class="kanban-header" style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--text-color);">
+                    <span><i class="ph-fill ph-check-circle" style="color: #10B981;"></i> Embauchés</span>
+                    <span class="count-badge" id="count-hired" style="background: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">0</span>
+                  </div>
+                  <div class="kanban-cards sortable-list" id="col-hired" style="min-height: 100px; display: flex; flex-direction: column; gap: 12px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Offers View -->
+            <div id="offersView" class="kairo-view" style="display: none;">
+              <div class="offers-grid" id="offersGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px;">
+                <!-- Offers will be injected here -->
+              </div>
+            </div>
+          </div> <!-- END DASHBOARD SECTION -->
+
+          <!-- Team View -->
+          <div id="teamSection" class="main-section" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+              <h2 style="font-weight: 800; font-size: 1.5rem;">Mon Équipe</h2>
+              <button class="btn btn-primary" id="inviteMemberBtn"><i class="ph ph-plus"></i> Inviter un membre</button>
+            </div>
+            <div class="table-container" style="background: white; border-radius: 16px; border: 1px solid var(--border-color); overflow: hidden;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead style="background: #F8FAFC; border-bottom: 1px solid var(--border-color);">
+                  <tr>
+                    <th style="padding: 16px; font-weight: 600; font-size: 0.9rem;">Membre</th>
+                    <th style="padding: 16px; font-weight: 600; font-size: 0.9rem;">Rôle</th>
+                    <th style="padding: 16px; font-weight: 600; font-size: 0.9rem;">Statut</th>
+                    <th style="padding: 16px; font-weight: 600; font-size: 0.9rem;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="teamTableBody">
+                  <tr>
+                    <td colspan="4" style="padding: 16px; text-align: center; color: var(--text-secondary);">Aucun membre dans votre équipe pour le moment.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Reporting View -->
+          <div id="reportingSection" class="main-section" style="display: none;">
+            <h2 style="font-weight: 800; font-size: 1.5rem; margin-bottom: 24px;">Reporting du Cabinet</h2>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 32px;">
+              <div style="background: white; padding: 24px; border-radius: 16px; border: 1px solid var(--border-color); text-align: center;">
+                <h3 style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 8px;">Offres Actives</h3>
+                <p style="font-size: 2.5rem; font-weight: 800; color: var(--primary);" id="stat-active-offers">0</p>
+              </div>
+              <div style="background: white; padding: 24px; border-radius: 16px; border: 1px solid var(--border-color); text-align: center;">
+                <h3 style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 8px;">Candidatures Reçues</h3>
+                <p style="font-size: 2.5rem; font-weight: 800; color: var(--text-color);" id="stat-total-applicants">0</p>
+              </div>
+              <div style="background: white; padding: 24px; border-radius: 16px; border: 1px solid var(--border-color); text-align: center;">
+                <h3 style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 8px;">Recrutements Réussis</h3>
+                <p style="font-size: 2.5rem; font-weight: 800; color: #10B981;" id="stat-hired">0</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- CANDIDATHEQUE SECTION -->
+          <div id="candidathequeSection" class="main-section" style="display: none;">
+            <div style="margin-bottom: 24px; display: flex; gap: 16px; align-items: center;">
+              <div class="search-box" style="flex: 1; max-width: 500px; position: relative;">
+                <i class="ph ph-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                <input type="text" id="talentSearchInput" class="form-control" placeholder="Rechercher par métier, compétence..." style="padding-left: 48px; border-radius: 24px;">
+              </div>
+              <button class="btn btn-secondary" style="border-radius: 24px;"><i class="ph ph-faders"></i> Filtres</button>
+            </div>
+            
+            <div id="talentsLoading" style="padding: 40px; text-align: center; color: var(--text-secondary);">
+              <i class="ph ph-spinner ph-spin text-3xl text-primary" style="font-size: 2rem;"></i>
+              <p style="margin-top: 12px;">Recherche des meilleurs profils...</p>
+            </div>
+
+            <div class="talents-grid" id="talentsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
+              <!-- Talents injected here -->
+            </div>
+          </div>
+
+          <!-- COMPANY SECTION -->
+          <div id="companySection" class="main-section" style="display: none;">
+            <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border-color); max-width: 600px;">
+              <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 24px;">Mon Entreprise</h2>
+              <p style="color: var(--text-secondary); margin-bottom: 24px;">Gérez les informations publiques de votre entreprise. Ces informations seront visibles par les candidats.</p>
+              
+              <form id="companySettingsForm">
+                <div class="form-group" style="margin-bottom: 16px;">
+                  <label>Nom de l'entreprise</label>
+                  <input type="text" id="settingsCompanyName" class="form-control" placeholder="Nom de l'agence">
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                  <label>Email de contact (Administrateur)</label>
+                  <input type="email" id="settingsCompanyEmail" class="form-control" disabled style="background: rgba(0,0,0,0.02); cursor: not-allowed;">
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                  <label>Site Web</label>
+                  <input type="url" id="settingsCompanyWebsite" class="form-control" placeholder="https://votresite.com">
+                </div>
+                <div class="form-group" style="margin-bottom: 24px;">
+                  <label>Présentation de l'entreprise</label>
+                  <textarea id="settingsCompanyDesc" class="form-control" rows="4" placeholder="Décrivez votre activité, vos valeurs..."></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 12px; align-items: center;">
+                  <button type="submit" id="saveSettingsBtn" class="btn btn-primary">Enregistrer les modifications</button>
+                  <span id="settingsSuccessMsg" style="color: var(--success); font-size: 0.9rem; font-weight: 500; display: none;"><i class="ph-fill ph-check-circle"></i> Profil mis à jour !</span>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- SETTINGS SECTION -->
+          <div id="settingsSection" class="main-section" style="display: none;">
+            <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border-color); max-width: 600px;">
+              <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 24px;">Paramètres & Préférences</h2>
+              
+              <div style="margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border-color);">
+                <h3 style="font-weight: 600; margin-bottom: 16px;">Notifications Email</h3>
+                <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                  <span style="color: var(--text-color);">M'alerter lors d'une nouvelle candidature</span>
+                  <input type="checkbox" checked style="width: 18px; height: 18px; accent-color: var(--primary);">
+                </label>
+              </div>
+
+              <div>
+                <h3 style="font-weight: 600; margin-bottom: 16px; color: var(--danger);">Zone de Danger</h3>
+                <button class="btn btn-secondary" style="color: var(--danger); border-color: var(--danger);">Désactiver mon compte ATS</button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- CREATE OFFER MODAL -->
+    <div id="createOfferModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; backdrop-filter: blur(4px); align-items: center; justify-content: center;">
+      <div style="background: white; border-radius: 16px; width: 100%; max-width: 500px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <h2 style="font-size: 1.25rem; font-weight: 700;">Créer une offre</h2>
+          <button id="closeOfferModal" class="btn-icon">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        <form id="newOfferForm">
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem;">Titre du poste <span style="color: red;">*</span></label>
+            <input type="text" id="offerTitle" class="form-control" required placeholder="Ex: Développeur Fullstack React">
+          </div>
+          <div class="form-group" id="offerClientGroup" style="margin-bottom: 16px; display: none;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem;">Nom du Client (Optionnel)</label>
+            <input type="text" id="offerClient" class="form-control" placeholder="Ex: Acme Corp">
+          </div>
+          <div class="form-group" style="margin-bottom: 16px; display: flex; gap: 16px;">
+            <div style="flex: 1;">
+              <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem;">Type de contrat</label>
+              <select id="offerContract" class="form-control">
+                <option value="CDI">CDI</option>
+                <option value="CDD">CDD</option>
+                <option value="Stage">Stage</option>
+                <option value="Alternance">Alternance</option>
+                <option value="Freelance">Freelance</option>
+              </select>
+            </div>
+            <div style="flex: 1;">
+              <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem;">Localisation</label>
+              <input type="text" id="offerLocation" class="form-control" placeholder="Ex: Paris, Distanciel">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem;">Description courte</label>
+            <textarea id="offerDesc" class="form-control" rows="3" placeholder="Résumez le rôle en quelques phrases..."></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom: 24px; padding: 12px; background: rgba(0,0,0,0.02); border-radius: 8px; border: 1px solid var(--border-color);">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem;">Éléments requis pour postuler (Lien public)</label>
+            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; cursor: pointer; font-size: 0.9rem;">
+              <input type="checkbox" id="offerRequireCV" style="accent-color: var(--primary);"> Demander un CV (lien ou fichier)
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem;">
+              <input type="checkbox" id="offerRequirePortfolio" style="accent-color: var(--primary);"> Demander un lien de Portfolio
+            </label>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 12px;">
+            <button type="button" id="cancelOfferBtn" class="btn btn-secondary">Annuler</button>
+            <button type="submit" id="saveOfferBtn" class="btn btn-primary">Publier l'offre</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toastNotification" style="display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #10B981; color: white; padding: 12px 24px; border-radius: 24px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 2000; align-items: center; gap: 8px;">
+      <i class="ph-fill ph-check-circle" style="font-size: 1.2rem;"></i>
+      <span id="toastMessage">Lien copié !</span>
+    </div>
+
+    <!-- Slide-over Candidat -->
+    <div id="candidateSlideOver" class="slide-over-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; backdrop-filter: blur(4px);">
+      <div class="slide-over-content" style="position: fixed; right: 0; top: 0; bottom: 0; width: 100%; max-width: 500px; background: white; box-shadow: -4px 0 24px rgba(0,0,0,0.1); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s ease-out;">
+        <div style="padding: 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+          <h2 style="font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+            <i class="ph-fill ph-user-circle" style="color: var(--primary);"></i> Fiche Candidat
+          </h2>
+          <button id="closeSlideOverBtn" class="btn-icon">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        <div style="padding: 24px; overflow-y: auto; flex: 1;">
+          <div id="candidateDetailsContent">
+            <!-- Candidate details injected here -->
+            <div style="text-align: center; padding: 40px;">
+              <i class="ph ph-spinner ph-spin text-3xl text-primary"></i>
+            </div>
+          </div>
+        </div>
+        <div style="padding: 24px; border-top: 1px solid var(--border-color); background: var(--bg-card);">
+          <button class="btn btn-primary" style="width: 100%;">
+            <i class="ph ph-chat-circle-text"></i> Contacter
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Drag and Drop Library (SortableJS) -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+    <script type="module" src="./src/js/modules/agencies.ts"></script>
+
+    <style>
+      .kanban-card {
+        background: white;
+        padding: 16px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        cursor: grab;
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .kanban-card:active {
+        cursor: grabbing;
+      }
+      .kanban-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      }
+      .kanban-card-title {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 4px;
+      }
+      .kanban-card-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-bottom: 12px;
+      }
+      .kanban-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid var(--border-color);
+        padding-top: 12px;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+      }
+      .sortable-ghost {
+        opacity: 0.4;
+      }
+      .sortable-drag {
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+      }
+    </style>
+  </body>
+</html>

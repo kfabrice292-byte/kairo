@@ -38,62 +38,93 @@ class ProjectProvider extends ChangeNotifier {
         );
   }
 
-  Future<void> addProject(ProjectModel project) async {
+  Future<String> addProject(ProjectModel project) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    if (user == null) throw Exception("Utilisateur non connecté.");
 
-    await FirebaseFirestore.instance
-        .collection('projects')
-        .add(project.toMap());
+    try {
+      final docRef = await FirebaseFirestore.instance
+          .collection('projects')
+          .add(project.toMap());
+      return docRef.id;
+    } catch (e) {
+      debugPrint('Error adding project: $e');
+      throw Exception('Erreur lors de la création du projet : $e');
+    }
   }
 
   Future<void> requestToJoin(String projectId) async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId == null) return;
+    if (userId == null) throw Exception("Utilisateur non connecté.");
 
-    await FirebaseFirestore.instance
-        .collection('projects')
-        .doc(projectId)
-        .update({
-          'joinRequests': FieldValue.arrayUnion([userId]),
-        });
+    try {
+      await FirebaseFirestore.instance
+          .collection('projects')
+          .doc(projectId)
+          .update({
+        'joinRequests': FieldValue.arrayUnion([userId]),
+      });
+    } catch (e) {
+      debugPrint('Error requesting to join: $e');
+      throw Exception('Erreur lors de la demande de participation : $e');
+    }
   }
 
   Future<void> acceptJoinRequest(String projectId, String userId) async {
-    await FirebaseFirestore.instance
-        .collection('projects')
-        .doc(projectId)
-        .update({
-          'joinRequests': FieldValue.arrayRemove([userId]),
-          'members': FieldValue.arrayUnion([userId]),
-        });
+    try {
+      await FirebaseFirestore.instance
+          .collection('projects')
+          .doc(projectId)
+          .update({
+        'joinRequests': FieldValue.arrayRemove([userId]),
+        'members': FieldValue.arrayUnion([userId]),
+      });
+    } catch (e) {
+      debugPrint('Error accepting request: $e');
+      throw Exception('Erreur lors de l\'acceptation : $e');
+    }
   }
 
   Future<void> refuseJoinRequest(String projectId, String userId) async {
-    await FirebaseFirestore.instance
-        .collection('projects')
-        .doc(projectId)
-        .update({
-          'joinRequests': FieldValue.arrayRemove([userId]),
-        });
+    try {
+      await FirebaseFirestore.instance
+          .collection('projects')
+          .doc(projectId)
+          .update({
+        'joinRequests': FieldValue.arrayRemove([userId]),
+      });
+    } catch (e) {
+      debugPrint('Error refusing request: $e');
+      throw Exception('Erreur lors du refus : $e');
+    }
   }
 
   Future<void> removeMember(String projectId, String userId) async {
-    await FirebaseFirestore.instance
-        .collection('projects')
-        .doc(projectId)
-        .update({
-          'members': FieldValue.arrayRemove([userId]),
-        });
+    try {
+      await FirebaseFirestore.instance
+          .collection('projects')
+          .doc(projectId)
+          .update({
+        'members': FieldValue.arrayRemove([userId]),
+      });
+    } catch (e) {
+      debugPrint('Error removing member: $e');
+      throw Exception('Erreur lors du retrait du membre : $e');
+    }
   }
 
   Future<void> addTask(String projectId, Map<String, dynamic> task) async {
-    await FirebaseFirestore.instance
-        .collection('projects')
-        .doc(projectId)
-        .update({
-          'tasks': FieldValue.arrayUnion([task]),
-        });
+    try {
+      await FirebaseFirestore.instance
+          .collection('projects')
+          .doc(projectId)
+          .update({
+        'tasks': FieldValue.arrayUnion([task]),
+      });
+    } catch (e) {
+      debugPrint('Error adding task: $e');
+      throw Exception('Erreur lors de l\'ajout de la tâche : $e');
+    }
   }
 
   Future<void> updateTaskStatus(
@@ -119,6 +150,19 @@ class ProjectProvider extends ChangeNotifier {
       }
       return t;
     }).toList();
+
+    await docRef.update({'tasks': updatedTasks});
+  }
+
+  Future<void> deleteTask(String projectId, String taskId) async {
+    final docRef = FirebaseFirestore.instance.collection('projects').doc(projectId);
+    final doc = await docRef.get();
+    if (!doc.exists) return;
+
+    final data = doc.data()!;
+    final List<dynamic> tasksData = data['tasks'] ?? [];
+
+    final updatedTasks = tasksData.where((t) => t['id'] != taskId).toList();
 
     await docRef.update({'tasks': updatedTasks});
   }

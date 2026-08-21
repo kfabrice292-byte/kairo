@@ -7,8 +7,9 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class AddSkillSheet extends StatefulWidget {
   final UserModel user;
+  final Skill? initialSkill;
 
-  const AddSkillSheet({super.key, required this.user});
+  const AddSkillSheet({super.key, required this.user, this.initialSkill});
 
   @override
   State<AddSkillSheet> createState() => _AddSkillSheetState();
@@ -19,6 +20,15 @@ class _AddSkillSheetState extends State<AddSkillSheet> {
   String _selectedLevel = 'Intermédiaire';
   final List<String> _levels = ['Débutant', 'Intermédiaire', 'Avancé'];
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialSkill != null) {
+      _nameController.text = widget.initialSkill!.name;
+      _selectedLevel = widget.initialSkill!.level;
+    }
+  }
 
   @override
   void dispose() {
@@ -34,7 +44,18 @@ class _AddSkillSheetState extends State<AddSkillSheet> {
 
     try {
       final newSkill = Skill(name: name, level: _selectedLevel);
-      final updatedSkills = List<Skill>.from(widget.user.skills)..add(newSkill);
+      final updatedSkills = List<Skill>.from(widget.user.skills);
+      
+      if (widget.initialSkill != null) {
+        final index = updatedSkills.indexWhere((s) => s.name == widget.initialSkill!.name);
+        if (index != -1) {
+          updatedSkills[index] = newSkill;
+        } else {
+          updatedSkills.add(newSkill);
+        }
+      } else {
+        updatedSkills.add(newSkill);
+      }
 
       await context.read<AuthProvider>().updateProfile({
         'skills': updatedSkills.map((s) => s.toMap()).toList(),
@@ -75,17 +96,17 @@ class _AddSkillSheetState extends State<AddSkillSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Ajouter une compétence',
+              Text(
+                widget.initialSkill != null ? 'Modifier la compétence' : 'Ajouter une compétence',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               IconButton(
-                icon: const Icon(Icons.close),
+                icon: Icon(Icons.close),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           TextField(
             controller: _nameController,
             decoration: InputDecoration(
@@ -106,9 +127,9 @@ class _AddSkillSheetState extends State<AddSkillSheet> {
               ),
             ),
           ),
-          const SizedBox(height: 20),
-          const Text('Niveau', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
+          SizedBox(height: 20),
+          Text('Niveau', style: TextStyle(fontWeight: FontWeight.bold)),
+          SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -139,32 +160,32 @@ class _AddSkillSheetState extends State<AddSkillSheet> {
               );
             }).toList(),
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: 32),
           ElevatedButton(
             onPressed: _isLoading ? null : _saveSkill,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
+              foregroundColor: Theme.of(context).iconTheme.color,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
             child: _isLoading
-                ? const SizedBox(
+                ? SizedBox(
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       strokeWidth: 2,
                     ),
                   )
-                : const Text(
-                    'Ajouter',
+                : Text(
+                    widget.initialSkill != null ? 'Modifier' : 'Ajouter',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
         ],
       ),
     );

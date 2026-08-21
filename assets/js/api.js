@@ -34,8 +34,11 @@ const API = {
                     name: user.displayName || 'Utilisateur',
                     email: user.email,
                     photoURL: user.photoURL || null,
-                    points: 1000,
-                    history: [],
+                    cvCredits: 0,
+                    documents: [],
+                    role: 'user',
+                    isPremium: false,
+                    subscriptionStatus: 'FREE',
                     createdAt: new Date().toISOString()
                 };
                 await setDoc(userRef, newUser);
@@ -78,8 +81,11 @@ const API = {
             const newUser = {
                 name,
                 email,
-                points: 1000,
-                history: [],
+                cvCredits: 0,
+                documents: [],
+                role: 'user',
+                isPremium: false,
+                subscriptionStatus: 'FREE',
                 createdAt: new Date().toISOString()
             };
 
@@ -163,9 +169,22 @@ const API = {
         if (!user) throw new Error("Non autorisé");
 
         try {
-            const storageRef = ref(storage, `avatars/${user.uid}_${Date.now()}_${file.name}`);
-            await uploadBytes(storageRef, file);
-            const downloadURL = await getDownloadURL(storageRef);
+            const formData = new FormData();
+            formData.append("image", file);
+            // Kairo ImgBB API Key
+            const apiKey = "42583eab8962481f83526a0882f3d384";
+            
+            const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+                method: "POST",
+                body: formData
+            });
+            
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error("ImgBB upload failed");
+            }
+            
+            const downloadURL = data.data.url;
             
             // Update the user's profile with the new photo URL
             return await this.updateProfile({ photoURL: downloadURL });
@@ -269,6 +288,19 @@ const API = {
         }
     },
 
+    async getPublicUserProfile(uid) {
+        try {
+            const userDoc = await getDoc(doc(db, "users", uid));
+            if (userDoc.exists()) {
+                return { uid: userDoc.id, ...userDoc.data() };
+            }
+            return null;
+        } catch (error) {
+            console.error("Error fetching public profile:", error);
+            return null;
+        }
+    },
+
     // --- OPPORTUNITIES ---
     async getOpportunities() {
         try {
@@ -286,11 +318,117 @@ const API = {
 
     async publishOpportunity(opportunity) {
         try {
-            const docRef = await addDoc(collection(db, "opportunities"), opportunity);
-            return { id: docRef.id, ...opportunity };
+            const fullOpportunity = {
+                ...opportunity,
+                description: opportunity.description || '',
+                status: 'ouvert',
+                createdAt: new Date(),
+                applicants: [],
+                mandatorySkills: [],
+                postedBy: auth.currentUser ? auth.currentUser.uid : 'Admin'
+            };
+            const docRef = await addDoc(collection(db, "opportunities"), fullOpportunity);
+            return { id: docRef.id, ...fullOpportunity };
         } catch (error) {
             console.error("Publish opportunity error:", error);
             throw new Error("Erreur lors de la publication.");
+        }
+    },
+
+    // --- PROMO CODES ---
+    async getPromoCodes() {
+        try {
+            const querySnapshot = await getDocs(collection(db, "promo_codes"));
+            const codes = [];
+            querySnapshot.forEach((doc) => {
+                codes.push({ id: doc.id, ...doc.data() });
+            });
+            return codes;
+        } catch (error) {
+            console.error("Get promo codes error:", error);
+            return [];
+        }
+    },
+
+    async createPromoCode(promoData) {
+        try {
+            const fullPromo = {
+                code: promoData.code.toUpperCase().trim(),
+                type: promoData.type || 'SINGLE', // 'SINGLE', 'UNLIMITED'
+                currentUses: 0,
+                maxUses: parseInt(promoData.maxUses) || 1,
+                durationDays: parseInt(promoData.durationDays) || 30,
+                expiresAt: promoData.expiresAt ? new Date(promoData.expiresAt) : null,
+                createdAt: new Date(),
+                createdBy: auth.currentUser ? auth.currentUser.uid : 'Admin'
+            };
+            const docRef = await addDoc(collection(db, "promo_codes"), fullPromo);
+            return { id: docRef.id, ...fullPromo };
+        } catch (error) {
+            console.error("Create promo code error:", error);
+            throw new Error("Erreur lors de la création du code promo.");
+        }
+    },
+
+    async applyPromoCode(code) {
+        try {
+            if (!auth.currentUser) throw new Error("Non connecté.");
+            const uid = auth.currentUser.uid;
+            
+            // Chercher le code
+            const q = query(collection(db, "promo_codes"), where("code", "==", code.toUpperCase().trim()));
+            const querySnapshot = await getDocs(q);
+            
+            if (querySnapshot.empty) {
+                throw new Error("Code promo invalide ou introuvable.");
+            }
+            
+            const promoDoc = querySnapshot.docs[0];
+            const promoData = promoDoc.data();
+            
+            // Vérifier validité
+            if (promoData.currentUses >= promoData.maxUses) {
+                throw new Error("Ce code promo a atteint sa limite d'utilisation.");
+            }
+            
+            if (promoData.expiresAt && promoData.expiresAt.toDate() < new Date()) {
+                throw new Error("Ce code promo a expiré.");
+            }
+
+            // Vérifier si l'utilisateur ne l'a pas déjà utilisé (On pourrait ajouter une sous-collection 'usages', on fait simple ici)
+            
+            // Appliquer le Premium à l'utilisateur
+            const userRef = doc(db, "users", uid);
+            const userSnap = await getDoc(userRef);
+            if(userSnap.exists() && userSnap.data().isPremium) {
+                throw new Error("Vous êtes déjà Premium !");
+            }
+
+            const now = new Date();
+            const premiumUntil = new Date(now.getTime() + (promoData.durationDays || 30) * 24 * 60 * 60 * 1000);
+
+            // Transaction / Batch
+            const batch = writeBatch(db);
+            
+            // 1. Maj utilisateur
+            batch.update(userRef, {
+                isPremium: true,
+                premiumUntil: premiumUntil,
+                subscriptionStatus: 'PREMIUM_PROMO',
+                usedPromoCode: promoData.code
+            });
+
+            // 2. Incrémenter le compteur du code
+            batch.update(promoDoc.ref, {
+                currentUses: promoData.currentUses + 1
+            });
+
+            await batch.commit();
+            return { success: true, message: "Code activé avec succès ! Vous êtes Premium." };
+
+        } catch (error) {
+            console.error("Apply promo error:", error);
+            throw new Error(error.message || "Erreur lors de l'application du code.");
         }
     }
 };

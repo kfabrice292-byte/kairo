@@ -33,16 +33,24 @@
             border-bottom-left-radius: 4px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
         }
-        
         .premium-shadow {
-            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08), 0 0 20px -5px rgba(0,0,0,0.03);
+            box-shadow: 0 20px 50px -12px rgba(249, 115, 22, 0.25), 0 0 30px -5px rgba(0,0,0,0.05);
+            border: 1px solid rgba(249, 115, 22, 0.1);
         }
         
         /* The canvas background */
         .canvas-bg {
             background-color: #f8fafc;
             background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
-            background-size: 24px 24px;
+            background-size: 32px 32px;
+            position: relative;
+        }
+        .canvas-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, transparent 0%, #f8fafc 100%);
+            pointer-events: none;
         }
 
         /* View transitions */
@@ -165,7 +173,7 @@
                             <button onclick="setTemplate('academic')" class="py-2 px-2 border border-slate-200 rounded-lg text-xs font-semibold hover:text-slate-900 text-slate-600">Academic</button>
                             <button onclick="setTemplate('tech')" class="py-2 px-2 border border-slate-200 rounded-lg text-xs font-semibold hover:text-slate-900 text-slate-600 col-span-2">Tech</button>
                         </div>
-                        <p class="text-xs text-slate-400 mt-2 italic">Attention : Changer de modèle va regénérer le document avec l'IA.</p>
+                        <p class="text-xs text-slate-400 mt-2 italic">Attention : Changer de modèle régénèrera le document.</p>
                     </div>
 
                     <div>
@@ -180,12 +188,25 @@
 
                     <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
                         <div class="flex items-start gap-3">
-                            <i class="ph-fill ph-magic-wand text-slate-800 text-xl"></i>
+                            <i class="ph-fill ph-checks text-slate-800 text-xl"></i>
                             <div>
-                                <h4 class="font-bold text-slate-800 text-sm">Édition Manuelle</h4>
-                                <p class="text-xs text-slate-600 mt-1">Cliquez directement sur le texte du CV à droite pour corriger les mots générés par l'IA.</p>
+                                <h4 class="font-bold text-slate-800 text-sm">Édition Structurée</h4>
+                                <p class="text-xs text-slate-600 mt-1">Cliquez directement sur le texte du CV à droite pour modifier le contenu.</p>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="bg-blue-50 rounded-xl p-4 border border-blue-200 mt-4 shadow-inner">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-bold text-blue-900 flex items-center gap-2"><i class="ph-fill ph-target text-xl"></i> Score ATS</h4>
+                            <span id="atsScoreValue" class="text-xl font-black text-blue-700">--/100</span>
+                        </div>
+                        <div class="w-full bg-blue-200 rounded-full h-2.5 mb-3">
+                          <div id="atsScoreBar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <ul id="atsFeedbackList" class="text-xs text-blue-800 space-y-2 font-medium">
+                            <li>En attente d'analyse...</li>
+                        </ul>
                     </div>
                 </div>
                 
@@ -204,8 +225,6 @@
                     <button onclick="document.execCommand('bold', false, null)" class="toolbar-btn" title="Gras"><i class="ph-bold ph-text-b"></i></button>
                     <button onclick="document.execCommand('italic', false, null)" class="toolbar-btn" title="Italique"><i class="ph-bold ph-text-italic"></i></button>
                     <button onclick="document.execCommand('insertUnorderedList', false, null)" class="toolbar-btn" title="Liste"><i class="ph-bold ph-list-bullets"></i></button>
-                    <div class="w-px h-6 bg-slate-600 mx-1"></div>
-                    <button onclick="enhanceSelection()" id="enhanceBtn" class="toolbar-btn magic" title="Améliorer avec l'IA"><i class="ph-fill ph-magic-wand"></i></button>
                 </div>
 
                 <!-- Premium Loading -->
@@ -213,7 +232,7 @@
                     <div class="relative w-32 h-32 mb-8 flex items-center justify-center">
                         <div class="absolute inset-0 bg-gradient-to-r from-[#F97316] to-[#3B82F6] rounded-full blur-xl opacity-40 animate-pulse"></div>
                         <div class="absolute inset-2 bg-white rounded-full flex items-center justify-center border-4 border-slate-50 shadow-inner z-10">
-                            <i class="ph-fill ph-magic-wand text-4xl text-transparent bg-clip-text bg-gradient-to-r from-[#F97316] to-[#FBBF24] animate-pulse"></i>
+                            <i class="ph-fill ph-chart-line-up text-4xl text-transparent bg-clip-text bg-gradient-to-r from-[#F97316] to-[#FBBF24] animate-pulse"></i>
                         </div>
                         <svg class="absolute inset-0 w-full h-full z-20 animate-[spin_2s_linear_infinite]" viewBox="0 0 100 100">
                             <circle cx="50" cy="50" r="48" fill="none" stroke="url(#spinnerGradient)" stroke-width="4" stroke-dasharray="150" stroke-linecap="round"></circle>
@@ -225,8 +244,8 @@
                             </defs>
                         </svg>
                     </div>
-                    <h3 class="text-3xl font-extrabold text-slate-800 mb-3 font-outfit tracking-tight">Création de la magie...</h3>
-                    <p class="text-slate-500 font-medium text-lg text-center max-w-sm">Notre IA analyse votre profil et bâtit le design parfait.</p>
+                    <h3 class="text-3xl font-extrabold text-slate-800 mb-3 font-outfit tracking-tight">Génération du Document...</h3>
+                    <p class="text-slate-500 font-medium text-lg text-center max-w-sm">Notre algorithme optimise la structure pour les systèmes ATS.</p>
                 </div>
 
                 <!-- Mobile Navigation Tabs (Hidden on Desktop) -->
@@ -271,7 +290,7 @@
                 
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-6 flex justify-between items-center">
                     <span class="font-medium text-slate-700">PDF Haute Qualité (Sans filigrane)</span>
-                    <span class="text-xl font-black text-[#F97316]">550 FCFA</span>
+                    <span class="text-xl font-black text-[#F97316]">350 FCFA</span>
                 </div>
                 
                 <form id="ashtechForm" class="space-y-4 text-left">
@@ -299,7 +318,7 @@
                         <input type="tel" id="payPhone" placeholder="Ex: 670000000" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#F97316] focus:ring-1 focus:ring-[#F97316] outline-none transition-all text-slate-700 placeholder-slate-400">
                     </div>
                     <button type="submit" id="paySubmitBtn" class="w-full py-4 mt-2 bg-[#F97316] text-white rounded-xl font-bold shadow-lg hover:bg-[#EA580C] transition-all flex justify-center items-center gap-2 text-lg">
-                        Payer 550 FCFA
+                        Payer 350 FCFA
                     </button>
                 </form>
             </div>
@@ -532,14 +551,14 @@
                     }
                 } else {
                     Toast.error("Erreur: " + data.message);
-                    btn.innerHTML = 'Payer 550 FCFA';
+                    btn.innerHTML = 'Payer 350 FCFA';
                     btn.disabled = false;
                 }
                 */
 
             } catch (err) {
                 console.error(err);
-                btn.innerHTML = 'Payer 550 FCFA';
+                btn.innerHTML = 'Payer 350 FCFA';
                 btn.disabled = false;
             }
         };
@@ -1003,6 +1022,62 @@ document.addEventListener('DOMContentLoaded', async () => {
                     setTimeout(triggerGeneration, 1500);
                 }
             });
+
+            // ATS Scoring Logic
+            const analyzeAtsScore = () => {
+                const container = document.getElementById('documentContainer');
+                if (!container || !container.innerText.trim()) return;
+                const text = container.innerText.toLowerCase();
+                let score = 0;
+                let feedback = [];
+
+                if (text.length > 500) score += 20;
+                else feedback.push("CV trop court (ajoutez plus de détails).");
+
+                if (text.includes("expérience") || text.includes("experience")) score += 20;
+                else feedback.push("Section Expériences introuvable.");
+
+                if (text.includes("formation") || text.includes("education")) score += 20;
+                else feedback.push("Section Formation introuvable.");
+
+                if (text.includes("compétence") || text.includes("skills")) score += 20;
+                else feedback.push("Section Compétences introuvable.");
+
+                // Check for action verbs
+                const actionVerbs = ["développé", "géré", "créé", "optimisé", "amélioré", "conçu"];
+                const hasVerbs = actionVerbs.some(v => text.includes(v));
+                if (hasVerbs) score += 20;
+                else feedback.push("Utilisez plus de verbes d'action (créé, géré...).");
+
+                if (score > 100) score = 100;
+                if (score < 0) score = 0;
+
+                const scoreValue = document.getElementById('atsScoreValue');
+                const scoreBar = document.getElementById('atsScoreBar');
+                const feedbackList = document.getElementById('atsFeedbackList');
+
+                if(scoreValue) scoreValue.innerText = `${score}/100`;
+                if(scoreBar) scoreBar.style.width = `${score}%`;
+                
+                if (feedbackList) {
+                    if (feedback.length === 0) {
+                        feedbackList.innerHTML = '<li><i class="ph-bold ph-check-circle text-green-600"></i> Excellent CV ! Prêt pour l\'envoi.</li>';
+                    } else {
+                        feedbackList.innerHTML = feedback.map(f => `<li><i class="ph-bold ph-warning-circle text-orange-500"></i> ${f}</li>`).join('');
+                    }
+                }
+                
+                // Color update based on score
+                if(score >= 80) scoreBar.className = "bg-green-500 h-2.5 rounded-full transition-all";
+                else if(score >= 50) scoreBar.className = "bg-orange-500 h-2.5 rounded-full transition-all";
+                else scoreBar.className = "bg-red-500 h-2.5 rounded-full transition-all";
+            };
+
+            // Analyze on content change
+            document.getElementById('documentContainer').addEventListener('input', analyzeAtsScore);
+            // Initial analysis when generated
+            const observer = new MutationObserver(analyzeAtsScore);
+            observer.observe(document.getElementById('documentContainer'), { childList: true, subtree: true });
         });
     </script>
 </body>

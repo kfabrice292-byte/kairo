@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KAIRO - Opportunités</title>
+    <link rel="icon" type="image/png" href="./public/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="./src/css/main.css">
+    <style>
+      .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(4px);
+      }
+      .modal-overlay.active {
+        display: flex;
+      }
+      .modal-content {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 2rem;
+        box-shadow: var(--shadow-glass);
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+      .modal-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0;
+      }
+      
+      /* Premium Opportunities Grid */
+      .opportunities-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+        padding-top: 1rem;
+      }
+      .opp-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      .opp-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+      }
+      .opp-card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+      .opp-card-logo {
+        width: 56px; 
+        height: 56px; 
+        border-radius: 12px; 
+        object-fit: cover; 
+        background: var(--bg-dark);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      }
+      .opp-card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        line-height: 1.3;
+        margin-bottom: 0.25rem;
+      }
+      .opp-card-desc {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .opp-card-meta {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px dashed var(--border-color);
+      }
+      .opp-card-actions {
+        display: flex;
+        gap: 0.5rem;
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+      }
+      .opp-status-badge {
+        position: absolute;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        font-size: 0.75rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <i class="ph-fill ph-rocket-launch"></i> Kaïro Admin
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="index.html" class="nav-item">
+            <i class="ph ph-squares-four"></i> Dashboard
+          </a>
+          <a href="users.html" class="nav-item">
+            <i class="ph ph-users"></i> Utilisateurs
+          </a>
+          <a href="verifications.html" class="nav-item">
+            <i class="ph ph-seal-check"></i> Vérifications
+          </a>
+          <a href="companies.html" class="nav-item">
+            <i class="ph ph-buildings"></i> Entreprises
+          </a>
+                    <a href="agencies.html" class="nav-item">
+            <i class="ph ph-buildings"></i> Agences
+          </a>
+          <a href="subscriptions.html" class="nav-item">
+            <i class="ph ph-credit-card"></i> Abonnements
+          </a>
+          <a href="applications.html" class="nav-item">
+            <i class="ph ph-file-text"></i> Candidatures
+          </a>
+          <a href="opportunities.html" class="nav-item active">
+            <i class="ph ph-briefcase"></i> Opportunités
+          </a>
+          <a href="publications.html" class="nav-item">
+            <i class="ph ph-newspaper"></i> Publications
+          </a>
+          <a href="projects.html" class="nav-item">
+            <i class="ph ph-lightbulb"></i> Projets
+          </a>
+          <a href="reports.html" class="nav-item">
+            <i class="ph ph-warning-circle"></i> Signalements
+          </a>
+          <a href="settings.html" class="nav-item">
+            <i class="ph ph-gear"></i> Paramètres
+          </a>
+        </nav>
+      </aside>
+
+      <div class="main-wrapper">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="btn-icon mobile-menu-btn" id="mobileMenuBtn">
+              <i class="ph ph-list"></i>
+            </button>
+          </div>
+          <div class="topbar-right">
+            <div class="user-profile">
+              <div class="user-avatar" id="topbar-user-avatar">A</div>
+              <span id="topbar-user-name" class="font-medium">Admin</span>
+            </div>
+            <button id="logoutBtn" class="btn-icon" title="Se déconnecter">
+              <i class="ph ph-sign-out"></i>
+            </button>
+          </div>
+        </header>
+
+        <main class="main-content">
+          <div class="page-header" style="margin-bottom: 1.5rem;">
+            <h1 class="page-title">Opportunités & Offres</h1>
+            <button class="btn btn-secondary" id="refreshBtn">
+              <i class="ph ph-arrows-clockwise"></i> Actualiser
+            </button>
+          </div>
+
+          <!-- Quick Publish Card -->
+          <div class="glass-panel p-6 mb-8" style="display: flex; flex-direction: column; gap: 1.5rem; background: linear-gradient(145deg, var(--bg-card) 0%, rgba(249, 115, 22, 0.05) 100%); border: 1px solid var(--border-color); border-left: 4px solid var(--primary); border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <h2 class="text-xl font-bold" style="display: flex; align-items: center; gap: 0.5rem;">
+                  <i class="ph-fill ph-megaphone text-primary"></i> Nouvelle Publication
+                </h2>
+                <p class="text-secondary mt-1" style="font-size: 0.95rem;">
+                  Diffusez rapidement une offre d'emploi, de stage ou un événement à votre communauté.
+                </p>
+              </div>
+              <button class="btn btn-primary" id="addBtnLarge" style="padding: 1rem 2rem; font-size: 1.1rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3); display: flex; align-items: center; gap: 0.5rem; transition: transform 0.2s, box-shadow 0.2s;">
+                <i class="ph-bold ph-plus-circle text-xl"></i> Publier une offre
+              </button>
+            </div>
+          </div>
+
+          <h3 class="font-semibold text-lg mb-4" style="color: var(--text-primary);">Publications Récentes</h3>
+
+          <div id="oppsGridContainer" class="opportunities-grid">
+            <div style="text-align: center; padding: 3rem; grid-column: 1 / -1;">
+              <i class="ph ph-spinner ph-spin text-2xl text-primary"></i>
+              <p class="mt-4 text-secondary">Chargement...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Modal Nouvelle Opportunité -->
+    <div class="modal-overlay" id="addModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Publier une Opportunité</h2>
+          <button class="btn-icon" id="closeModalBtn">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+              <style>
+          .modal-content {
+            max-width: 750px;
+          }
+          .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+          }
+          .form-group.full-width {
+            grid-column: 1 / -1;
+          }
+          
+          /* Custom Tag Input Styles */
+          .custom-tag-select {
+            position: relative;
+            width: 100%;
+          }
+          .tag-input-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            min-height: 48px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background: var(--bg-card);
+            align-items: center;
+            cursor: text;
+            transition: all var(--transition-fast);
+          }
+          .tag-input-box:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-transparent);
+          }
+          .selected-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.6rem;
+            background: var(--primary-transparent);
+            color: var(--primary);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 500;
+            animation: popIn 0.2s ease-out;
+          }
+          @keyframes popIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+          }
+          .selected-tag i {
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 2px;
+            border-radius: 50%;
+            transition: background 0.2s;
+          }
+          .selected-tag i:hover {
+            background: rgba(249, 115, 22, 0.2);
+          }
+          .tag-search-input {
+            flex: 1;
+            min-width: 150px;
+            border: none;
+            background: transparent;
+            outline: none;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            padding: 0.2rem;
+          }
+          .tag-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 0.4rem;
+            background: var(--bg-card-solid);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 50;
+            display: none;
+          }
+          .tag-dropdown.show {
+            display: block;
+            animation: slideDown 0.2s ease-out;
+          }
+          @keyframes slideDown {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+          }
+          .tag-option {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background var(--transition-fast);
+            color: var(--text-secondary);
+            font-weight: 500;
+          }
+          .tag-option:hover {
+            background: rgba(249, 115, 22, 0.05);
+            color: var(--primary);
+          }
+          .tag-option.hidden {
+            display: none;
+          }
+
+          .image-upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem 1rem;
+            text-align: center;
+            background-color: rgba(15, 23, 42, 0.02);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+          }
+          .image-upload-zone:hover {
+            border-color: var(--primary);
+            background-color: var(--primary-transparent);
+          }
+          .image-upload-zone i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            opacity: 0.8;
+          }
+          #oppImageFile {
+            display: none;
+          }
+          .input-hint {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            display: block;
+          }
+        </style>
+
+        <form id="addForm">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label class="form-label" for="oppTitle">Titre de l'annonce <span class="text-primary">*</span></label>
+              <input type="text" id="oppTitle" class="form-control" required placeholder="Ex: Développeur Fullstack React/Node.js">
+            </div>
+            
+            <div class="form-group full-width">
+              <label class="form-label" for="oppCompany">Nom de l'entreprise / Agence <span class="text-primary">*</span></label>
+              <input type="text" id="oppCompany" class="form-control" required placeholder="Ex: KAIRO, Orange, Société Générale...">
+              <span class="input-hint"><i class="ph ph-info"></i> Laissez "KAIRO" si c'est une annonce interne, ou saisissez le nom de l'entreprise partenaire.</span>
+            </div>
+            
+            <div class="form-group full-width">
+              <label class="form-label">Tags ciblés (Profils des candidats)</label>
+              <select id="oppTags" class="form-control" multiple style="display: none;">
+                <option value="Marketing">Marketing</option>
+                <option value="Communication">Communication</option>
+                <option value="Relation Publique">Relation Publique</option>
+                <option value="Communication Digitale">Communication Digitale</option>
+                <option value="Design Graphique">Design Graphique</option>
+                <option value="UI/UX Design">UI/UX Design</option>
+                <option value="Développement Web">Développement Web</option>
+                <option value="Développement Mobile">Développement Mobile</option>
+                <option value="Ressources Humaines">Ressources Humaines</option>
+                <option value="Finance">Finance</option>
+                <option value="Comptabilité">Comptabilité</option>
+                <option value="Gestion de Projet">Gestion de Projet</option>
+                <option value="Vente">Vente</option>
+                <option value="Business Development">Business Development</option>
+                <option value="Data Science">Data Science</option>
+                <option value="Intelligence Artificielle">Intelligence Artificielle</option>
+                <option value="Ingénierie">Ingénierie</option>
+                <option value="Droit &amp; Juridique">Droit &amp; Juridique</option>
+                <option value="Assistanat">Assistanat</option>
+                <option value="Logistique &amp; Supply Chain">Logistique &amp; Supply Chain</option>
+                <option value="Service Client">Service Client</option>
+              </select>
+              
+              <div class="custom-tag-select" id="customTagSelect">
+                <div class="tag-input-box" id="tagInputBox">
+                  <input type="text" class="tag-search-input" id="tagSearchInput" placeholder="Rechercher ou sélectionner un tag...">
+                </div>
+                <div class="tag-dropdown" id="tagDropdown">
+                  <!-- Options will be rendered here by JS -->
+                </div>
+              </div>
+              <span class="input-hint"><i class="ph ph-info"></i> L'algorithme Kaïro ciblera automatiquement les utilisateurs correspondant aux tags sélectionnés.</span>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="oppType">Type d'opportunité <span class="text-primary">*</span></label>
+              <select id="oppType" class="form-control" required>
+                <option value="Emploi">Emploi</option>
+                <option value="Stage">Stage</option>
+                <option value="Événement">Événement</option>
+                <option value="Formation">Formation</option>
+                <option value="Webinaire">Webinaire</option>
+                <option value="Bourse">Bourse</option>
+                <option value="Concours">Concours</option>
+                <option value="Autre">Autre</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="oppDomain">Domaine / Secteur</label>
+              <input type="text" id="oppDomain" class="form-control" placeholder="Ex: Informatique, Finance...">
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="oppAppType">Candidatures via</label>
+              <select id="oppAppType" class="form-control" required>
+                <option value="internal_ats">Kaïro ATS (Candidature directe en 1 clic)</option>
+                <option value="external">Lien Externe / Email</option>
+              </select>
+            </div>
+            
+            <div class="form-group" id="externalLinkGroup" style="display: none;">
+              <label class="form-label" for="oppExtLink">Lien ou Email de contact <span class="text-primary">*</span></label>
+              <input type="text" id="oppExtLink" class="form-control" placeholder="Ex: https://... ou hr@entreprise.com">
+            </div>
+            
+            <div class="form-group full-width">
+              <label class="form-label">Affiche / Image de couverture <span class="text-primary">*</span></label>
+              <div class="image-upload-zone" onclick="document.getElementById('oppImageFile').click()">
+                <i class="ph ph-image"></i>
+                <div style="font-weight: 600; color: var(--text-primary);">Cliquez ici pour ajouter une image</div>
+                <div class="input-hint">Formats supportés : JPG, PNG, WEBP (Max 5Mo)</div>
+              </div>
+              <input type="file" id="oppImageFile" accept="image/*" required>
+              <div id="imagePreviewContainer" style="margin-top: 1rem; display: none; text-align: center;">
+                <img id="imagePreview" src="" alt="Aperçu" style="max-height: 180px; border-radius: var(--radius-md); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+                <button type="button" class="btn btn-secondary mt-2" onclick="document.getElementById('oppImageFile').click()" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Changer d'image</button>
+              </div>
+              <input type="hidden" id="oppImageUrl">
+            </div>
+            
+            <div class="form-group full-width">
+              <label class="form-label" for="oppDesc">Description complète <span class="text-primary">*</span></label>
+              <textarea id="oppDesc" class="form-control" rows="6" required placeholder="Saisissez tous les détails, compétences requises et avantages ici..."></textarea>
+            </div>
+          </div>
+          
+          <div class="flex justify-end gap-3 mt-6 border-t pt-4" style="border-color: var(--border-color-light);">
+            <button type="button" class="btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary);" id="cancelBtn">Annuler</button>
+            <button type="submit" class="btn btn-primary" id="saveBtn">
+              <i class="ph-bold ph-paper-plane-tilt"></i> Publier l'opportunité
+            </button>
+          </div>
+        </form>
+
+        <script>
+          document.addEventListener('DOMContentLoaded', () => {
+            const selectEl = document.getElementById('oppTags');
+            const inputBox = document.getElementById('tagInputBox');
+            const searchInput = document.getElementById('tagSearchInput');
+            const dropdown = document.getElementById('tagDropdown');
+            const customSelect = document.getElementById('customTagSelect');
+            
+            if (!selectEl || !inputBox) return;
+            
+            // Generate dropdown options
+            Array.from(selectEl.options).forEach(opt => {
+              const div = document.createElement('div');
+              div.className = 'tag-option';
+              div.textContent = opt.text;
+              div.dataset.value = opt.value;
+              div.addEventListener('click', () => {
+                opt.selected = true;
+                searchInput.value = '';
+                renderTags();
+                dropdown.classList.remove('show');
+              });
+              dropdown.appendChild(div);
+            });
+            
+            function renderTags() {
+              // Remove old tags
+              inputBox.querySelectorAll('.selected-tag').forEach(el => el.remove());
+              
+              // Add selected tags
+              Array.from(selectEl.options).filter(o => o.selected).forEach(opt => {
+                const tag = document.createElement('div');
+                tag.className = 'selected-tag';
+                tag.innerHTML = `${opt.text} <i class="ph ph-x"></i>`;
+                
+                tag.querySelector('i').addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  opt.selected = false;
+                  renderTags();
+                });
+                
+                inputBox.insertBefore(tag, searchInput);
+              });
+              
+              // Hide selected options from dropdown
+              Array.from(dropdown.children).forEach(child => {
+                const isSelected = Array.from(selectEl.selectedOptions).some(o => o.value === child.dataset.value);
+                child.style.display = isSelected ? 'none' : '';
+              });
+              
+              selectEl.dispatchEvent(new Event('change'));
+            }
+            
+            inputBox.addEventListener('click', () => {
+              searchInput.focus();
+              dropdown.classList.add('show');
+              filterDropdown();
+            });
+            
+            searchInput.addEventListener('input', () => {
+              dropdown.classList.add('show');
+              filterDropdown();
+            });
+            
+            function filterDropdown() {
+              const term = searchInput.value.toLowerCase();
+              Array.from(dropdown.children).forEach(child => {
+                const isSelected = Array.from(selectEl.selectedOptions).some(o => o.value === child.dataset.value);
+                if (isSelected) return;
+                
+                if (child.textContent.toLowerCase().includes(term)) {
+                  child.style.display = '';
+                } else {
+                  child.style.display = 'none';
+                }
+              });
+            }
+            
+            document.addEventListener('click', (e) => {
+              if (customSelect && !customSelect.contains(e.target)) {
+                dropdown.classList.remove('show');
+              }
+            });
+            
+            const form = document.getElementById('addForm');
+            if (form) {
+              form.addEventListener('reset', () => {
+                setTimeout(renderTags, 10);
+              });
+            }
+            
+            window.syncTagChips = renderTags;
+          });
+        </script>
+      </div>
+    </div>
+
+    <!-- Modal Recommandations -->
+    <div class="modal-overlay" id="matchesModal">
+      <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+          <h2 class="modal-title">Candidats Compatibles</h2>
+          <button class="btn-icon" id="closeMatchesModalBtn">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        <div style="margin-bottom: 1rem; color: var(--text-secondary); font-size: 0.95rem;">
+          Voici les profils les plus pertinents pour cette opportunité, calculés par l'algorithme KAIRO.
+        </div>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Candidat</th>
+                <th>Domaine</th>
+                <th>Localisation</th>
+                <th>Score de Matching</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="matchesTableBody">
+              <tr>
+                <td colspan="5" class="text-center text-secondary py-8">
+                  <i class="ph ph-spinner ph-spin text-2xl text-primary"></i>
+                  <p class="mt-2">Recherche des meilleurs profils...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="flex justify-end gap-3 mt-6 border-t pt-4" style="border-color: var(--border-color-light);">
+          <button type="button" class="btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary);" id="cancelMatchesBtn">Fermer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auth check -->
+    <script type="module" src="./src/js/auth.ts"></script>
+    <script type="module" src="./src/js/modules/opportunities.ts"></script>
+  </body>
+</html>

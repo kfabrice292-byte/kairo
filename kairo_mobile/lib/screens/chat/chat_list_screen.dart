@@ -4,9 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/providers/chat_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:kairo_mobile/core/theme/app_colors.dart';
+import '../../widgets/empty_state_widget.dart';
 
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
@@ -17,50 +19,21 @@ class ChatListScreen extends StatelessWidget {
     final myUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Messagerie',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
       ),
       body: chatProvider.chats.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      PhosphorIcons.chatTeardropText(
-                        PhosphorIconsStyle.duotone,
-                      ),
-                      size: 64,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Aucune conversation',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Trouvez des membres de la communauté\net commencez à discuter !',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 15, color: Colors.grey),
-                  ),
-                ],
+          ? const Center(
+              child: EmptyStateWidget(
+                title: 'Bienvenue sur la plateforme !',
+                message: 'Commencez une discussion et découvrez la communauté.',
+                icon: PhosphorIconsLight.chatTeardropText,
               ),
             )
           : ListView.builder(
@@ -94,7 +67,7 @@ class ChatListScreen extends StatelessWidget {
                     color: Colors.red,
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 20),
-                    child: const Icon(Icons.delete, color: Colors.white),
+                    child: Icon(Icons.delete, color: Theme.of(context).cardColor),
                   ),
                   onDismissed: (direction) {
                     context.read<ChatProvider>().deleteChat(chat.id);
@@ -113,11 +86,24 @@ class ChatListScreen extends StatelessWidget {
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          otherUserName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                        Expanded(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  otherUserName,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              // Supprimé : FutureBuilder pour le badge vérifié (Requête N+1)
+                              // Le badge vérifié peut être affiché uniquement sur le profil complet
+                              // ou ajouté au modèle de chat (ChatModel) lors de sa création.
+                            ],
                           ),
                         ),
                         Text(
@@ -147,7 +133,7 @@ class ChatListScreen extends StatelessWidget {
                               color: isOtherTyping
                                   ? AppColors.primary
                                   : (unreadCount > 0
-                                        ? Colors.black87
+                                        ? Theme.of(context).textTheme.bodyLarge?.color
                                         : Colors.grey.shade600),
                               fontWeight: (unreadCount > 0 || isOtherTyping)
                                   ? FontWeight.w600
@@ -168,8 +154,8 @@ class ChatListScreen extends StatelessWidget {
                             ),
                             child: Text(
                               unreadCount.toString(),
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: Theme.of(context).cardColor,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),

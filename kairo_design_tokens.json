@@ -1,0 +1,47 @@
+{
+  "name": "Kairo Design System",
+  "version": "1.0.0",
+  "theme": {
+    "colors": {
+      "primary": {
+        "light": "#FFF7ED",
+        "main": "#F97316",
+        "dark": "#EA580C"
+      },
+      "secondary": {
+        "main": "#1E293B"
+      },
+      "status": {
+        "success": "#10B981",
+        "error": "#EF4444",
+        "warning": "#F59E0B",
+        "info": "#3B82F6"
+      },
+      "lightMode": {
+        "background": "#FAFAFA",
+        "surface": "#FFFFFF",
+        "textPrimary": "#111827",
+        "textSecondary": "#6B7280",
+        "divider": "#E5E7EB"
+      },
+      "darkMode": {
+        "background": "#14110F",
+        "surface": "#221C18",
+        "textPrimary": "#FDFBF7",
+        "textSecondary": "#AFA39C",
+        "divider": "#3B322D"
+      }
+    },
+    "typography": {
+      "fontFamily": {
+        "heading": "Outfit, sans-serif",
+        "body": "Inter, sans-serif"
+      }
+    },
+    "animation": {
+      "duration": {
+        "standard": "300ms"
+      }
+    }
+  }
+}

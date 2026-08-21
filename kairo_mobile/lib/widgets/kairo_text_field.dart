@@ -25,7 +25,7 @@ class KairoTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -42,7 +42,7 @@ class KairoTextField extends StatelessWidget {
         keyboardType: keyboardType,
         maxLines: maxLines,
         maxLength: maxLength,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useJobStore } from '../store/useJobStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { X, ChevronRight, ChevronLeft, CheckCircle2 } from 'lucide-react';
 
 interface NewJobModalProps {
@@ -8,6 +9,7 @@ interface NewJobModalProps {
 }
 
 export function NewJobModal({ isOpen, onClose }: NewJobModalProps) {
+  const { profile } = useAuthStore();
   const { createJob } = useJobStore();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,6 +29,7 @@ export function NewJobModal({ isOpen, onClose }: NewJobModalProps) {
   const [expectedStartDate, setExpectedStartDate] = useState("");
   const [openDate, setOpenDate] = useState("");
   const [closeDate, setCloseDate] = useState("");
+  const [clientName, setClientName] = useState("");
 
   const [educationLevel, setEducationLevel] = useState("Bac+3");
   const [minExperience, setMinExperience] = useState(0);
@@ -65,6 +68,35 @@ export function NewJobModal({ isOpen, onClose }: NewJobModalProps) {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     
+    // Vérification Monétisation B2B
+    const confirmPayment = window.confirm("Monétisation B2B :\nVous n'avez pas d'abonnement 'Cabinet' actif (3000 FCFA/mois).\nLa publication de cette offre coûte 1000 FCFA (Paiement Unique).\n\nVoulez-vous procéder au paiement sécurisé ?");
+    if (!confirmPayment) {
+        setIsSubmitting(false);
+        return; // Annulation du paiement et de la publication
+    }
+
+    try {
+        const response = await fetch('https://us-central1-kairo-522c2.cloudfunctions.net/initiateAshtechPayment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                uid: profile?.uid || 'b2b-user',
+                type: 'b2b_job_post',
+                name: profile?.name || 'Entreprise',
+                phone: (profile as any)?.phone || '0000000000'
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.checkout_url) {
+                window.open(data.checkout_url, '_blank');
+            }
+        }
+    } catch (e) {
+        console.error("Échec API de paiement", e);
+    }
+    
     const mandatorySkills = mandatorySkillsInput.split(',').map(s => s.trim()).filter(s => s);
     const niceToHaveSkills = niceToHaveSkillsInput.split(',').map(s => s.trim()).filter(s => s);
     const languages = languagesInput.split(',').map(s => s.trim()).filter(s => s);
@@ -80,6 +112,7 @@ export function NewJobModal({ isOpen, onClose }: NewJobModalProps) {
       city,
       location: `${city}, ${country}`,
       remoteWork,
+      clientName,
       description,
       salaryRange,
       expectedStartDate: expectedStartDate ? new Date(expectedStartDate) : undefined,
@@ -99,8 +132,9 @@ export function NewJobModal({ isOpen, onClose }: NewJobModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-3xl flex flex-col max-h-[90vh] overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-md flex items-center justify-center z-50 p-4">
+      <div className="glass-card rounded-2xl w-full max-w-3xl flex flex-col max-h-[90vh] overflow-hidden shadow-2xl relative">
+        <div className="absolute top-[-20%] right-[-10%] w-[300px] h-[300px] bg-primary/20 rounded-full mix-blend-overlay filter blur-[80px] opacity-50 pointer-events-none"></div>
         
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
@@ -125,6 +159,10 @@ export function NewJobModal({ isOpen, onClose }: NewJobModalProps) {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Intitulé du poste *</label>
                   <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none" placeholder="Ex: Développeur Full-Stack" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nom du Client (Si Cabinet / Agence)</label>
+                  <input type="text" value={clientName} onChange={e => setClientName(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none" placeholder="Ex: TechCorp (Masqué aux candidats)" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Département / Service</label>

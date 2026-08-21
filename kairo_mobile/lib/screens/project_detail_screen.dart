@@ -1,11 +1,13 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../core/models/project_model.dart';
-import '../core/providers/project_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kairo_mobile/core/theme/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../core/models/project_model.dart';
+import '../core/providers/project_provider.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
   final ProjectModel project;
@@ -30,7 +32,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Nouvelle tâche'),
+          title: Text('Nouvelle tâche'),
           content: TextField(
             controller: _taskTitleController,
             decoration: const InputDecoration(hintText: 'Titre de la tâche'),
@@ -39,7 +41,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text('Annuler'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -59,7 +61,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 Navigator.pop(context);
                 _taskTitleController.clear();
               },
-              child: const Text('Ajouter'),
+              child: Text('Ajouter'),
             ),
           ],
         );
@@ -91,15 +93,15 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          iconTheme: const IconThemeData(color: Colors.black87),
+          iconTheme: IconThemeData(color: Theme.of(context).textTheme.bodyLarge?.color),
           title: Text(
             project.title,
-            style: const TextStyle(
-              color: Colors.black87,
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -167,7 +169,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Description',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
@@ -179,7 +181,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           const SizedBox(height: 24),
 
           if (project.goals.isNotEmpty) ...[
-            const Text(
+            Text(
               'Objectifs',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -191,19 +193,31 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             const SizedBox(height: 24),
           ],
 
-          const Text(
+          Text(
             'Membres',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           _buildMemberRow(project.founderName, true),
           ...project.members.map(
-            (mId) => _buildMemberRow('Membre (ID: $mId)', false),
+            (mId) => _buildFutureMemberRow(mId, false),
           ),
           const SizedBox(height: 24),
+          
+          if (isFounder && project.joinRequests.isNotEmpty) ...[
+            Text(
+              'Demandes en attente',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange),
+            ),
+            const SizedBox(height: 12),
+            ...project.joinRequests.map(
+              (reqId) => _buildJoinRequestRow(reqId, project.id, context),
+            ),
+            const SizedBox(height: 24),
+          ],
 
           if (project.externalLinks.isNotEmpty) ...[
-            const Text(
+            Text(
               'Liens utiles',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -211,10 +225,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             ...project.externalLinks.map(
               (link) => ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.link, color: AppColors.primary),
+                leading: Icon(Icons.link, color: AppColors.primary),
                 title: Text(
                   link,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.blue,
                     decoration: TextDecoration.underline,
                   ),
@@ -252,10 +266,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               ),
               child: Text(
                 hasRequested ? 'Demande en attente' : 'Rejoindre le projet',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                 ),
               ),
             ),
@@ -265,7 +279,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     );
   }
 
-  Widget _buildMemberRow(String name, bool isFounder) {
+  Widget _buildMemberRow(String name, bool isFounder, {String? avatarUrl}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -274,15 +288,45 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             backgroundColor: isFounder
                 ? AppColors.primary.withValues(alpha: 0.2)
                 : Colors.grey.shade200,
-            child: Icon(
+            backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty ? CachedNetworkImageProvider(avatarUrl) : null,
+            child: avatarUrl == null || avatarUrl.isEmpty ? Icon(
               PhosphorIcons.user(),
               color: isFounder ? AppColors.primary : Colors.grey.shade600,
-            ),
+            ) : null,
           ),
           const SizedBox(width: 12),
-          Text(
-            name,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+          Expanded(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    name,
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                FutureBuilder<DocumentSnapshot?>(
+                  future: FirebaseFirestore.instance.collection('users').where('name', isEqualTo: name).limit(1).get().then((value) => value.docs.firstOrNull),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData && snapshot.data != null && snapshot.data!.exists) {
+                      final data = snapshot.data!.data() as Map<String, dynamic>;
+                      if (data['isVerified'] == true) {
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child: Icon(
+                            PhosphorIcons.sealCheck(PhosphorIconsStyle.fill),
+                            color: AppColors.primary,
+                            size: 16,
+                          ),
+                        );
+                      }
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ],
+            ),
           ),
           if (isFounder) ...[
             const SizedBox(width: 8),
@@ -292,10 +336,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 color: AppColors.primary,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text(
+              child: Text(
                 'Fondateur',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                 ),
@@ -304,6 +348,66 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildFutureMemberRow(String userId, bool isFounder) {
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return _buildMemberRow('Utilisateur inconnu', isFounder);
+        }
+        final data = snapshot.data!.data() as Map<String, dynamic>;
+        final name = data['name'] ?? 'Utilisateur';
+        final photoUrl = data['photoURL'] as String?;
+        return _buildMemberRow(name, isFounder, avatarUrl: photoUrl);
+      },
+    );
+  }
+
+  Widget _buildJoinRequestRow(String userId, String projectId, BuildContext context) {
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const SizedBox.shrink();
+        }
+        final data = snapshot.data!.data() as Map<String, dynamic>;
+        final name = data['name'] ?? 'Utilisateur';
+        final photoUrl = data['photoURL'] as String?;
+        
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: Colors.grey.shade200,
+                backgroundImage: photoUrl != null && photoUrl.isNotEmpty ? CachedNetworkImageProvider(photoUrl) : null,
+                child: photoUrl == null || photoUrl.isEmpty ? Icon(
+                  PhosphorIcons.user(),
+                  color: Colors.grey.shade600,
+                ) : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  name,
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.check_circle, color: Colors.green),
+                onPressed: () => context.read<ProjectProvider>().acceptJoinRequest(projectId, userId),
+              ),
+              IconButton(
+                icon: Icon(Icons.cancel, color: Colors.red),
+                onPressed: () => context.read<ProjectProvider>().refuseJoinRequest(projectId, userId),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -329,10 +433,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             padding: const EdgeInsets.all(16.0),
             child: ElevatedButton.icon(
               onPressed: () => _showAddTaskDialog(context),
-              icon: const Icon(Icons.add),
-              label: const Text('Ajouter une tâche'),
+              icon: Icon(Icons.add),
+              label: Text('Ajouter une tâche'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                 foregroundColor: AppColors.primary,
                 elevation: 0,
                 side: const BorderSide(color: AppColors.primary),
@@ -389,7 +493,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Text(
             '$title (${tasks.length})',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
         if (tasks.isEmpty)
@@ -408,24 +512,17 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             margin: const EdgeInsets.only(bottom: 8),
             elevation: 0,
             shape: RoundedRectangleBorder(
-              side: BorderSide(color: Colors.grey.shade300),
+              side: BorderSide(color: Theme.of(context).dividerColor),
               borderRadius: BorderRadius.circular(8),
             ),
             child: ListTile(
               title: Text(
                 task['title'] ?? 'Sans titre',
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
               trailing: isCollaborator
                   ? PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert),
-                      onSelected: (newStatus) {
-                        context.read<ProjectProvider>().updateTaskStatus(
-                          projectId,
-                          task['id'],
-                          newStatus,
-                        );
-                      },
+                      icon: Icon(Icons.more_vert),
                       itemBuilder: (context) => [
                         if (currentStatus != 'todo')
                           const PopupMenuItem(
@@ -442,7 +539,23 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             value: 'done',
                             child: Text('Terminé'),
                           ),
+                        const PopupMenuDivider(),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Text('Supprimer', style: TextStyle(color: Colors.red)),
+                        ),
                       ],
+                      onSelected: (action) {
+                        if (action == 'delete') {
+                          context.read<ProjectProvider>().deleteTask(projectId, task['id']);
+                        } else {
+                          context.read<ProjectProvider>().updateTaskStatus(
+                            projectId,
+                            task['id'],
+                            action,
+                          );
+                        }
+                      },
                     )
                   : null,
             ),

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KAIRO - Détails Utilisateur</title>
+    <link rel="icon" type="image/png" href="./public/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="./src/css/main.css">
+    <style>
+      .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 2rem;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        margin-bottom: 2rem;
+      }
+      .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--border-color-light);
+      }
+      .profile-info h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .profile-info p {
+        margin: 0.25rem 0;
+        color: var(--text-secondary);
+      }
+      
+      .tabs {
+        display: flex;
+        gap: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 1.5rem;
+      }
+      .tab-btn {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-weight: 500;
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+      }
+      .tab-btn:hover {
+        color: var(--text-primary);
+      }
+      .tab-btn.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      
+      .content-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      .content-card-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text-tertiary);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <i class="ph-fill ph-rocket-launch"></i> Kaïro Admin
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="index.html" class="nav-item">
+            <i class="ph ph-squares-four"></i> Dashboard
+          </a>
+          <a href="users.html" class="nav-item active">
+            <i class="ph ph-users"></i> Utilisateurs
+          </a>
+          <a href="verifications.html" class="nav-item">
+            <i class="ph ph-seal-check"></i> Vérifications
+          </a>
+          <a href="companies.html" class="nav-item">
+            <i class="ph ph-buildings"></i> Entreprises
+          </a>
+                    <a href="agencies.html" class="nav-item">
+            <i class="ph ph-buildings"></i> Agences
+          </a>
+          <a href="subscriptions.html" class="nav-item">
+            <i class="ph ph-credit-card"></i> Abonnements
+          </a>
+          <a href="applications.html" class="nav-item">
+            <i class="ph ph-file-text"></i> Candidatures
+          </a>
+          <a href="opportunities.html" class="nav-item">
+            <i class="ph ph-briefcase"></i> Opportunités
+          </a>
+          <a href="publications.html" class="nav-item">
+            <i class="ph ph-newspaper"></i> Publications
+          </a>
+          <a href="projects.html" class="nav-item">
+            <i class="ph ph-lightbulb"></i> Projets
+          </a>
+          <a href="reports.html" class="nav-item">
+            <i class="ph ph-warning-circle"></i> Signalements
+          </a>
+          <a href="settings.html" class="nav-item">
+            <i class="ph ph-gear"></i> Paramètres
+          </a>
+        </nav>
+      </aside>
+
+      <div class="main-wrapper">
+        <header class="topbar">
+          <div class="topbar-left">
+            <a href="users.html" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+              <i class="ph ph-arrow-left"></i> Retour
+            </a>
+          </div>
+          <div class="topbar-right">
+            <div class="user-profile">
+              <div class="user-avatar" id="topbar-user-avatar">A</div>
+              <span id="topbar-user-name" class="font-medium">Admin</span>
+            </div>
+            <button id="logoutBtn" class="btn-icon" title="Se déconnecter">
+              <i class="ph ph-sign-out"></i>
+            </button>
+          </div>
+        </header>
+
+        <main class="main-content">
+          <div id="loadingIndicator" class="text-center" style="padding: 4rem;">
+            <i class="ph ph-spinner ph-spin text-3xl text-primary"></i>
+            <p class="mt-4 text-secondary">Chargement du profil...</p>
+          </div>
+
+          <div id="profileContainer" style="display: none;">
+            <!-- Profile Header -->
+            <div class="profile-header flex justify-between items-start">
+              <div class="flex gap-4 items-center">
+                <img src="https://ui-avatars.com/api/?name=User" id="detailAvatar" class="profile-avatar" alt="Avatar">
+                <div class="profile-info">
+                  <h2 id="detailName">... 
+                    <i class="ph-fill ph-seal-check text-primary" id="detailVerifiedIcon" style="display: none;"></i>
+                    <i class="ph-fill ph-star text-blue-500" id="detailPremiumIcon" style="display: none;" title="Abonné Premium"></i>
+                  </h2>
+                  <p id="detailEmail"><i class="ph ph-envelope"></i> ...</p>
+                  <p id="detailJob"><i class="ph ph-briefcase"></i> ...</p>
+                  <p id="detailLocation"><i class="ph ph-map-pin"></i> ...</p>
+                </div>
+              </div>
+              <div class="profile-actions flex-col gap-2 flex">
+                <button id="togglePremiumBtn" class="btn" style="background-color: var(--info); color: white; border: none;">
+                  <i class="ph-fill ph-star"></i> <span id="togglePremiumText">Accorder Premium</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+              <button class="tab-btn active" data-target="tab-posts">Publications Créées</button>
+              <button class="tab-btn" data-target="tab-likes">Publications Aimées</button>
+              <button class="tab-btn" data-target="tab-projects">Projets</button>
+            </div>
+
+            <!-- Tab Content: Posts -->
+            <div class="tab-content active" id="tab-posts">
+              <div id="postsList">
+                <p class="text-secondary text-center p-4">Chargement...</p>
+              </div>
+            </div>
+
+            <!-- Tab Content: Likes -->
+            <div class="tab-content" id="tab-likes">
+              <div id="likesList">
+                <p class="text-secondary text-center p-4">Chargement...</p>
+              </div>
+            </div>
+
+            <!-- Tab Content: Projects -->
+            <div class="tab-content" id="tab-projects">
+              <div id="projectsList">
+                <p class="text-secondary text-center p-4">Chargement...</p>
+              </div>
+            </div>
+            
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Auth check -->
+    <script type="module" src="./src/js/auth.ts"></script>
+    <script type="module" src="./src/js/modules/user-detail.ts"></script>
+  </body>
+</html>

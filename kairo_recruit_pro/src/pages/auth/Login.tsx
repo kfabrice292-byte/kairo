@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { Link, useNavigate } from "react-router-dom";
-import { Briefcase, Loader2 } from "lucide-react";
+import { Briefcase, Loader2, LogIn } from "lucide-react";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -21,94 +21,87 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center text-primary">
-          <Briefcase className="w-12 h-12" />
-        </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900 dark:text-white">
-          Kaïro Pro
-        </h2>
-        <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
-          Connectez-vous à votre espace recruteur
-        </p>
-      </div>
+    <div className="min-h-screen bg-slate-50 relative flex items-center justify-center p-4 font-sans overflow-hidden">
+      {/* Decorative Background */}
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-100/50 via-slate-50 to-purple-50/30 pointer-events-none"></div>
+      
+      {/* Abstract Shapes */}
+      <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white dark:bg-slate-900 py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-slate-200 dark:border-slate-800">
+      <div className="w-full max-w-md z-10 mx-auto">
+        
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/50 backdrop-blur-sm border border-white shadow-sm text-orange-500">
+            <Briefcase size={32} />
+          </div>
+        </div>
+
+        <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-slate-200/50 p-8 sm:p-10 border border-white/50 relative overflow-hidden">
+          {/* Top Shine */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-400 to-purple-500"></div>
+
+          <h2 className="text-3xl font-black text-slate-900 mb-2 text-center">Bienvenue</h2>
+          <p className="text-slate-500 text-center font-medium mb-8">Connectez-vous à votre espace Pro</p>
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 p-3 rounded-md text-sm">
+              <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl text-sm font-medium flex items-center gap-3">
+                <span className="w-2 h-2 rounded-full bg-red-500"></span>
                 {error}
               </div>
             )}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 Adresse Email
               </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-primary focus:border-primary dark:bg-slate-950 dark:text-white sm:text-sm"
-                />
-              </div>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="jean@entreprise.com"
+                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium"
+              />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 Mot de passe
               </label>
-              <div className="mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-primary focus:border-primary dark:bg-slate-950 dark:text-white sm:text-sm"
-                />
-              </div>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium"
+              />
             </div>
 
-            <div>
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-colors"
+                className="w-full flex justify-center items-center gap-2 py-4 px-4 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-500/30 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-70"
               >
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Se connecter"}
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                  <>
+                    Se connecter
+                    <LogIn size={18} />
+                  </>
+                )}
               </button>
             </div>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-300 dark:border-slate-700" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-slate-900 text-slate-500">
-                  Pas encore de compte ?
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <Link
-                to="/register"
-                className="w-full flex justify-center py-2 px-4 border border-slate-300 dark:border-slate-700 rounded-md shadow-sm text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-              >
-                Créer un compte entreprise
+          <div className="mt-8 text-center">
+            <p className="text-sm font-medium text-slate-500">
+              Pas encore de compte ?{" "}
+              <Link to="/register" className="text-orange-600 font-bold hover:text-orange-700 underline decoration-orange-200 underline-offset-4">
+                Créer un compte
               </Link>
-            </div>
+            </p>
           </div>
         </div>
       </div>

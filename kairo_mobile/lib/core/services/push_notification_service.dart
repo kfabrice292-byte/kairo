@@ -107,6 +107,13 @@ class PushNotificationService {
     }
   }
 
+  static Future<void> updateToken() async {
+    String? token = await _firebaseMessaging.getToken();
+    if (token != null) {
+      await _saveTokenToDatabase(token);
+    }
+  }
+
   static Future<void> _saveTokenToDatabase(String token) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -158,16 +165,21 @@ class PushNotificationService {
     if (data.isNotEmpty && rootNavigatorKey.currentContext != null) {
       debugPrint("Handling data: $data");
       final type = data['type'];
+      final relatedId = data['relatedId'];
 
       switch (type) {
         case 'chat':
           appRouter.go('/chat_list');
           break;
         case 'network':
-          appRouter.go('/main'); // On peut forcer l'index plus tard
-          break;
-        case 'community':
           appRouter.go('/main');
+          break;
+        case 'post':
+          appRouter.go('/main');
+          break;
+        case 'opportunity':
+          // Redirige vers la page des opportunités (index 2 du MainScaffold)
+          appRouter.go('/main', extra: {'tab': 2}); 
           break;
         default:
           appRouter.go('/notifications');

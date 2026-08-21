@@ -1,0 +1,39 @@
+{
+  "secteurs": [
+    {
+      "id": "sec_01",
+      "nom": "Mines & Extraction",
+      "description": "Secteur extractif (or, zinc) très dynamique au Burkina Faso.",
+      "tendances": ["Numérisation des sites", "RSE et relations communautaires", "Sécurité de l'environnement"],
+      "competences_phares": ["HSE (Hygiène Sécurité Environnement)", "Logistique complexe", "Géologie"]
+    },
+    {
+      "id": "sec_02",
+      "nom": "ONG & Développement",
+      "description": "Organisations Internationales et ONG locales œuvrant pour le développement et l'humanitaire.",
+      "tendances": ["Résilience communautaire", "Digitalisation du suivi (M&E)", "Action d'urgence"],
+      "competences_phares": ["Gestion de projet", "Suivi et Évaluation", "Rédaction de requêtes de financement", "Multilinguisme"]
+    },
+    {
+      "id": "sec_03",
+      "nom": "Télécommunications",
+      "description": "Opérateurs mobiles, FAI et infrastructures réseaux.",
+      "tendances": ["Déploiement fibre/4G/5G", "Mobile Money", "Cybersécurité"],
+      "competences_phares": ["Réseaux et Télécoms", "Développement Mobile", "Service Client"]
+    },
+    {
+      "id": "sec_04",
+      "nom": "Banque & Finance",
+      "description": "Institutions financières, microfinance et Fintech.",
+      "tendances": ["Inclusion financière", "Paiements digitaux", "Conformité (Compliance)"],
+      "competences_phares": ["Analyse de risque", "Comptabilité", "Relation client (B2B/B2C)"]
+    },
+    {
+      "id": "sec_05",
+      "nom": "Agro-industrie",
+      "description": "Transformation des produits agricoles locaux.",
+      "tendances": ["Certification bio", "Circuits courts", "Mécanisation"],
+      "competences_phares": ["Agronomie", "Contrôle qualité", "Logistique d'exportation"]
+    }
+  ]
+}

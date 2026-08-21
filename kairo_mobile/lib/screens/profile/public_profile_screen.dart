@@ -5,8 +5,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/models/user_model.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/providers/network_provider.dart';
 import '../../core/providers/chat_provider.dart';
 import '../../core/providers/feed_provider.dart';
+import '../../core/providers/settings_provider.dart';
+import '../../core/services/push_notification_service.dart';
 import '../feed_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:kairo_mobile/core/theme/app_colors.dart';
@@ -40,6 +43,21 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           _user = UserModel.fromFirestore(doc);
           _isLoading = false;
         });
+        
+        if (mounted) {
+          final currentUser = context.read<AuthProvider>().userModel;
+          if (currentUser != null && currentUser.uid != widget.userId) {
+            FirebaseFirestore.instance.collection('notifications').add({
+              'userId': widget.userId,
+              'title': 'Nouvelle visite de profil',
+              'body': '${currentUser.name} a visité votre profil',
+              'type': 'profile_visit',
+              'relatedId': currentUser.uid,
+              'createdAt': FieldValue.serverTimestamp(),
+              'isRead': false,
+            });
+          }
+        }
       } else {
         setState(() => _isLoading = false);
       }
@@ -50,9 +68,16 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   }
 
   void _handleNetworkAction(BuildContext context, String action) async {
-    final auth = context.read<AuthProvider>();
+    final network = context.read<NetworkProvider>();
 
-    if (action == 'message') {
+    if (action == 'connected') {
+      // Pour l'instant, on ne fait rien ou on affiche un message. 
+      // La messagerie entre amis est désactivée.
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vous êtes connectés avec cet utilisateur.')),
+      );
+      return;
+    } else if (action == 'message') {
       try {
         final chatId = await context.read<ChatProvider>().createOrGetChat(
           _user!.uid,
@@ -76,29 +101,35 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         );
       }
     } else if (action == 'send_request') {
-      await auth.sendNetworkRequest(_user!.uid);
+      await network.sendRequest(_user!.uid);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Invitation envoyée à ${_user!.name} !'),
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: AppColors.success,
           ),
         );
       }
     } else if (action == 'accept_request') {
-      await auth.acceptNetworkRequest(_user!.uid);
+      final conn = network.getConnectionWith(_user!.uid);
+      if (conn != null) {
+        await network.acceptRequest(conn.id);
+      }
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               'Vous êtes maintenant connecté avec ${_user!.name} !',
             ),
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: AppColors.success,
           ),
         );
       }
     } else if (action == 'cancel_request') {
-      await auth.cancelOrRejectNetworkRequest(_user!.uid);
+      final conn = network.getConnectionWith(_user!.uid);
+      if (conn != null) {
+        await network.cancelRequest(conn.id); // Or reject
+      }
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -122,18 +153,21 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
     if (_user == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Profil')),
+        appBar: AppBar(title: Text('Profil')),
         body: const Center(child: Text('Utilisateur introuvable.')),
       );
     }
 
     final theme = Theme.of(context);
-    final myUser = context.watch<AuthProvider>().userModel;
-    final isMe = myUser?.uid == _user!.uid;
-    final isConnected = myUser?.connections.contains(_user!.uid) ?? false;
-    final hasSentRequest = myUser?.sentRequests.contains(_user!.uid) ?? false;
-    final hasReceivedRequest =
-        myUser?.receivedRequests.contains(_user!.uid) ?? false;
+    final currentUserId = context.watch<AuthProvider>().userModel?.uid;
+    final isMe = currentUserId == _user!.uid;
+    
+    final network = context.watch<NetworkProvider>();
+    final connection = network.getConnectionWith(_user!.uid);
+
+    final isConnected = connection?.status == 'accepted';
+    final hasSentRequest = connection?.status == 'pending' && connection?.senderId == currentUserId;
+    final hasReceivedRequest = connection?.status == 'pending' && connection?.receiverId == currentUserId;
 
     String action = 'send_request';
     String label = 'Envoyer une invitation';
@@ -142,11 +176,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     Color fgColor = Colors.white;
 
     if (isConnected) {
-      action = 'message';
-      label = 'Envoyer un message';
-      icon = PhosphorIcons.chatTeardropText();
+      action = 'connected';
+      label = 'Connecté(e)';
+      icon = PhosphorIcons.checkCircle();
       bgColor = Colors.white;
-      fgColor = Colors.black87;
+      fgColor = AppColors.primary;
     } else if (hasSentRequest) {
       action = 'cancel_request';
       label = 'Invitation envoyée (Annuler)';
@@ -157,7 +191,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       action = 'accept_request';
       label = 'Accepter l\'invitation';
       icon = PhosphorIcons.checkCircle();
-      bgColor = const Color(0xFF10B981); // Emerald
+      bgColor = AppColors.success; // Emerald
       fgColor = Colors.white;
     }
 
@@ -166,7 +200,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       appBar: AppBar(
         title: Text(
           _user!.name,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         backgroundColor: theme.appBarTheme.backgroundColor,
         foregroundColor: theme.appBarTheme.foregroundColor,
@@ -188,7 +222,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             const SizedBox(height: 16),
             Text(
               _user!.name,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             if (_user!.fieldOfStudy.isNotEmpty) ...[
               const SizedBox(height: 4),
@@ -214,7 +248,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                     backgroundColor: bgColor,
                     foregroundColor: fgColor,
                     side: isConnected
-                        ? BorderSide(color: Colors.grey.shade300)
+                        ? BorderSide(color: Theme.of(context).dividerColor)
                         : null,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -225,7 +259,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   icon: Icon(icon, size: 20),
                   label: Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
@@ -272,7 +306,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                       children: [
                         Text(
                           skill.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
                             fontSize: 13,
@@ -285,12 +319,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
                             skill.level,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 10,
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
@@ -323,7 +357,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   ),
                   title: Text(
                     exp.title,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   subtitle: Text('${exp.organization} • ${exp.period}'),
                 );
@@ -340,7 +374,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                     .toList();
 
                 if (userPosts.isEmpty) {
-                  return const Text(
+                  return Text(
                     "Aucun partage pour le moment.",
                     style: TextStyle(
                       color: Colors.grey,

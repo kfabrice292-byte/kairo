@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/theme_provider.dart';
+import '../../core/localization/app_localizations.dart';
 import 'legal_screen.dart';
 import 'support_screen.dart';
 import 'security_screen.dart';
@@ -22,14 +23,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    final settingsProvider = context.watch<SettingsProvider>();
     final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          'Paramètres',
+        title: Text(
+          context.tr('settings_title'),
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
         ),
         backgroundColor: theme.appBarTheme.backgroundColor,
@@ -41,14 +41,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         children: [
           // Section Apparence
-          _buildSectionHeader('Apparence', theme),
+          _buildSectionHeader(context.tr('appearance'), theme),
           _buildCardGroup(
             theme,
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
@@ -59,7 +59,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Thème',
+                          context.tr('theme'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -68,171 +68,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: SegmentedButton<ThemeMode>(
-                        segments: const [
-                          ButtonSegment(
-                            value: ThemeMode.light,
-                            label: Text('Clair'),
-                            icon: Icon(Icons.light_mode, size: 18),
-                          ),
-                          ButtonSegment(
-                            value: ThemeMode.dark,
-                            label: Text('Sombre'),
-                            icon: Icon(Icons.dark_mode, size: 18),
-                          ),
-                          ButtonSegment(
-                            value: ThemeMode.system,
-                            label: Text('Système'),
-                            icon: Icon(
-                              Icons.settings_system_daydream,
-                              size: 18,
-                            ),
-                          ),
-                        ],
-                        selected: {themeProvider.themeMode},
-                        onSelectionChanged: (Set<ThemeMode> newSelection) {
-                          themeProvider.setThemeMode(newSelection.first);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-
-          // Section Préférences
-          _buildSectionHeader('Préférences', theme),
-          _buildCardGroup(
-            theme,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          PhosphorIcons.translate(),
-                          size: 20,
-                          color: AppColors.primary,
+                    DropdownButton<ThemeMode>(
+                      value: themeProvider.themeMode,
+                      underline: const SizedBox(),
+                      dropdownColor: theme.cardColor,
+                      icon: Icon(Icons.arrow_drop_down, color: theme.iconTheme.color),
+                      onChanged: (ThemeMode? newValue) {
+                        if (newValue != null) {
+                          themeProvider.setThemeMode(newValue);
+                        }
+                      },
+                      items: [
+                        DropdownMenuItem(
+                          value: ThemeMode.light,
+                          child: Text(context.tr('light'), style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
                         ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Langue',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: theme.textTheme.bodyLarge?.color,
-                          ),
+                        DropdownMenuItem(
+                          value: ThemeMode.dark,
+                          child: Text(context.tr('dark'), style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
+                        ),
+                        DropdownMenuItem(
+                          value: ThemeMode.system,
+                          child: Text(context.tr('system'), style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: SegmentedButton<String>(
-                        segments: const [
-                          ButtonSegment(value: 'fr', label: Text('Français')),
-                          ButtonSegment(value: 'en', label: Text('English')),
-                        ],
-                        selected: {settingsProvider.language},
-                        onSelectionChanged: (Set<String> newSelection) {
-                          settingsProvider.setLanguage(newSelection.first);
-                        },
-                      ),
-                    ),
                   ],
                 ),
               ),
-              const Divider(height: 1),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          PhosphorIcons.lockKey(),
-                          size: 20,
-                          color: AppColors.primary,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Confidentialité du profil',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: theme.textTheme.bodyLarge?.color,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: SegmentedButton<String>(
-                        segments: const [
-                          ButtonSegment(value: 'public', label: Text('Public')),
-                          ButtonSegment(
-                            value: 'connections',
-                            label: Text('Connexions'),
-                          ),
-                          ButtonSegment(value: 'private', label: Text('Privé')),
-                        ],
-                        selected: {settingsProvider.privacy},
-                        onSelectionChanged: (Set<String> newSelection) {
-                          settingsProvider.setPrivacy(newSelection.first);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
 
-          const SizedBox(height: 24),
-
-          // Section Notifications
-          _buildSectionHeader('Notifications', theme),
-          _buildCardGroup(
-            theme,
-            children: [
-              _buildSwitchItem(
-                title: 'Notifications Push',
-                icon: PhosphorIcons.bell(),
-                value: settingsProvider.pushNotifications,
-                onChanged: (val) => settingsProvider.setPushNotifications(val),
-                theme: theme,
-              ),
-              _buildSwitchItem(
-                title: 'Emails de communauté',
-                icon: PhosphorIcons.envelopeSimple(),
-                value: settingsProvider.emailNotifications,
-                onChanged: (val) => settingsProvider.setEmailNotifications(val),
-                theme: theme,
-                isLast: true,
-              ),
             ],
           ),
 
           const SizedBox(height: 24),
 
           // Informations légales & Support
-          _buildSectionHeader('À propos', theme),
+          _buildSectionHeader(context.tr('about'), theme),
           _buildCardGroup(
             theme,
             children: [
               _buildActionItem(
-                title: 'Aide & Support',
+                title: context.tr('help_support'),
                 icon: PhosphorIcons.question(),
                 theme: theme,
                 onTap: () {
@@ -243,15 +119,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               _buildActionItem(
-                title: 'Politique de confidentialité',
+                title: context.tr('privacy_policy'),
                 icon: PhosphorIcons.shieldCheck(),
                 theme: theme,
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const LegalScreen(
-                        title: "Politique de confidentialité",
+                      builder: (_) => LegalScreen(
+                        title: context.tr('privacy_policy'),
                         content:
                             "Nous accordons une grande importance à la confidentialité de vos données.\n\n"
                             "1. Collecte des données\n"
@@ -268,15 +144,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               _buildActionItem(
-                title: 'Conditions d\'utilisation',
+                title: context.tr('terms_of_service'),
                 icon: PhosphorIcons.fileText(),
                 theme: theme,
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const LegalScreen(
-                        title: "Conditions d'utilisation",
+                      builder: (_) => LegalScreen(
+                        title: context.tr('terms_of_service'),
                         content:
                             "Bienvenue sur Kaïro.\n\n"
                             "1. Acceptation des conditions\n"
@@ -299,12 +175,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 24),
 
           // Section Compte
-          _buildSectionHeader('Compte', theme),
+          _buildSectionHeader(context.tr('account'), theme),
           _buildCardGroup(
             theme,
             children: [
+              // TODO: [URGENT] Implémenter les réglages de confidentialité côté talent (visibilité du profil aux cabinets, mode fantôme, etc.)
+              /*
               _buildActionItem(
-                title: 'Mot de passe et Sécurité',
+                title: context.tr('privacy'),
+                icon: PhosphorIcons.eyeSlash(),
+                theme: theme,
+                onTap: () {
+                  // Navigation vers PrivacyScreen
+                },
+              ),
+              */
+              _buildActionItem(
+                title: context.tr('security'),
                 icon: PhosphorIcons.lockKey(),
                 theme: theme,
                 onTap: () {
@@ -315,7 +202,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               _buildActionItem(
-                title: 'Supprimer mon compte',
+                title: context.tr('delete_account'),
                 icon: PhosphorIcons.trash(),
                 theme: theme,
                 textColor: Colors.red,
@@ -323,7 +210,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onTap: () => _handleDeleteAccount(context),
               ),
               _buildActionItem(
-                title: 'Se déconnecter',
+                title: context.tr('logout'),
                 icon: PhosphorIcons.signOut(),
                 theme: theme,
                 textColor: AppColors.primary,
@@ -376,58 +263,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         border: Border.all(color: theme.dividerColor, width: 0.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: (Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black).withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(children: children),
-    );
-  }
-
-  Widget _buildSwitchItem({
-    required String title,
-    required IconData icon,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-    required ThemeData theme,
-    bool isLast = false,
-  }) {
-    return Column(
-      children: [
-        SwitchListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 4,
-          ),
-          title: Text(
-            title,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: theme.textTheme.bodyLarge?.color,
-            ),
-          ),
-          secondary: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: theme.dividerColor.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: theme.iconTheme.color, size: 20),
-          ),
-          value: value,
-          activeColor: AppColors.primary,
-          onChanged: onChanged,
-        ),
-        if (!isLast)
-          Divider(
-            height: 1,
-            indent: 60,
-            color: theme.dividerColor.withValues(alpha: 0.5),
-          ),
-      ],
     );
   }
 
@@ -490,18 +332,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Supprimer le compte'),
-        content: const Text(
-          'Cette action est irréversible. Toutes vos données seront perdues. Continuer ?',
-        ),
+        title: Text(context.tr('delete_account_title')),
+        content: Text(context.tr('delete_account_desc')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: Text(context.tr('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+            child: Text(context.tr('delete'), style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -527,17 +367,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Déconnexion'),
-        content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
+        title: Text(context.tr('logout_title')),
+        content: Text(context.tr('logout_desc')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: Text(context.tr('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              'Se déconnecter',
+            child: Text(
+              context.tr('logout'),
               style: TextStyle(color: AppColors.primary),
             ),
           ),
