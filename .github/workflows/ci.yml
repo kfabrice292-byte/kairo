@@ -58,6 +58,10 @@ jobs:
         working-directory: ./functions
         run: npm ci
 
+      - name: Create environment variables
+        working-directory: ./functions
+        run: echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}" > .env
+
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@master
         with:
