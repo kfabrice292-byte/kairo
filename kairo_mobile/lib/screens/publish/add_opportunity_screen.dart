@@ -4,7 +4,8 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/models/opportunity_model.dart';
 import '../../core/providers/opportunity_provider.dart';
 import '../../core/theme/app_colors.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
+import '../../core/providers/auth_provider.dart';
 
 class AddOpportunityScreen extends StatefulWidget {
   const AddOpportunityScreen({super.key});
