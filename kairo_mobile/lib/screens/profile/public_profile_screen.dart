@@ -5,12 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/models/user_model.dart';
 import '../../core/providers/auth_provider.dart';
-import '../../core/providers/network_provider.dart';
-import '../../core/providers/chat_provider.dart';
-import '../../core/providers/feed_provider.dart';
 import '../../core/providers/settings_provider.dart';
 import '../../core/services/push_notification_service.dart';
-import '../feed_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:kairo_mobile/core/theme/app_colors.dart';
 
@@ -67,79 +63,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     }
   }
 
-  void _handleNetworkAction(BuildContext context, String action) async {
-    final network = context.read<NetworkProvider>();
-
-    if (action == 'connected') {
-      // Pour l'instant, on ne fait rien ou on affiche un message. 
-      // La messagerie entre amis est désactivée.
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vous êtes connectés avec cet utilisateur.')),
-      );
-      return;
-    } else if (action == 'message') {
-      try {
-        final chatId = await context.read<ChatProvider>().createOrGetChat(
-          _user!.uid,
-          _user!.name,
-          _user!.photoURL,
-        );
-        if (context.mounted) {
-          context.push(
-            '/chat_detail',
-            extra: {
-              'chatId': chatId,
-              'otherUserId': _user!.uid,
-              'otherUserName': _user!.name,
-              'otherUserAvatar': _user!.photoURL,
-            },
-          );
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erreur lors de la création du chat.')),
-        );
-      }
-    } else if (action == 'send_request') {
-      await network.sendRequest(_user!.uid);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Invitation envoyée à ${_user!.name} !'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      }
-    } else if (action == 'accept_request') {
-      final conn = network.getConnectionWith(_user!.uid);
-      if (conn != null) {
-        await network.acceptRequest(conn.id);
-      }
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Vous êtes maintenant connecté avec ${_user!.name} !',
-            ),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      }
-    } else if (action == 'cancel_request') {
-      final conn = network.getConnectionWith(_user!.uid);
-      if (conn != null) {
-        await network.cancelRequest(conn.id); // Or reject
-      }
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invitation annulée.'),
-            backgroundColor: Colors.grey,
-          ),
-        );
-      }
-    }
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -162,38 +86,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     final currentUserId = context.watch<AuthProvider>().userModel?.uid;
     final isMe = currentUserId == _user!.uid;
     
-    final network = context.watch<NetworkProvider>();
-    final connection = network.getConnectionWith(_user!.uid);
-
-    final isConnected = connection?.status == 'accepted';
-    final hasSentRequest = connection?.status == 'pending' && connection?.senderId == currentUserId;
-    final hasReceivedRequest = connection?.status == 'pending' && connection?.receiverId == currentUserId;
-
-    String action = 'send_request';
-    String label = 'Envoyer une invitation';
-    IconData icon = PhosphorIcons.userPlus();
-    Color bgColor = AppColors.primary;
-    Color fgColor = Colors.white;
-
-    if (isConnected) {
-      action = 'connected';
-      label = 'Connecté(e)';
-      icon = PhosphorIcons.checkCircle();
-      bgColor = Colors.white;
-      fgColor = AppColors.primary;
-    } else if (hasSentRequest) {
-      action = 'cancel_request';
-      label = 'Invitation envoyée (Annuler)';
-      icon = PhosphorIcons.clock();
-      bgColor = Colors.grey.shade200;
-      fgColor = Colors.black87;
-    } else if (hasReceivedRequest) {
-      action = 'accept_request';
-      label = 'Accepter l\'invitation';
-      icon = PhosphorIcons.checkCircle();
-      bgColor = AppColors.success; // Emerald
-      fgColor = Colors.white;
-    }
+    
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -239,35 +132,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
             const SizedBox(height: 24),
 
-            if (!isMe)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => _handleNetworkAction(context, action),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: bgColor,
-                    foregroundColor: fgColor,
-                    side: isConnected
-                        ? BorderSide(color: Theme.of(context).dividerColor)
-                        : null,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  icon: Icon(icon, size: 20),
-                  label: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-
-            const SizedBox(height: 32),
+            
 
             if (_user!.bio.isNotEmpty) ...[
               _buildSectionTitle('À propos', theme),
@@ -367,29 +232,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             const SizedBox(height: 32),
             _buildSectionTitle("Partages d'expérience", theme),
             const SizedBox(height: 16),
-            Consumer<FeedProvider>(
-              builder: (context, feedProvider, _) {
-                final userPosts = feedProvider.posts
-                    .where((p) => p.authorId == _user!.uid)
-                    .toList();
 
-                if (userPosts.isEmpty) {
-                  return Text(
-                    "Aucun partage pour le moment.",
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  );
-                }
-
-                return Column(
-                  children: userPosts
-                      .map((post) => PostCard(post: post))
-                      .toList(),
-                );
-              },
-            ),
           ],
         ),
       ),

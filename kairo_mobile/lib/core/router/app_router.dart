@@ -9,7 +9,13 @@ import '../../screens/notifications_screen.dart';
 import '../../screens/search_screen.dart';
 import '../../screens/chat/chat_list_screen.dart';
 import '../../screens/chat/chat_detail_screen.dart';
+import '../../screens/profile/cv_edit_screen.dart';
+import '../../screens/profile/cover_letter_screen.dart';
+import '../../screens/profile/portfolio_edit_screen.dart';
+import '../../screens/learning_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 
 CustomTransitionPage _buildFadeTransition(Widget child) {
@@ -63,6 +69,28 @@ final GoRouter appRouter = GoRouter(
           ),
         );
       },
+    ),
+    GoRoute(
+      path: '/cv-edit',
+      pageBuilder: (context, state) {
+        final user = context.read<AuthProvider>().userModel!;
+        return _buildFadeTransition(CVEditScreen(user: user));
+      },
+    ),
+    GoRoute(
+      path: '/cover-letter',
+      pageBuilder: (context, state) => _buildFadeTransition(const CoverLetterScreen()),
+    ),
+    GoRoute(
+      path: '/portfolio-edit',
+      pageBuilder: (context, state) {
+        final user = context.read<AuthProvider>().userModel!;
+        return _buildFadeTransition(PortfolioEditScreen(user: user));
+      },
+    ),
+    GoRoute(
+      path: '/learning',
+      pageBuilder: (context, state) => _buildFadeTransition(const LearningScreen()),
     ),
   ],
 );

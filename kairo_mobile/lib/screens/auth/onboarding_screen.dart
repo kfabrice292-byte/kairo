@@ -17,25 +17,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<Map<String, dynamic>> _pages = [
     {
-      'title': 'Créer',
-      'subtitle': 'Bâtissez votre identité numérique',
-      'description':
-          'Façonnez un profil unique, générez des CV sur-mesure et mettez en valeur votre parcours comme jamais auparavant.',
-      'icon': Icon(PhosphorIcons.pencilLine(), size: 80),
+      'title': 'Boostez votre\ncarrière',
+      'subtitle': 'Des CV générés par l\'IA et optimisés pour passer les filtres.',
+      'image': 'assets/images/onboarding_1.jpg',
     },
     {
-      'title': 'Innover',
-      'subtitle': 'Découvrez des projets',
-      'description':
-          'Explorez des idées novatrices, collaborez sur des projets open-source et poussez les limites de la technologie.',
-      'icon': Icon(PhosphorIcons.lightbulb(), size: 80),
+      'title': 'Démarquez\nvous',
+      'subtitle': 'Faites la différence avec des modèles de CV premium et modernes.',
+      'image': 'assets/images/onboarding_2.jpg',
     },
     {
-      'title': 'Connecter',
-      'subtitle': 'Rejoignez la communauté',
-      'description':
-          'Échangez avec des experts, participez à des groupes d\'intérêt et créez des opportunités professionnelles infinies.',
-      'icon': Icon(PhosphorIcons.graph(), size: 80),
+      'title': 'Saisissez les\nopportunités',
+      'subtitle': 'Découvrez les offres d\'emploi qui vous correspondent vraiment.',
+      'image': 'assets/images/onboarding_3.jpg',
     },
   ];
 
@@ -67,29 +61,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
-            // Skip button
+            // Top Section (Skip)
             Align(
               alignment: Alignment.topRight,
-              child: TextButton(
-                onPressed: _completeOnboarding,
-                child: Text(
-                  "Passer",
-                  style: TextStyle(
-                    color: theme.textTheme.bodyMedium?.color?.withValues(
-                      alpha: 0.6,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 16.0, top: 8.0),
+                child: TextButton(
+                  onPressed: _completeOnboarding,
+                  child: Text(
+                    "Passer",
+                    style: TextStyle(
+                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                      fontWeight: FontWeight.w500,
                     ),
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             ),
 
+            // Page View
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -100,71 +97,50 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 },
                 itemCount: _pages.length,
                 itemBuilder: (context, index) {
-                  return _buildPageContent(_pages[index], theme);
+                  return _buildPageContent(_pages[index], theme, size);
                 },
               ),
             ),
 
-            // Footer
+            // Bottom Section (Progress Button)
             Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Indicators
-                  Row(
-                    children: List.generate(
-                      _pages.length,
-                      (index) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.only(right: 8),
-                        height: 6,
-                        width: _currentPage == index ? 24 : 6,
+              padding: const EdgeInsets.only(bottom: 40.0, top: 20.0),
+              child: SizedBox(
+                width: 80,
+                height: 80,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Circular Progress
+                    SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: CircularProgressIndicator(
+                        value: (_currentPage + 1) / _pages.length,
+                        strokeWidth: 4,
+                        color: AppColors.primary,
+                        backgroundColor: theme.dividerColor.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    // Inner Black Square Button
+                    GestureDetector(
+                      onTap: _nextPage,
+                      child: Container(
+                        width: 56,
+                        height: 56,
                         decoration: BoxDecoration(
-                          color: _currentPage == index
-                              ? AppColors.primary
-                              : theme.dividerColor,
-                          borderRadius: BorderRadius.circular(3),
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          color: Colors.white,
+                          size: 20,
                         ),
                       ),
                     ),
-                  ),
-
-                  // Next / Start Button
-                  ElevatedButton(
-                    onPressed: _nextPage,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Theme.of(context).iconTheme.color,
-                      elevation: 0,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: _currentPage == _pages.length - 1 ? 24 : 20,
-                        vertical: 14,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _currentPage == _pages.length - 1
-                              ? "Commencer"
-                              : "Suivant",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                        ),
-                        if (_currentPage < _pages.length - 1) ...[
-                          const SizedBox(width: 8),
-                          Icon(PhosphorIcons.arrowRight(), size: 18),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -173,55 +149,63 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildPageContent(Map<String, dynamic> page, ThemeData theme) {
+  Widget _buildPageContent(Map<String, dynamic> page, ThemeData theme, Size size) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Minimalist Icon Illustration
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              shape: BoxShape.circle,
-              border: Border.all(color: theme.dividerColor, width: 1),
-            ),
-            child: IconTheme(
-              data: IconThemeData(color: theme.textTheme.bodyLarge?.color),
-              child: page['icon'] as Widget,
-            ),
-          ),
-          const SizedBox(height: 60),
-
-          // Text Content
+          const SizedBox(height: 20),
+          // Title
           Text(
             page['title'] as String,
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 40,
+              fontSize: 34,
               fontWeight: FontWeight.w800,
-              letterSpacing: -1,
+              height: 1.1,
+              letterSpacing: -0.5,
               color: theme.textTheme.bodyLarge?.color,
             ),
           ),
           const SizedBox(height: 16),
+          // Subtitle
           Text(
             page['subtitle'] as String,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w600,
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.9),
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            page['description'] as String,
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-              height: 1.5,
+              fontWeight: FontWeight.w500,
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 40),
+          // 3D Illustration
+          Expanded(
+            child: Center(
+              child: Hero(
+                tag: 'onboarding_img_${page['image']}',
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(32),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Image.asset(
+                    page['image'] as String,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                  ),
+                ),
+              ),
             ),
           ),
         ],

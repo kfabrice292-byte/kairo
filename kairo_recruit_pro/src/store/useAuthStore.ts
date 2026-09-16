@@ -25,6 +25,8 @@ interface AuthState {
   isLoading: boolean;
   isInitialized: boolean;
   error: string | null;
+  activeClient: string | null;
+  setActiveClient: (client: string | null) => void;
   login: (email: string, pass: string) => Promise<void>;
   register: (email: string, pass: string, name: string, company: string, accountType: 'cabinet' | 'entreprise') => Promise<void>;
   logout: () => Promise<void>;
@@ -65,7 +67,9 @@ export const useAuthStore = create<AuthState>((set) => {
     isLoading: false,
     isInitialized: false,
     error: null,
+    activeClient: null,
 
+    setActiveClient: (client) => set({ activeClient: client }),
     clearError: () => set({ error: null }),
 
     login: async (email, password) => {

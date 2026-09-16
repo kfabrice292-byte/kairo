@@ -102,6 +102,14 @@ export const useJobStore = create<JobState>((set, get) => ({
         });
       });
 
+      // Multi-Agences : Filtrer par client actif si défini
+      const activeClient = useAuthStore.getState().activeClient;
+      if (activeClient) {
+        const filtered = fetchedJobs.filter(job => job.clientName === activeClient);
+        fetchedJobs.length = 0;
+        fetchedJobs.push(...filtered);
+      }
+
       // Sort by newest first
       fetchedJobs.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 

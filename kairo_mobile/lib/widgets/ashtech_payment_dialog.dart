@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../core/models/user_model.dart';
 import 'package:kairo_mobile/core/theme/app_colors.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 class AshtechPaymentDialog extends StatefulWidget {
   final UserModel user;
@@ -22,8 +23,6 @@ class AshtechPaymentDialog extends StatefulWidget {
 }
 
 class _AshtechPaymentDialogState extends State<AshtechPaymentDialog> {
-  static const String _functionUrl = 'https://us-central1-kairo-522c2.cloudfunctions.net/initiateAshtechPayment';
-
   final List<Map<String, dynamic>> _commonCountries = [
     {'code': 'CI', 'name': 'Côte d\'Ivoire', 'operators': ['Orange Money', 'MTN Mobile Money', 'Moov Money', 'Wave']},
     {'code': 'SN', 'name': 'Sénégal', 'operators': ['Orange Money', 'Free Money', 'Wave']},
@@ -63,9 +62,11 @@ class _AshtechPaymentDialogState extends State<AshtechPaymentDialog> {
     });
 
     try {
+      final productId = widget.paymentType == 'premium' ? 'premium_monthly' : 'cv_export';
+
       final body = {
         'uid': widget.user.uid,
-        'type': widget.paymentType,
+        'productId': productId,
         'phone': _phoneController.text.trim(),
         'operator': _selectedOperator,
         'country_code': _selectedCountry,
@@ -78,15 +79,12 @@ class _AshtechPaymentDialogState extends State<AshtechPaymentDialog> {
         body['reference'] = _reference;
       }
 
-      final response = await http.post(
-        Uri.parse(_functionUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
+      final callable = FirebaseFunctions.instance.httpsCallable('initiatePayment');
+      final result = await callable.call(body);
+      final data = result.data['data'] as Map<String, dynamic>;
+      final statusCode = result.data['status'] as int;
 
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 202) {
+      if (statusCode == 202) {
         if (data['flow'] == 'wave') {
           // Flow Wave
           _waveUrl = data['wave_url'];
@@ -99,10 +97,11 @@ class _AshtechPaymentDialogState extends State<AshtechPaymentDialog> {
         } else {
           // Flow USSD Push
           setState(() {
+            _reference = data['reference'];
             _step = 'ussd_push';
           });
         }
-      } else if (response.statusCode == 400 && data['error'] == 'otp_required') {
+      } else if (statusCode == 400 && data['error'] == 'otp_required') {
         // Flow OTP (USSD or SMS)
         setState(() {
           _reference = data['reference'];
@@ -112,12 +111,16 @@ class _AshtechPaymentDialogState extends State<AshtechPaymentDialog> {
       } else {
         // Erreur
         setState(() {
-          _error = data['message'] ?? data['error'] ?? 'Une erreur est survenue';
+          _error = data['message'] ?? 'Erreur lors de l\'initialisation.';
         });
       }
+    } on FirebaseFunctionsException catch (e) {
+      setState(() {
+        _error = e.message ?? 'Erreur interne du serveur.';
+      });
     } catch (e) {
       setState(() {
-        _error = 'Erreur de connexion : $e';
+        _error = 'Erreur réseau : ${e.toString()}';
       });
     } finally {
       setState(() {

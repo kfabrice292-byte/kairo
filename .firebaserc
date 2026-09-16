@@ -2,6 +2,20 @@
   "projects": {
     "default": "kairo-522c2"
   },
-  "targets": {},
+  "targets": {
+    "kairo-522c2": {
+      "hosting": {
+        "main": [
+          "kairo-522c2"
+        ],
+        "recruit": [
+          "kairo-recruit"
+        ],
+        "admin": [
+          "kairopro"
+        ]
+      }
+    }
+  },
   "etags": {}
 }

@@ -114,11 +114,24 @@ class OpportunityProvider extends ChangeNotifier {
           final statuses = <String, String>{};
           for (var doc in snapshot.docs) {
             final data = doc.data();
-            statuses[data['jobId']] = data['status'] ?? 'Envoyée';
+            final rawStatus = data['status'] ?? 'new';
+            statuses[data['jobId']] = _mapStatus(rawStatus);
           }
           _applicationStatuses = statuses;
           notifyListeners();
         });
+  }
+
+  String _mapStatus(String status) {
+    switch (status) {
+      case 'new': return 'Envoyée';
+      case 'screening': return 'En cours d\'examen';
+      case 'interview': return 'Entretien';
+      case 'offer': return 'Offre reçue';
+      case 'hired': return 'Embauché(e)';
+      case 'rejected': return 'Non retenue';
+      default: return status;
+    }
   }
 
   Future<void> toggleSaveOpportunity(String oppId) async {
@@ -194,24 +207,32 @@ class OpportunityProvider extends ChangeNotifier {
       List<DocumentSnapshot> recommendationDocs = [];
 
       if (authUser != null) {
-        // Try fetching from backend recommendations engine
-        Query query = FirebaseFirestore.instance
-            .collection('users')
-            .doc(authUser.uid)
-            .collection('recommendations')
-            .orderBy('score', descending: true)
-            .limit(_pageSize);
-            
-        if (_lastDocument != null) {
-          query = query.startAfterDocument(_lastDocument!);
-        }
+        try {
+          if (_lastDocument != null && !_lastDocument!.reference.path.contains('recommendations')) {
+            throw Exception('Already paginating global list');
+          }
+          
+          // Try fetching from backend recommendations engine
+          Query query = FirebaseFirestore.instance
+              .collection('users')
+              .doc(authUser.uid)
+              .collection('recommendations')
+              .orderBy('score', descending: true)
+              .limit(_pageSize);
+              
+          if (_lastDocument != null) {
+            query = query.startAfterDocument(_lastDocument!);
+          }
 
-        final recSnapshot = await query.get();
-        if (recSnapshot.docs.isNotEmpty) {
-          usedRecommendations = true;
-          recommendationDocs = recSnapshot.docs;
-          _lastDocument = recSnapshot.docs.last;
-          _hasMore = recSnapshot.docs.length >= _pageSize;
+          final recSnapshot = await query.get();
+          if (recSnapshot.docs.isNotEmpty) {
+            usedRecommendations = true;
+            recommendationDocs = recSnapshot.docs;
+            _lastDocument = recSnapshot.docs.last;
+            _hasMore = recSnapshot.docs.length >= _pageSize;
+          }
+        } catch (e) {
+          debugPrint('Skipping recommendations: $e');
         }
       }
 
@@ -226,16 +247,27 @@ class OpportunityProvider extends ChangeNotifier {
           final score = data['score'] as int? ?? 0;
           if (oppId == null) continue;
 
-          final oppDoc = await FirebaseFirestore.instance.collection('opportunities').doc(oppId).get();
-          if (oppDoc.exists) {
-            final opp = OpportunityModel.fromFirestore(oppDoc);
-            if (opp.status == 'ouvert') {
-              fetchedOpps.add(opp);
-              newScores[opp.id] = score;
+          try {
+            final oppDoc = await FirebaseFirestore.instance.collection('opportunities').doc(oppId).get();
+            if (oppDoc.exists) {
+              final opp = OpportunityModel.fromFirestore(oppDoc);
+              if (opp.status == 'ouvert') {
+                fetchedOpps.add(opp);
+                newScores[opp.id] = score;
+              }
             }
+          } catch (e) {
+            debugPrint('Error parsing recommended opp: $e');
           }
         }
-      } else {
+        
+        if (fetchedOpps.isEmpty && refresh) {
+          usedRecommendations = false;
+          _lastDocument = null;
+        }
+      }
+      
+      if (!usedRecommendations) {
         // Fallback: fetch from global opportunities collection
         Query query = FirebaseFirestore.instance
             .collection('opportunities')

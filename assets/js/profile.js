@@ -180,7 +180,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const premiumModal = document.getElementById('premiumModal');
     
     // Si l'utilisateur clique sur "Passer Premium" dans le HTML
-    const upgradePremiumBtn = document.getElementById('upgradePremiumBtn');
     if (upgradePremiumBtn && premiumModal) {
         upgradePremiumBtn.addEventListener('click', () => {
             premiumModal.classList.remove('hidden');
@@ -258,21 +257,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 submitBtn.disabled = true;
 
                 try {
-                    const CLOUD_FUNCTION_URL = "https://us-central1-kairo-522c2.cloudfunctions.net/initiateAshtechPayment"; 
-                    
-                    const response = await fetch(CLOUD_FUNCTION_URL, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            uid: user.uid,
-                            type: "premium",
-                            phone: phone,
-                            operator: operator,
-                            country_code: country
-                        })
-                    });
-
-                    const data = await response.json();
+                    const result = await API.initiatePayment('premium_monthly', phone, operator, country);
+                    const response = { status: result.status };
+                    const data = result.data;
                     
                     if (response.status === 202) {
                         if (data.flow === 'wave') {
@@ -317,35 +304,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                             otpBtn.disabled = true;
                             
                             try {
-                                const otpRes = await fetch(CLOUD_FUNCTION_URL, {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                        uid: user.uid,
-                                        type: "premium",
-                                        phone: phone,
-                                        operator: operator,
-                                        country_code: country,
-                                        otp: otpVal,
-                                        reference: data.reference
-                                    })
-                                });
-                                const otpData = await otpRes.json();
-                                if (otpRes.status === 202) {
-                                    step2.innerHTML = `
-                                        <div class="w-16 h-16 bg-green-50 text-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                            <i class="ph-fill ph-check-circle text-4xl"></i>
-                                        </div>
-                                        <h3 class="text-xl font-bold text-slate-900 mb-2">En attente</h3>
-                                        <p class="text-slate-500 mb-4">Paiement initié. Votre compte sera mis à jour automatiquement dès réception.</p>
-                                        <button onclick="document.getElementById('premiumModal').classList.add('hidden')" class="w-full py-3 bg-slate-100 text-slate-700 rounded-xl font-bold">Fermer</button>
-                                    `;
-                                } else {
-                                    document.getElementById('otpError').textContent = otpData.message || 'Erreur OTP';
-                                    document.getElementById('otpError').classList.remove('hidden');
-                                    otpBtn.innerHTML = 'Valider';
-                                    otpBtn.disabled = false;
-                                }
+                                // MOCK: Normalement on appellerait une autre fonction onCall pour valider l'OTP
+                                // Pour l'instant on affiche juste une attente
+                                step2.innerHTML = `
+                                    <div class="w-16 h-16 bg-green-50 text-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                        <i class="ph-fill ph-check-circle text-4xl"></i>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-slate-900 mb-2">En attente</h3>
+                                    <p class="text-slate-500 mb-4">OTP envoyé. Votre compte sera mis à jour automatiquement dès réception du Webhook.</p>
+                                    <button onclick="document.getElementById('premiumModal').classList.add('hidden')" class="w-full py-3 bg-slate-100 text-slate-700 rounded-xl font-bold">Fermer</button>
+                                `;
                             } catch (e) {
                                 document.getElementById('otpError').textContent = 'Erreur réseau';
                                 document.getElementById('otpError').classList.remove('hidden');

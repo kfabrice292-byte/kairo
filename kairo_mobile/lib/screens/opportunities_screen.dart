@@ -190,6 +190,8 @@ class _OpportunityCard extends StatelessWidget {
                         const SizedBox(height: 8),
                         Text(
                           op.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
 import { useJobStore } from "../store/useJobStore";
+import { useAuthStore } from "../store/useAuthStore";
 import { Briefcase, Plus, MapPin, Users, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { NewJobModal } from "../components/NewJobModal";
 
 export function Jobs() {
+  const activeClient = useAuthStore((state) => state.activeClient);
   const { jobs, fetchJobs, isLoading, updateJobStatus } = useJobStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchJobs();
-  }, [fetchJobs]);
+  }, [fetchJobs, activeClient]);
 
   const openPipeline = (jobId: string) => {
     navigate(`/pipeline?jobId=${jobId}`);

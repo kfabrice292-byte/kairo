@@ -1,0 +1,36 @@
+name: Deploy Landing Page
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - '*.html'
+      - 'package.json'
+      - 'vite.config.js'
+
+jobs:
+  deploy-landing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Landing Page
+        run: npm run build
+
+      - name: Deploy to Firebase Hosting (Main Site)
+        uses: w9jds/firebase-action@master
+        with:
+          args: deploy --only hosting:main
+        env:
+          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}

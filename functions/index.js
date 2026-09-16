@@ -17,19 +17,28 @@ const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "SUPER_SECRET_WEBHOOK_KEY_R
 /**
  * 1. Endpoint pour initialiser le paiement (appelé depuis le front-end)
  */
-exports.initiatePayment = onRequest({ cors: true }, async (req, res) => {
-    if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
-
-    const { uid, phone, operator, country_code } = req.body;
-    if (!uid || !phone || !operator || !country_code) {
-        return res.status(400).json({ error: "Paramètres manquants" });
+exports.initiatePayment = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'Vous devez être connecté.');
+    }
+    
+    const uid = request.auth.uid;
+    const { phone, operator, country_code, productId } = request.data;
+    
+    if (!phone || !operator || !country_code) {
+        throw new HttpsError('invalid-argument', 'Paramètres manquants (téléphone, opérateur, pays).');
     }
 
+    let amount = 0;
+    if (productId === 'premium_monthly') amount = 1000;
+    else if (productId === 'cv_export') amount = 500;
+    else if (productId === 'coins_100') amount = 500;
+    else amount = 1000; // Default fallback
+
     try {
-        const amount = 1000;
-        // Rendre la référence imprévisible pour éviter le spoofing
         const randomStr = crypto.randomBytes(8).toString('hex');
         const reference = `ORD-${Date.now()}-${randomStr}-${uid}`;
+        
         // Ajouter un token dans l'URL pour valider le retour du webhook
         const notify_url = `https://us-central1-${process.env.GCLOUD_PROJECT}.cloudfunctions.net/ashtechWebhook?token=${WEBHOOK_SECRET}`;
 
@@ -51,20 +60,28 @@ exports.initiatePayment = onRequest({ cors: true }, async (req, res) => {
         });
 
         const data = await response.json();
+        
+        // On ne lève une erreur que si c'est une vraie erreur (pas une demande d'OTP qui est souvent en 400)
+        if (!response.ok && !(response.status === 400 && data.error === 'otp_required')) {
+            logger.error("Ashtech API rejected the request:", data);
+            throw new HttpsError('internal', data.message || "Erreur lors de l'initialisation du paiement.");
+        }
 
         await db.collection("transactions").doc(reference).set({
             uid: uid,
+            productId: productId || 'premium_monthly',
             amount: amount,
             status: "pending",
             providerRef: data.transaction_id || null,
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         });
 
-        res.status(response.status).json(data);
+        // Renvoyer les données et le statut HTTP pour que le front puisse gérer Wave, OTP, etc.
+        return { status: response.status, data: data };
 
     } catch (error) {
         logger.error("Erreur API Ashtech:", error);
-        res.status(500).json({ error: "Erreur interne" });
+        throw new HttpsError('internal', "Erreur interne lors du paiement.");
     }
 });
 
@@ -79,17 +96,20 @@ exports.ashtechWebhook = onRequest({ cors: true }, async (req, res) => {
         return res.status(401).send("Unauthorized");
     }
 
-    res.status(200).json({ received: true });
-
     const { event, reference, status } = req.body;
-    if (!reference) return;
+    if (!reference) return res.status(400).send("No reference");
 
     try {
         const txRef = db.collection("transactions").doc(reference);
         const txDoc = await txRef.get();
-        if (!txDoc.exists) return;
+        if (!txDoc.exists) return res.status(404).send("Tx not found");
 
         const txData = txDoc.data();
+        
+        // Eviter de traiter la même transaction 2 fois si elle est déjà complétée
+        if (txData.status === 'completed' || txData.status === 'success' || txData.status === 'payment.completed') {
+            return res.status(200).json({ received: true, already_processed: true });
+        }
 
         await txRef.update({
             status: status || event,
@@ -98,13 +118,41 @@ exports.ashtechWebhook = onRequest({ cors: true }, async (req, res) => {
 
         if (event === "payment.completed" || status === "completed" || status === "success") {
             const userRef = db.collection("users").doc(txData.uid);
-            await userRef.update({
-                hasPaid: true,
-                paymentDate: admin.firestore.FieldValue.serverTimestamp()
-            });
+            
+            if (txData.productId === 'premium_monthly') {
+                const now = new Date();
+                const premiumUntil = new Date(now.setMonth(now.getMonth() + 1));
+                
+                await userRef.update({
+                    hasPaid: true,
+                    isPremium: true,
+                    premiumUntil: admin.firestore.Timestamp.fromDate(premiumUntil),
+                    paymentDate: admin.firestore.FieldValue.serverTimestamp()
+                });
+            } else if (txData.productId === 'cv_export') {
+                await userRef.update({
+                    hasPaid: true,
+                    paymentDate: admin.firestore.FieldValue.serverTimestamp(),
+                    cvCredits: admin.firestore.FieldValue.increment(1)
+                });
+            } else if (txData.productId === 'coins_100') {
+                await userRef.update({
+                    points: admin.firestore.FieldValue.increment(100)
+                });
+            } else {
+                await userRef.update({
+                    hasPaid: true,
+                    paymentDate: admin.firestore.FieldValue.serverTimestamp()
+                });
+            }
         }
+        
+        // On retourne 200 UNIQUEMENT si tout s'est bien passé en base
+        return res.status(200).json({ received: true });
     } catch (error) {
         logger.error("Erreur Webhook:", error);
+        // On retourne 500 pour que AshtechPay retente plus tard
+        return res.status(500).send("Internal Server Error");
     }
 });
 

@@ -11,16 +11,39 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="assets/css/base.css">
     <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+        }
+        
+        .blob {
+            position: absolute;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.4;
+            animation: float 10s infinite ease-in-out alternate;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, -50px) scale(1.1); }
+        }
+
         .avatar-upload:hover .avatar-placeholder { border-color: #F97316; background-color: rgba(249,115,22,0.05); }
     </style>
 </head>
-<body class="bg-slate-50 flex flex-col min-h-screen text-slate-800 font-sans relative">
+<body class="bg-slate-50 flex flex-col min-h-screen text-slate-800 font-sans relative overflow-x-hidden selection:bg-orange-200 selection:text-orange-900">
 
-    <div class="absolute inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-100/30 via-white to-white pointer-events-none"></div>
+    <!-- Decorative Background Blobs -->
+    <div class="blob bg-orange-300 w-96 h-96 rounded-full top-0 left-[-10%] pointer-events-none"></div>
+    <div class="blob bg-purple-200 w-96 h-96 rounded-full bottom-0 right-[-10%] pointer-events-none" style="animation-delay: -5s;"></div>
 
     <!-- Header -->
-    <header class="w-full sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-200 z-50">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <header class="w-full sticky top-4 left-0 px-4 z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 py-3 bg-white/70 backdrop-blur-xl border border-white/50 shadow-sm rounded-full flex justify-between items-center">
             <a href="dashboard.html" class="flex items-center gap-1 hover:opacity-80 transition-opacity">
                 <img src="assets/img/logo.png" alt="Kaïro" class="h-8 object-contain">
             </a>
@@ -43,7 +66,7 @@
             
             <!-- Left Column: Profile Form -->
             <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
+                <div class="glass-card rounded-3xl p-8">
                     
                     <div class="flex items-center gap-6 mb-8 pb-8 border-b border-slate-100">
                         <label class="avatar-upload relative w-32 h-32 rounded-full cursor-pointer group">
@@ -174,7 +197,7 @@
     </div>
 
     <!-- Main Content -->
-                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                <div class="glass-card rounded-3xl p-8">
                     <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 pb-4 border-b border-slate-100">
                         <i class="ph-fill ph-clock-counter-clockwise text-[#F97316]"></i> Historique
                     </h3>

@@ -250,11 +250,20 @@ class UserModel {
   final bool isPremium; // Computed: true if raw isPremium is true AND premiumUntil is valid
   final DateTime? premiumUntil;
   final int cvCredits;
-  final String role; // 'user' or 'admin'
+  final String role; // Legacy field
+  final Map<String, String> roles; // Multi-tenant RBAC: { "orgId": "ADMIN" }
   final String subscriptionStatus; // FREE, PREMIUM_PAID, PREMIUM_GIFT, PREMIUM_CODE, PREMIUM_ADMIN, BANNED
 
-  bool get isAdmin => role == 'admin';
+  bool get isAdmin => role == 'admin' || roles.containsValue('ADMIN') || roles.containsValue('SUPER_ADMIN');
   bool get isBanned => subscriptionStatus == 'BANNED';
+  
+  // Helper for multi-tenant check
+  bool hasRoleInOrg(String orgId, List<String> allowedRoles) {
+    if (roles.containsKey(orgId)) {
+      return allowedRoles.contains(roles[orgId]);
+    }
+    return false;
+  }
 
   UserModel({
     required this.uid,
@@ -300,12 +309,16 @@ class UserModel {
     this.premiumUntil,
     this.cvCredits = 0,
     this.role = 'user',
+    this.roles = const {},
     this.subscriptionStatus = 'FREE',
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
+    return UserModel.fromMap(data, doc.id);
+  }
 
+  factory UserModel.fromMap(Map<String, dynamic> data, String uid) {
     // Calcul de l'abonnement actif
     bool rawPremium = data['isPremium'] ?? false;
     String status = data['subscriptionStatus'] ?? 'FREE';
@@ -317,6 +330,8 @@ class UserModel {
     if (data['premiumUntil'] != null) {
       if (data['premiumUntil'] is Timestamp) {
         pUntil = (data['premiumUntil'] as Timestamp).toDate();
+      } else if (data['premiumUntil'] is int) {
+        pUntil = DateTime.fromMillisecondsSinceEpoch(data['premiumUntil'] as int);
       }
     }
     bool activePremium = rawPremium;
@@ -328,7 +343,7 @@ class UserModel {
     }
 
     return UserModel(
-      uid: doc.id,
+      uid: uid,
       photoURL: data['photoURL'] ?? '',
       coverPhoto: data['coverPhoto'] ?? '',
       name: data['name'] ?? '',
@@ -379,6 +394,7 @@ class UserModel {
       following: List<String>.from(data['following'] ?? []),
       savedOpportunities: List<String>.from(data['savedOpportunities'] ?? []),
       lastCvTitle: data['lastCvTitle'] ?? '',
+      tags: List<String>.from(data['tags'] ?? []),
       lastCvBio: data['lastCvBio'] ?? '',
       lastCvTemplate: data['lastCvTemplate'] ?? 'moderne',
       isVerified: data['isVerified'] ?? false,
@@ -387,6 +403,7 @@ class UserModel {
       premiumUntil: pUntil,
       cvCredits: data['cvCredits'] ?? 0,
       role: data['role'] ?? 'user',
+      roles: Map<String, String>.from(data['roles'] ?? {}),
       subscriptionStatus: status,
     );
   }
@@ -435,6 +452,7 @@ class UserModel {
       'premiumUntil': premiumUntil,
       'cvCredits': cvCredits,
       'role': role,
+      'roles': roles,
       'subscriptionStatus': subscriptionStatus,
     };
   }

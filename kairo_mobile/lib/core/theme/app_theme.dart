@@ -57,6 +57,20 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: lightTextPrimary,
+        contentTextStyle: GoogleFonts.inter(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        elevation: 8,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      ),
       useMaterial3: true,
     );
   }
@@ -91,6 +105,21 @@ class AppTheme {
         unselectedItemColor: darkTextSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF3B322D), // slightly lighter than dark surface
+        contentTextStyle: GoogleFonts.inter(
+          color: darkTextPrimary,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFF4A403B), width: 1),
+        ),
+        elevation: 8,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       ),
       useMaterial3: true,
     );

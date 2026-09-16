@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/providers/chat_provider.dart';
 import '../../core/providers/auth_provider.dart';
-import '../../core/providers/network_provider.dart';
 import '../../core/models/chat_model.dart';
 import 'package:kairo_mobile/core/theme/app_colors.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -125,8 +124,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     final authUser = context.watch<AuthProvider>().userModel;
     final myUserId = authUser?.uid ?? '';
     
-    final network = context.watch<NetworkProvider>();
-    final connection = network.getConnectionWith(widget.otherUserId);
     final isConnected = true; // Allow chatting even if pending
 
     return Scaffold(

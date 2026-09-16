@@ -10,12 +10,12 @@ import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/providers/auth_provider.dart';
-import 'core/providers/feed_provider.dart';
+
 import 'core/providers/opportunity_provider.dart';
 import 'core/providers/project_provider.dart';
 import 'core/providers/chat_provider.dart';
 import 'core/providers/notification_provider.dart';
-import 'core/providers/network_provider.dart';
+
 import 'core/providers/settings_provider.dart';
 import 'core/providers/theme_provider.dart';
 
@@ -54,12 +54,12 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => FeedProvider()),
+
         ChangeNotifierProvider(create: (_) => OpportunityProvider()),
         ChangeNotifierProvider(create: (_) => ProjectProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
-        ChangeNotifierProvider(create: (_) => NetworkProvider()),
+
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],

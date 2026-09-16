@@ -229,12 +229,29 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: projects.length,
-      itemBuilder: (context, index) {
-        return _ProjectCard(project: projects[index]);
-      },
+    return RefreshIndicator(
+      onRefresh: () => context.read<ProjectProvider>().loadProjects(refresh: true),
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 200) {
+            context.read<ProjectProvider>().loadMoreProjects();
+          }
+          return false;
+        },
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: projects.length + (context.watch<ProjectProvider>().hasMore ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index == projects.length) {
+              return const Padding(
+                padding: EdgeInsets.only(bottom: 24, top: 16),
+                child: ShimmerProjectCard(),
+              );
+            }
+            return _ProjectCard(project: projects[index]);
+          },
+        ),
+      ),
     );
   }
 }

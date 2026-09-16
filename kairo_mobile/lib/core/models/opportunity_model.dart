@@ -71,37 +71,63 @@ class OpportunityModel {
 
   factory OpportunityModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+
+    DateTime parseDate(dynamic val) {
+      if (val is Timestamp) return val.toDate();
+      if (val is String) return DateTime.tryParse(val) ?? DateTime.now();
+      return DateTime.now();
+    }
+    
+    DateTime? parseDateNullable(dynamic val) {
+      if (val is Timestamp) return val.toDate();
+      if (val is String) return DateTime.tryParse(val);
+      return null;
+    }
+    
+    List<String> parseList(dynamic val) {
+      if (val is List) return val.map((e) => e.toString()).toList();
+      return [];
+    }
+
+    int? parseInt(dynamic val) {
+      if (val is int) return val;
+      if (val is double) return val.toInt();
+      if (val is String) return int.tryParse(val);
+      return null;
+    }
+
     return OpportunityModel(
       id: doc.id,
-      title: data['title'] ?? '',
-      company: data['company'] ?? '',
-      imageUrl: data['imageUrl'] ?? data['companyLogoUrl'],
-      location: data['location'] ?? '',
-      type: data['type'] ?? 'Stage',
-      description: data['description'] ?? '',
-      postedBy: data['postedBy'] ?? 'Admin',
-      applicants: List<String>.from(data['applicants'] ?? []),
-      mandatorySkills: List<String>.from(data['mandatorySkills'] ?? []),
-      status: data['status'] ?? 'ouvert',
+      title: data['title']?.toString() ?? '',
+      company: data['company']?.toString() ?? '',
+      imageUrl: data['imageUrl']?.toString() ?? data['companyLogoUrl']?.toString(),
+      location: data['location']?.toString() ?? '',
+      type: data['type']?.toString() ?? 'Stage',
+      description: data['description']?.toString() ?? '',
+      postedBy: data['postedBy']?.toString() ?? 'Admin',
+      applicants: parseList(data['applicants']),
+      mandatorySkills: parseList(data['mandatorySkills']),
+      status: data['status']?.toString() ?? 'ouvert',
       
-      requiredDocuments: List<String>.from(data['requiredDocuments'] ?? []),
-      educationLevel: data['educationLevel'],
-      minExperience: data['minExperience'],
-      niceToHaveSkills: List<String>.from(data['niceToHaveSkills'] ?? []),
-      languages: List<String>.from(data['languages'] ?? []),
-      preSelectionQuestions: List<String>.from(data['preSelectionQuestions'] ?? []),
-      salaryRange: data['salaryRange'],
-      department: data['department'],
-      numberOfPositions: data['numberOfPositions'],
-      workTime: data['workTime'],
-      seniorityLevel: data['seniorityLevel'],
-      remoteWork: data['remoteWork'],
+      requiredDocuments: parseList(data['requiredDocuments']),
+      educationLevel: data['educationLevel']?.toString(),
+      minExperience: parseInt(data['minExperience']),
+      niceToHaveSkills: parseList(data['niceToHaveSkills']),
+      languages: parseList(data['languages']),
+      preSelectionQuestions: parseList(data['preSelectionQuestions']),
+      salaryRange: data['salaryRange']?.toString(),
+      department: data['department']?.toString(),
+      numberOfPositions: parseInt(data['numberOfPositions']),
+      workTime: data['workTime']?.toString(),
+      seniorityLevel: data['seniorityLevel']?.toString(),
+      remoteWork: data['remoteWork']?.toString(),
       
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      closeDate: (data['closeDate'] as Timestamp?)?.toDate(),
-      expectedStartDate: (data['expectedStartDate'] as Timestamp?)?.toDate(),
-      applicationType: data['applicationType'] ?? 'internal_ats',
-      externalLink: data['externalLink'],
+      createdAt: parseDate(data['createdAt']),
+      closeDate: parseDateNullable(data['closeDate']),
+      expectedStartDate: parseDateNullable(data['expectedStartDate']),
+      applicationType: data['applicationType']?.toString() ?? 'internal_ats',
+      externalLink: data['externalLink']?.toString(),
+      tags: parseList(data['tags']),
     );
   }
 

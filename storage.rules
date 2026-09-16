@@ -2,29 +2,18 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Vérifie si l'utilisateur est connecté
     function isAuthenticated() {
       return request.auth != null;
     }
     
-    // Vérifie si l'utilisateur est un administrateur (via le token s'il existe, ou sinon on bloque la création admin via web, à configurer si custom claims utilisés)
-    // NB: Cloud Storage rules ne peuvent pas lire Firestore nativement sans Custom Claims.
-    // Pour simplifier, on utilisera l'authentification standard pour le bucket, ou on protégera via Custom Claims
-    function isAdmin() {
-      return isAuthenticated() && request.auth.token.admin == true;
-    }
-    
-    // Vérifie la taille du fichier en Mo
     function isUnderSize(maxSizeMB) {
       return request.resource.size < maxSizeMB * 1024 * 1024;
     }
     
-    // Vérifie que le fichier est une image stricte (JPEG, PNG, WEBP)
     function isImage() {
       return request.resource.contentType in ['image/jpeg', 'image/png', 'image/webp'];
     }
 
-    // Vérifie que le fichier est un document standard (PDF, DOCX) ou Image
     function isDocument() {
       return request.resource.contentType.matches('application/pdf') 
              || request.resource.contentType.matches('image/.*')
@@ -32,36 +21,30 @@ service firebase.storage {
              || request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     }
 
-    // Avatars des utilisateurs
+    // ==========================================
+    // AVATARS / LOGOS
+    // ==========================================
     match /avatars/{userId}/{fileName} {
       allow read: if true;
-      allow write: if isAdmin() || (isAuthenticated() 
-                   && request.auth.uid == userId 
-                   && isImage() 
-                   && isUnderSize(5));
-      allow delete: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow write: if isAuthenticated() && request.auth.uid == userId && isImage() && isUnderSize(5);
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Documents (CV, Lettres, Certificats)
+    // ==========================================
+    // CVs & DOCUMENTS (Portfolio / Candidatures)
+    // ==========================================
     match /documents/{userId}/{fileName} {
+      // MVP : N'importe quel utilisateur connecté peut lire un document. 
+      // Idéalement on protègerait par Custom Claims (isRecruiter)
       allow read: if isAuthenticated();
-      allow write: if isAdmin() || (isAuthenticated() 
-                   && request.auth.uid == userId 
-                   && isDocument() 
-                   && isUnderSize(10));
-      allow delete: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      
+      allow write: if isAuthenticated() && request.auth.uid == userId && isDocument() && isUnderSize(10);
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Pièces jointes des messages
-    match /chats/{chatId}/{fileName} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && isUnderSize(20);
-      allow delete: if isAdmin();
-    }
-
-    // Rejets par défaut
+    // Bloque tout le reste
     match /{allPaths=**} {
-      allow read, write: if isAdmin();
+      allow read, write: if false;
     }
   }
 }

@@ -6,7 +6,7 @@ const firebase_functions_1 = require("firebase-functions");
 // Initialize Resend. We use a fallback just in case, but it should come from process.env
 // The API key is ONLY accessible on the server.
 const resendApiKey = process.env.RESEND_API_KEY;
-const resend = new resend_1.Resend(resendApiKey);
+const resend = new resend_1.Resend(resendApiKey || 'dummy_key');
 const DEFAULT_FROM = 'KAIRO <kairo@agencegenio.com>';
 class EmailService {
     /**

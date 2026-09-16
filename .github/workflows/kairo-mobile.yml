@@ -1,0 +1,54 @@
+name: Flutter Mobile CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'kairo_mobile/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'kairo_mobile/**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+
+      - name: Install Dependencies
+        working-directory: ./kairo_mobile
+        run: flutter pub get
+
+      - name: Analyze Code
+        working-directory: ./kairo_mobile
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Run Tests
+        working-directory: ./kairo_mobile
+        run: flutter test
+
+      - name: Build Android APK
+        working-directory: ./kairo_mobile
+        run: flutter build apk --release
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kairo_Mobile_Release.apk
+          path: kairo_mobile/build/app/outputs/flutter-apk/app-release.apk

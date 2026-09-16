@@ -25,8 +25,8 @@ import 'profile/add_language_sheet.dart';
 import 'profile/add_education_sheet.dart';
 import 'package:kairo_mobile/screens/profile/cover_letter_screen.dart';
 import 'profile/add_tags_sheet.dart';
-
-import 'profile/add_tags_sheet.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'premium/premium_subscription_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -72,6 +72,159 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  void _showShareBottomSheet(BuildContext context, UserModel user) {
+    final String profileUrl = 'https://kairo-522c2.web.app/public-profile.html?uid=${user.uid}';
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              const Text(
+                'Partager votre profil',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Permettez aux recruteurs d\'accéder à votre CV et portfolio interactif.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildShareOption(
+                    context,
+                    icon: PhosphorIcons.link(),
+                    label: 'Lien',
+                    color: Colors.blue,
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      Share.share('Découvrez mon profil professionnel sur Kaïro :\n$profileUrl');
+                    },
+                  ),
+                  _buildShareOption(
+                    context,
+                    icon: PhosphorIcons.qrCode(),
+                    label: 'QR Code',
+                    color: AppColors.primary,
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _showQrCodeDialog(context, profileUrl, user);
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildShareOption(BuildContext context, {required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 32),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  void _showQrCodeDialog(BuildContext context, String url, UserModel user) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Scannez-moi !',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  user.name.isNotEmpty ? user.name : 'Profil',
+                  style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 16),
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: QrImageView(
+                    data: url,
+                    version: QrVersions.auto,
+                    size: 200.0,
+                    backgroundColor: Colors.white,
+                    eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Colors.black87),
+                    dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Colors.black87),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('Fermer', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
@@ -101,6 +254,10 @@ class ProfileScreen extends StatelessWidget {
         foregroundColor: theme.appBarTheme.foregroundColor,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: Icon(PhosphorIcons.shareNetwork()),
+            onPressed: () => _showShareBottomSheet(context, user),
+          ),
           IconButton(
             icon: Icon(PhosphorIcons.gear()),
             onPressed: () {
@@ -460,473 +617,7 @@ class ProfileScreen extends StatelessWidget {
                         ],
 
                         const SizedBox(height: 24),
-
-                        if (user.bio.isNotEmpty)
-                          _buildSection('À propos', [
-                            Text(
-                              user.bio,
-                              style: TextStyle(
-                                color: theme.textTheme.bodyMedium?.color
-                                    ?.withValues(alpha: 0.8),
-                                height: 1.5,
-                                fontSize: 15,
-                              ),
-                            ),
-                          ], theme),
                         const SizedBox(height: 24),
-                        _buildTagsSection(context, user, theme),
-                        const SizedBox(height: 24),
-
-                        _buildSection(
-                          'Compétences',
-                          [
-                            if (user.skills.isEmpty)
-                              const Text(
-                                "Aucune compétence ajoutée.",
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              )
-                            else
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: user.skills
-                                    .map(
-                                      (skill) => InkWell(
-                                        onTap: () {
-                                          showModalBottomSheet(
-                                            context: context,
-                                            isScrollControlled: true,
-                                            shape: const RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.vertical(
-                                                top: Radius.circular(20),
-                                              ),
-                                            ),
-                                            builder: (context) => AddSkillSheet(user: user, initialSkill: skill),
-                                          );
-                                        },
-                                        child: Container(
-                                          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 64),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 8,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primary.withValues(
-                                              alpha: 0.1,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                            border: Border.all(
-                                              color: AppColors.primary.withValues(
-                                                alpha: 0.2,
-                                              ),
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Flexible(
-                                                child: Text(
-                                                  skill.name,
-                                                  style: TextStyle(
-                                                    color: AppColors.primary,
-                                                    fontWeight: FontWeight.w600,
-                                                    fontSize: 13,
-                                                  ),
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 2,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: Theme.of(context).cardColor,
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                ),
-                                                child: Text(
-                                                  skill.level,
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: AppColors.primary,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              InkWell(
-                                                onTap: () {
-                                                  _showDeleteConfirmation(context, 'cette compétence', () {
-                                                    context.read<AuthProvider>().deleteSkill(skill.name);
-                                                  });
-                                                },
-                                                child: Icon(Icons.close, size: 14, color: AppColors.primary),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                              ),
-                          ],
-                          theme,
-                          trailing: IconButton(
-                            icon: Icon(
-                              Icons.add_circle_outline,
-                              color: AppColors.primary,
-                            ),
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(20),
-                                  ),
-                                ),
-                                builder: (context) => AddSkillSheet(user: user),
-                              );
-                            },
-                          ),
-                        ),
-                        
-                        _buildSection(
-                          'Langues',
-                          [
-                            if (user.languages.isEmpty)
-                              const Text(
-                                "Aucune langue ajoutée.",
-                                style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-                              )
-                            else
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: user.languages.map((lang) => Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(lang.name, style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 13)),
-                                      const SizedBox(width: 6),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: Theme.of(context).cardColor,
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        child: Text('${lang.level}/5', style: TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.bold)),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      InkWell(
-                                        onTap: () {
-                                          _showDeleteConfirmation(context, 'cette langue', () {
-                                            context.read<AuthProvider>().deleteLanguage(lang.name);
-                                          });
-                                        },
-                                        child: Icon(Icons.close, size: 14, color: AppColors.primary),
-                                      ),
-                                    ],
-                                  ),
-                                )).toList(),
-                              ),
-                          ],
-                          theme,
-                          trailing: IconButton(
-                            icon: Icon(Icons.add_circle_outline, color: AppColors.primary),
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-                                builder: (context) => const AddLanguageSheet(),
-                              );
-                            },
-                          ),
-                        ),
-
-                        _buildSection(
-                          'Formation',
-                          [
-                            if (user.educations.isEmpty)
-                              const Text(
-                                "Aucune formation ajoutée.",
-                                style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-                              )
-                            else
-                              ...user.educations.map((edu) => Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: theme.dividerColor),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Expanded(
-                                            child: Text(edu.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                          ),
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(edu.period, style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
-                                              const SizedBox(width: 8),
-                                              InkWell(
-                                                onTap: () {
-                                                  showModalBottomSheet(
-                                                    context: context,
-                                                    isScrollControlled: true,
-                                                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-                                                    builder: (context) => AddEducationSheet(education: edu),
-                                                  );
-                                                },
-                                                child: const Icon(Icons.edit, size: 16, color: Colors.grey),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              InkWell(
-                                                onTap: () {
-                                                  _showDeleteConfirmation(context, 'cette formation', () {
-                                                    context.read<AuthProvider>().deleteEducation(edu.id);
-                                                  });
-                                                },
-                                                child: const Icon(Icons.delete, size: 16, color: Colors.redAccent),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    const SizedBox(height: 4),
-                                    Text(edu.institution, style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8), fontSize: 14)),
-                                    if (edu.description.isNotEmpty) ...[
-                                      const SizedBox(height: 8),
-                                      Text(edu.description, style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7), fontSize: 13, height: 1.4)),
-                                    ],
-                                  ],
-                                ),
-                              )),
-                          ],
-                          theme,
-                          trailing: IconButton(
-                            icon: Icon(Icons.add_circle_outline, color: AppColors.primary),
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-                                builder: (context) => const AddEducationSheet(),
-                              );
-                            },
-                          ),
-                        ),
-
-                        _buildSection(
-                          'Expériences',
-                          [
-                            if (user.experiences.isEmpty)
-                              const Text(
-                                "Aucune expérience ajoutée.",
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              )
-                            else
-                              ...user.experiences.map(
-                                (exp) =>
-                                    _buildExperienceCard(exp, theme, context),
-                              ),
-                          ],
-                          theme,
-                          trailing: IconButton(
-                            icon: Icon(
-                              Icons.add_circle_outline,
-                              color: AppColors.primary,
-                            ),
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(20),
-                                  ),
-                                ),
-                                builder: (context) =>
-                                    const AddExperienceSheet(),
-                              );
-                            },
-                          ),
-                        ),
-
-
-
-                        if (user.portfolioProjects.isNotEmpty || true)
-                          _buildSection(
-                            'Mes Projets Portfolio',
-                            [
-                              if (user.portfolioProjects.isEmpty)
-                                Text(
-                                  'Aucun projet ajouté pour le moment.',
-                                  style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6)),
-                                )
-                              else
-                                ...user.portfolioProjects.map((p) => Container(
-                                  margin: const EdgeInsets.only(bottom: 12),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: theme.dividerColor),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      if (p.imageUrl.isNotEmpty)
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(8),
-                                          child: CachedNetworkImage(
-                                            imageUrl: p.imageUrl,
-                                            width: 60,
-                                            height: 60,
-                                            fit: BoxFit.cover,
-                                            errorWidget: (c, u, e) => Container(
-                                              width: 60, height: 60,
-                                              color: Colors.grey.shade200,
-                                              child: const Icon(Icons.broken_image),
-                                            ),
-                                          ),
-                                        )
-                                      else
-                                        Container(
-                                          width: 60, height: 60,
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primary.withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: Icon(Icons.work, color: AppColors.primary),
-                                        ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Expanded(
-                                                  child: Text(p.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                                ),
-                                                Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    InkWell(
-                                                      onTap: () {
-                                                        showModalBottomSheet(
-                                                          context: context,
-                                                          isScrollControlled: true,
-                                                          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-                                                          builder: (context) => AddPortfolioProjectSheet(projectToEdit: p),
-                                                        );
-                                                      },
-                                                      child: const Icon(Icons.edit, size: 16, color: Colors.grey),
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    InkWell(
-                                                      onTap: () {
-                                                        _showDeleteConfirmation(context, 'ce projet', () {
-                                                          context.read<AuthProvider>().deletePortfolioProject(p.id);
-                                                        });
-                                                      },
-                                                      child: const Icon(Icons.delete, size: 16, color: Colors.redAccent),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(p.description, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8))),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )),
-                              if (true) ...[
-                                const SizedBox(height: 12),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: OutlinedButton.icon(
-                                    onPressed: () {
-                                      showModalBottomSheet(
-                                        context: context,
-                                        isScrollControlled: true,
-                                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-                                        builder: (context) => const AddPortfolioProjectSheet(),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.add, size: 20),
-                                    label: const Text('Ajouter un projet'),
-                                  ),
-                                ),
-                              ],
-                            ],
-                            theme,
-                          ),
-
-                        if (user.github.isNotEmpty ||
-                            user.linkedin.isNotEmpty ||
-                            user.website.isNotEmpty ||
-                            user.behance.isNotEmpty)
-                          _buildSection('Liens & Portfolio', [
-                            Wrap(
-                              spacing: 12,
-                              runSpacing: 12,
-                              children: [
-                                if (user.github.isNotEmpty)
-                                  _buildSocialLink(
-                                    PhosphorIcons.githubLogo(),
-                                    'GitHub',
-                                    user.github,
-                                  ),
-                                if (user.linkedin.isNotEmpty)
-                                  _buildSocialLink(
-                                    PhosphorIcons.linkedinLogo(),
-                                    'LinkedIn',
-                                    user.linkedin,
-                                  ),
-                                if (user.behance.isNotEmpty)
-                                  _buildSocialLink(
-                                    PhosphorIcons.behanceLogo(),
-                                    'Behance',
-                                    user.behance,
-                                  ),
-                                if (user.website.isNotEmpty)
-                                  _buildSocialLink(
-                                    PhosphorIcons.globe(),
-                                    'Website',
-                                    user.website,
-                                  ),
-                              ],
-                            ),
-                          ], theme),
                       ],
                     ),
                   ),
@@ -935,270 +626,6 @@ class ProfileScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-
-  Widget _buildTagsSection(BuildContext context, UserModel user, ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Centres d\'intérêt (Tags)',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.add_circle_outline, color: AppColors.primary),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => AddTagsSheet(user: user),
-                );
-              },
-            ),
-          ],
-        ),
-        if (user.tags.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(
-              'Ajoutez des mots-clés pour recevoir des offres ciblées.',
-              style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-            ),
-          )
-        else
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: user.tags.map((tag) {
-              return Chip(
-                label: Text(tag),
-                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                labelStyle: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
-                side: BorderSide.none,
-                deleteIcon: Icon(Icons.close, size: 14, color: AppColors.primary),
-                onDeleted: () {
-                  _showDeleteConfirmation(context, 'ce tag', () async {
-                     final updatedTags = List<String>.from(user.tags)..remove(tag);
-                     await context.read<AuthProvider>().updateProfile({'tags': updatedTags});
-                  });
-                },
-              );
-            }).toList(),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildSection(
-    String title,
-    List<Widget> children,
-    ThemeData theme, {
-    Widget? trailing,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: theme.textTheme.bodyLarge?.color,
-                  letterSpacing: -0.3,
-                ),
-              ),
-              if (trailing != null) trailing,
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildExperienceCard(
-    Experience exp,
-    ThemeData theme,
-    BuildContext context,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: theme.dividerColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  exp.title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    color: theme.textTheme.bodyLarge?.color,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    exp.period,
-                    style: TextStyle(
-                      color: theme.textTheme.bodyMedium?.color?.withValues(
-                        alpha: 0.5,
-                      ),
-                      fontSize: 12,
-                    ),
-                    textAlign: TextAlign.right,
-                  ),
-                  const SizedBox(width: 4),
-                  PopupMenuButton<String>(
-                    icon: Icon(Icons.more_vert, size: 18),
-                    padding: EdgeInsets.zero,
-                    onSelected: (val) async {
-                      if (val == 'edit') {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(20),
-                            ),
-                          ),
-                          builder: (context) =>
-                              AddExperienceSheet(experience: exp),
-                        );
-                      } else if (val == 'delete') {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (c) => AlertDialog(
-                            title: const Text('Supprimer'),
-                            content: const Text(
-                              'Voulez-vous vraiment supprimer cette expérience ?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(c, false),
-                                child: const Text('Annuler'),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(c, true),
-                                child: const Text(
-                                  'Supprimer',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                        if (confirm == true) {
-                          try {
-                            await context.read<AuthProvider>().deleteExperience(
-                              exp.id,
-                            );
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Erreur: $e'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-                        }
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Text('Modifier'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Text(
-                          'Supprimer',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            exp.organization,
-            style: TextStyle(
-              color: theme.textTheme.bodyLarge?.color,
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-            ),
-          ),
-          if (exp.description.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              exp.description,
-              style: TextStyle(
-                color: theme.textTheme.bodyMedium?.color?.withValues(
-                  alpha: 0.7,
-                ),
-                height: 1.4,
-                fontSize: 13,
-              ),
-              softWrap: true,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSocialLink(IconData icon, String label, String url) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: Colors.grey.shade800),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-          ),
-        ],
       ),
     );
   }

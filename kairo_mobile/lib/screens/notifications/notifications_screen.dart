@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../core/providers/notification_provider.dart';
 import '../../core/providers/auth_provider.dart';
-import '../../core/providers/network_provider.dart';
 import '../profile/public_profile_screen.dart';
 import '../post_detail_screen.dart';
 import '../../widgets/empty_state_widget.dart';
@@ -56,7 +55,6 @@ class NotificationsScreen extends StatelessWidget {
               itemCount: notifications.length,
               itemBuilder: (context, index) {
                 final notif = notifications[index];
-                final networkProvider = context.watch<NetworkProvider>();
                 
                 bool hasPendingRequest = false;
                 if (notif.relatedId != null) {
@@ -189,7 +187,6 @@ class _NetworkActionButtonsState extends State<_NetworkActionButtons> {
   Future<void> _handleAction(bool accept) async {
     setState(() => _isLoading = true);
     try {
-      final network = context.read<NetworkProvider>();
       final conn = network.getConnectionWith(widget.notif.relatedId!);
       
       if (conn != null) {

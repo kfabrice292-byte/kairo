@@ -7,6 +7,7 @@ import 'dart:async';
 import '../models/user_model.dart';
 import '../services/push_notification_service.dart';
 import '../services/activity_logger_service.dart';
+import '../services/cache_service.dart';
 
 class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
   bool _isLoading = false;
@@ -68,6 +69,15 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> fetchUserData(String uid) async {
     try {
+      // 1. Charger depuis le cache local (affichage instantané)
+      final cachedData = await CacheService().getCachedUserProfile();
+      if (cachedData != null) {
+        _userData = cachedData;
+        _userModel = UserModel.fromMap(cachedData, uid);
+        notifyListeners();
+      }
+
+      // 2. Fetcher la vraie donnée depuis Firebase
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
@@ -75,6 +85,8 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
       if (doc.exists) {
         _userData = doc.data();
         _userModel = UserModel.fromFirestore(doc);
+        // Sauvegarder dans le cache pour le mode hors-ligne
+        await CacheService().cacheUserProfile(_userData!);
       } else {
         _userData = {
           'name': currentUser?.displayName ?? 'Utilisateur',
@@ -85,11 +97,14 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
       notifyListeners();
     } catch (e) {
       debugPrint("Error fetching user data: $e");
-      _userData = {
-        'name': currentUser?.displayName ?? 'Utilisateur',
-        'email': currentUser?.email,
-      };
-      _userModel = null;
+      if (_userData == null) {
+        // En cas d'erreur sans cache existant
+        _userData = {
+          'name': currentUser?.displayName ?? 'Utilisateur',
+          'email': currentUser?.email,
+        };
+        _userModel = null;
+      }
       notifyListeners();
     }
   }

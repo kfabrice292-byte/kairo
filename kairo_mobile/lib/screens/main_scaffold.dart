@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'feed_screen.dart';
+
+import 'home_screen.dart';
 import 'opportunities_screen.dart';
-import 'projects_screen.dart';
+import 'portfolio_screen.dart';
 import 'profile_screen.dart';
 import 'publish/add_experience_dialog.dart';
 import 'publish/add_project_dialog.dart';
@@ -18,10 +19,14 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const FeedScreen(),
+  late final List<Widget> _screens = [
+    HomeScreen(onTabTapped: (index) {
+      setState(() {
+        _currentIndex = index;
+      });
+    }),
     OpportunitiesScreen(),
-    const ProjectsScreen(),
+    const PortfolioScreen(),
     const ProfileScreen(),
   ];
 
@@ -34,6 +39,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
+        type: BottomNavigationBarType.fixed,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
@@ -42,33 +48,35 @@ class _MainScaffoldState extends State<MainScaffold> {
         items: [
           BottomNavigationBarItem(
             icon: Icon(PhosphorIcons.house()),
-            activeIcon: Icon(PhosphorIcons.house()),
+            activeIcon: Icon(PhosphorIcons.house(PhosphorIconsStyle.fill)),
             label: 'Accueil',
           ),
           BottomNavigationBarItem(
             icon: Icon(PhosphorIcons.briefcase()),
-            activeIcon: Icon(PhosphorIcons.briefcase()),
+            activeIcon: Icon(PhosphorIcons.briefcase(PhosphorIconsStyle.fill)),
             label: 'Opportunités',
           ),
           BottomNavigationBarItem(
-            icon: Icon(PhosphorIcons.rocketLaunch()),
-            activeIcon: Icon(PhosphorIcons.rocketLaunch()),
-            label: 'Projets',
+            icon: Icon(PhosphorIcons.userList()),
+            activeIcon: Icon(PhosphorIcons.userList(PhosphorIconsStyle.fill)),
+            label: 'Portfolio',
           ),
           BottomNavigationBarItem(
             icon: Icon(PhosphorIcons.user()),
-            activeIcon: Icon(PhosphorIcons.user()),
+            activeIcon: Icon(PhosphorIcons.user(PhosphorIconsStyle.fill)),
             label: 'Profil',
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showPublishModal(context);
-        },
-        backgroundColor: AppColors.primary,
-        child: Icon(Icons.add, color: Colors.white),
-      ),
+      floatingActionButton: (_currentIndex == 2 || _currentIndex == 3)
+          ? FloatingActionButton(
+              onPressed: () {
+                _showPublishModal(context);
+              },
+              backgroundColor: AppColors.primary,
+              child: Icon(Icons.add, color: Colors.white),
+            )
+          : null,
     );
   }
 
@@ -88,20 +96,7 @@ class _MainScaffoldState extends State<MainScaffold> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
-            _buildPublishOption(
-              context,
-              icon: PhosphorIcons.rocketLaunch(),
-              title: 'Un projet (Portfolio Communautaire)',
-              subtitle: 'Partager une interface, un code, ou un plan et vos leçons apprises',
-              onTap: () {
-                Navigator.pop(context);
-                showDialog(
-                  context: context,
-                  builder: (context) => const CreatePostModal(),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
+
             _buildPublishOption(
               context,
               icon: PhosphorIcons.briefcase(),

@@ -7,35 +7,73 @@ class ProjectProvider extends ChangeNotifier {
   List<ProjectModel> _projects = [];
   bool _isLoading = false;
 
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  DocumentSnapshot? _lastDocument;
+  static const int _pageSize = 15;
+
   List<ProjectModel> get projects => _projects;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
+  bool get hasMore => _hasMore;
 
   ProjectProvider() {
-    _listenToProjects();
+    loadProjects(refresh: true);
   }
 
-  void _listenToProjects() {
-    _isLoading = true;
-    notifyListeners();
+  Future<void> loadProjects({bool refresh = false}) async {
+    if (_isLoading || (!_hasMore && !refresh)) return;
 
-    FirebaseFirestore.instance
-        .collection('projects')
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .listen(
-          (snapshot) {
-            _projects = snapshot.docs
-                .map((doc) => ProjectModel.fromFirestore(doc))
-                .toList();
-            _isLoading = false;
-            notifyListeners();
-          },
-          onError: (e) {
-            debugPrint('Error fetching projects: $e');
-            _isLoading = false;
-            notifyListeners();
-          },
-        );
+    if (refresh) {
+      _isLoading = true;
+      _hasMore = true;
+      _lastDocument = null;
+      _projects.clear();
+      notifyListeners();
+    } else {
+      _isLoadingMore = true;
+      notifyListeners();
+    }
+
+    try {
+      Query query = FirebaseFirestore.instance
+          .collection('projects')
+          .orderBy('createdAt', descending: true)
+          .limit(_pageSize);
+
+      if (_lastDocument != null) {
+        query = query.startAfterDocument(_lastDocument!);
+      }
+
+      final snapshot = await query.get();
+
+      if (snapshot.docs.isNotEmpty) {
+        _lastDocument = snapshot.docs.last;
+        final newProjects = snapshot.docs
+            .map((doc) => ProjectModel.fromFirestore(doc))
+            .toList();
+
+        if (refresh) {
+          _projects = newProjects;
+        } else {
+          _projects.addAll(newProjects);
+        }
+        
+        _hasMore = snapshot.docs.length >= _pageSize;
+      } else {
+        _hasMore = false;
+      }
+    } catch (e) {
+      debugPrint('Error fetching projects: $e');
+    } finally {
+      _isLoading = false;
+      _isLoadingMore = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadMoreProjects() async {
+    await loadProjects(refresh: false);
   }
 
   Future<String> addProject(ProjectModel project) async {

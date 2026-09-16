@@ -1,4 +1,5 @@
-import { auth, db, storage } from './firebase-config.js';
+import { auth, db, storage, functions } from './firebase-config.js';
+import { httpsCallable } from "firebase/functions";
 import { 
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, 
@@ -138,12 +139,20 @@ const API = {
     },
 
     // --- USERS & PROFILE ---
-    async unlockPremium() {
+    // --- PAIEMENT ---
+    async initiatePayment(productId, phone, operator, country_code = "BF") {
         try {
-            return await this.updateProfile({ hasPaid: true });
+            const initiatePaymentFn = httpsCallable(functions, 'initiatePayment');
+            const result = await initiatePaymentFn({
+                productId: productId,
+                phone: phone,
+                operator: operator,
+                country_code: country_code
+            });
+            return result.data;
         } catch (error) {
-            console.error("Unlock error:", error);
-            throw new Error("Impossible de valider le paiement.");
+            console.error("Payment initialization error:", error);
+            throw new Error(error.message || "Impossible d'initialiser le paiement.");
         }
     },
 

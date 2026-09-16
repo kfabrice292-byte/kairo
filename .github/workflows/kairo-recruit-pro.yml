@@ -1,0 +1,35 @@
+name: Deploy Recruit Pro (ATS Kanban)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'kairo_recruit_pro/**'
+
+jobs:
+  deploy-recruit-pro:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: ./kairo_recruit_pro
+        run: npm ci
+
+      - name: Build Application
+        working-directory: ./kairo_recruit_pro
+        run: npm run build
+
+      - name: Deploy to Firebase Hosting
+        uses: w9jds/firebase-action@master
+        with:
+          args: deploy --only hosting:recruit
+        env:
+          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}

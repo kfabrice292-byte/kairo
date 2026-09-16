@@ -23,34 +23,22 @@
             color: white;
             align-self: flex-end;
             border-bottom-right-radius: 4px;
-            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.2);
+            box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         .chat-ai {
-            background-color: white;
-            color: #334155;
-            border: 1px solid rgba(226, 232, 240, 0.8);
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            color: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.8);
             align-self: flex-start;
             border-bottom-left-radius: 4px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
         }
         .premium-shadow {
             box-shadow: 0 20px 50px -12px rgba(249, 115, 22, 0.25), 0 0 30px -5px rgba(0,0,0,0.05);
             border: 1px solid rgba(249, 115, 22, 0.1);
-        }
-        
-        /* The canvas background */
-        .canvas-bg {
-            background-color: #f8fafc;
-            background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
-            background-size: 32px 32px;
-            position: relative;
-        }
-        .canvas-bg::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at center, transparent 0%, #f8fafc 100%);
-            pointer-events: none;
         }
 
         /* View transitions */
@@ -65,6 +53,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body class="bg-slate-50 flex flex-col min-h-screen text-slate-800 font-sans relative overflow-hidden">
+    <!-- Animated background blobs -->
+    <div class="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-orange-500/20 blur-3xl animate-blob z-0 pointer-events-none"></div>
+    <div class="fixed top-[20%] right-[-5%] w-[35%] h-[35%] rounded-full bg-blue-500/20 blur-3xl animate-blob animation-delay-2000 z-0 pointer-events-none"></div>
+    <div class="fixed bottom-[-10%] left-[20%] w-[40%] h-[40%] rounded-full bg-purple-500/20 blur-3xl animate-blob animation-delay-4000 z-0 pointer-events-none"></div>
 
     <!-- Header -->
     <header class="w-full bg-white/70 backdrop-blur-xl border-b border-white/50 z-50 fixed top-0 left-0 right-0 h-[70px]">
@@ -84,8 +76,8 @@
 
         <main class="flex-1 w-full flex h-screen pt-[70px] relative">
         
-                <!-- ==================== VIEW 1 : TEMPLATE SELECTION ==================== -->
-        <div id="templateSelectionView" class="w-full h-full flex flex-col items-center pt-12 px-6 overflow-y-auto view-visible bg-slate-50 absolute inset-0 z-10">
+        <!-- ==================== VIEW 1 : TEMPLATE SELECTION ==================== -->
+        <div id="templateSelectionView" class="w-full h-full flex flex-col items-center pt-12 px-6 overflow-y-auto view-visible bg-transparent absolute inset-0 z-10">
             <div class="text-center mb-10">
                 <h1 id="selectionTitle" class="text-4xl font-extrabold font-outfit text-slate-800 mb-3">Choisissez votre modèle</h1>
                 <p id="selectionSubtitle" class="text-lg text-slate-500">Le design s'adaptera automatiquement à vos réponses.</p>
@@ -97,10 +89,10 @@
         </div>
 
         <!-- ==================== VIEW 2 : CHAT ==================== -->
-        <div id="chatView" class="w-full flex justify-center items-center p-2 sm:p-6 canvas-bg relative view-hidden absolute inset-0 z-10 overflow-y-auto">
-            <div class="w-full max-w-3xl h-[85vh] flex flex-col bg-white/80 backdrop-blur-2xl border border-slate-200 rounded-3xl premium-shadow overflow-hidden">
+        <div id="chatView" class="w-full flex justify-center items-center p-2 sm:p-6 bg-transparent relative view-hidden absolute inset-0 z-10 overflow-y-auto">
+            <div class="w-full max-w-3xl h-[85vh] flex flex-col glass-card border border-white/50 rounded-3xl shadow-2xl overflow-hidden">
                 <!-- Context Header -->
-                <div class="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
+                <div class="px-8 py-5 border-b border-slate-200/50 flex items-center justify-between bg-white/30 backdrop-blur-md">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center text-[#F97316] shadow-inner border border-orange-100">
                             <i class="ph-fill ph-robot text-2xl"></i>
@@ -112,17 +104,17 @@
                     </div>
                 </div>
                 <!-- Messages Area -->
-                <div class="flex-1 overflow-y-auto p-8 flex flex-col gap-6 bg-slate-50/50" id="chatMessages">
+                <div class="flex-1 overflow-y-auto p-8 flex flex-col gap-6 bg-transparent" id="chatMessages">
                     <div class="max-w-[85%] p-5 rounded-2xl text-[15px] leading-relaxed chat-ai">
                         <p class="mb-2"><strong>Excellent choix ! 🚀</strong></p>
                         <p>Quel est ton objectif principal ? (Ex: Développeur Web, Stage en Marketing...)</p>
                     </div>
                 </div>
                 <!-- Input Area -->
-                <div class="p-6 bg-white border-t border-slate-100">
-                    <form id="chatForm" class="relative flex items-end gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-2 focus-within:border-[#F97316] focus-within:ring-4 focus-within:ring-[#F97316]/10 transition-all">
-                        <textarea id="chatInput" rows="1" class="w-full bg-transparent border-none focus:ring-0 resize-none max-h-32 text-[15px] px-3 py-3 text-slate-700" placeholder="Tape ta réponse ici..." required></textarea>
-                        <button type="submit" id="sendBtn" class="w-12 h-12 flex-shrink-0 rounded-xl bg-slate-800 text-white flex items-center justify-center hover:bg-slate-700 transition-colors shadow-sm">
+                <div class="p-6 bg-white/40 backdrop-blur-md border-t border-slate-200/50">
+                    <form id="chatForm" class="relative flex items-end gap-3 bg-white/60 border border-white/60 rounded-2xl p-2 focus-within:border-orange-500/50 focus-within:ring-4 focus-within:ring-orange-500/10 transition-all shadow-sm">
+                        <textarea id="chatInput" rows="1" class="w-full bg-transparent border-none focus:ring-0 resize-none max-h-32 text-[15px] px-3 py-3 text-slate-800 placeholder-slate-500" placeholder="Tape ta réponse ici..." required></textarea>
+                        <button type="submit" id="sendBtn" class="w-12 h-12 flex-shrink-0 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white flex items-center justify-center hover:opacity-90 transition-opacity shadow-lg shadow-orange-500/30">
                             <i class="ph-bold ph-paper-plane-right text-lg"></i>
                         </button>
                     </form>
@@ -131,22 +123,22 @@
         </div>
 
         <!-- ==================== VIEW 3 : DASHBOARD ==================== -->
-        <div id="dashboardView" class="w-full h-full flex flex-col md:flex-row bg-slate-200 view-hidden absolute inset-0 z-10 overflow-hidden">
+        <div id="dashboardView" class="w-full h-full flex flex-col md:flex-row bg-transparent view-hidden absolute inset-0 z-10 overflow-hidden">
             
             <!-- Mobile Backdrop -->
-            <div id="mobileBackdrop" class="fixed inset-0 bg-slate-900/60 z-40 hidden md:hidden transition-opacity opacity-0" onclick="toggleMobileSidebar()"></div>
+            <div id="mobileBackdrop" class="fixed inset-0 bg-slate-900/60 z-40 hidden md:hidden transition-opacity opacity-0 backdrop-blur-sm" onclick="toggleMobileSidebar()"></div>
 
             <!-- Left Sidebar (Drawer on mobile) -->
-            <div id="editorSidebar" class="fixed bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-50 transform translate-y-full transition-transform duration-300 md:relative md:translate-y-0 md:w-80 md:h-full md:border-r md:border-slate-200 md:rounded-none md:flex md:flex-col shrink-0 max-h-[85vh] md:max-h-none flex flex-col">
+            <div id="editorSidebar" class="fixed bottom-0 left-0 w-full glass-card border-t border-white/50 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-50 transform translate-y-full transition-transform duration-300 md:relative md:translate-y-0 md:w-80 md:h-full md:border-r md:border-t-0 md:border-white/50 md:rounded-none md:flex md:flex-col shrink-0 max-h-[85vh] md:max-h-none flex flex-col">
                 
                 <!-- Mobile Handle -->
                 <div class="flex justify-center pt-4 pb-2 md:hidden cursor-pointer" onclick="toggleMobileSidebar()">
                     <div class="w-12 h-1.5 bg-slate-300 rounded-full"></div>
                 </div>
 
-                <div class="p-6 pt-2 md:pt-6 border-b border-slate-100 bg-slate-50 md:rounded-none rounded-t-3xl">
+                <div class="p-6 pt-2 md:pt-6 border-b border-slate-200/50 bg-white/30 backdrop-blur-md md:rounded-none rounded-t-3xl">
                     <h3 class="font-bold text-lg font-outfit text-slate-800">Espace de Travail</h3>
-                    <p class="text-sm text-slate-500">Personnalisez votre document</p>
+                    <p class="text-sm text-slate-600">Personnalisez votre document</p>
                 </div>
                 <div class="p-6 flex-1 overflow-y-auto space-y-8">
                     
@@ -518,44 +510,27 @@
                 const user = await API.getCurrentUser();
                 
                 // APPEL A LA CLOUD FUNCTION DE PAIEMENT
-                // NOTE: En dev local sans serveur, on simule l'appel après 2s
-                const functionUrl = "https://us-central1-kairo-projet.cloudfunctions.net/initiatePayment";
-                
-                // MOCK : Simulation de l'appel pour le front
-                setTimeout(() => {
+                try {
+                    await API.initiatePayment('premium_monthly', phone, operator, country);
+                    
                     document.getElementById('paywallStep1').classList.add('hidden');
                     document.getElementById('paywallStep2').classList.remove('hidden');
                     
-                    // MOCK Webhook (simulation du succès après 5 secondes)
-                    setTimeout(async () => {
-                        await API.unlockPremium();
-                        window.location.href = window.location.pathname + "?docId=" + window.currentDocId + "&payment=success";
-                    }, 5000);
-                }, 2000);
-
-                /* VRAI CODE COMMENTÉ POUR LA PRODUCTION
-                const res = await fetch(functionUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ uid: user.uid, phone, operator, country_code: country })
-                });
-                const data = await res.json();
-                
-                if (res.status === 202) {
-                    document.getElementById('paywallStep1').classList.add('hidden');
-                    document.getElementById('paywallStep2').classList.remove('hidden');
-                    if (data.status === 'success') {
-                        // Logic handled in callback or url redirect
-                    } else {
-                        Toast.error("Erreur: " + data.message);
-                    }
-                } else {
-                    Toast.error("Erreur: " + data.message);
-                    btn.innerHTML = 'Payer 350 FCFA';
+                    // On écoute le document utilisateur dans Firestore pour détecter quand le webhook a validé
+                    const { doc, onSnapshot } = await import("firebase/firestore");
+                    const { db } = await import("./assets/js/firebase-config.js");
+                    
+                    const unsub = onSnapshot(doc(db, "users", user.uid), (snapshot) => {
+                        if (snapshot.exists() && snapshot.data().isPremium === true) {
+                            unsub();
+                            window.location.href = window.location.pathname + "?docId=" + window.currentDocId + "&payment=success";
+                        }
+                    });
+                } catch (paymentErr) {
+                    alert(paymentErr.message || "Erreur de paiement.");
+                    btn.innerHTML = 'Confirmer le paiement';
                     btn.disabled = false;
                 }
-                */
-
             } catch (err) {
                 console.error(err);
                 btn.innerHTML = 'Payer 350 FCFA';
@@ -784,51 +759,51 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 selectionTitle.innerText = "Choisissez votre modèle de CV";
                 templateGrid.innerHTML = `
-                    <div onclick="startChat('modern-photo')" class="group cursor-pointer bg-white border-2 border-transparent hover:border-[#F97316] rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all relative">
-                        <div class="aspect-[1/1.4] bg-slate-50 rounded-xl mb-4 overflow-hidden relative border border-slate-200 flex flex-col">
+                    <div onclick="startChat('modern-photo')" class="group cursor-pointer glass-card border-2 border-transparent hover:border-[#F97316] rounded-3xl p-5 shadow-sm hover:shadow-xl transition-all relative">
+                        <div class="aspect-[1/1.4] bg-slate-50/50 backdrop-blur-sm rounded-xl mb-4 overflow-hidden relative border border-slate-200/50 flex flex-col shadow-inner">
                             <div class="w-1/3 h-full bg-slate-800 absolute left-0 top-0"></div>
-                            <div class="w-10 h-10 bg-orange-500 rounded-full absolute left-4 top-4 border-2 border-white"></div>
-                            <div class="h-3 w-1/2 bg-slate-300 absolute left-[40%] top-6 rounded"></div>
-                            <div class="h-2 w-1/3 bg-orange-200 absolute left-[40%] top-12 rounded"></div>
-                            <div class="h-20 w-1/2 bg-white absolute right-4 top-24 rounded shadow-sm"></div>
+                            <div class="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full absolute left-4 top-4 border-2 border-white shadow-lg"></div>
+                            <div class="h-3 w-1/2 bg-slate-300 absolute left-[40%] top-6 rounded-full"></div>
+                            <div class="h-2 w-1/3 bg-orange-200 absolute left-[40%] top-12 rounded-full"></div>
+                            <div class="h-20 w-1/2 bg-white/90 backdrop-blur absolute right-4 top-24 rounded-lg shadow-sm border border-white/50"></div>
                         </div>
                         <h3 class="font-bold text-slate-800 text-lg">Moderne (Avec Photo)</h3>
                         <p class="text-sm text-slate-500">Style exécutif et percutant</p>
                     </div>
-                    <div onclick="startChat('modern-nophoto')" class="group cursor-pointer bg-white border-2 border-transparent hover:border-[#F97316] rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all relative">
-                        <div class="aspect-[1/1.4] bg-slate-50 rounded-xl mb-4 overflow-hidden relative border border-slate-200 flex flex-col">
+                    <div onclick="startChat('modern-nophoto')" class="group cursor-pointer glass-card border-2 border-transparent hover:border-[#F97316] rounded-3xl p-5 shadow-sm hover:shadow-xl transition-all relative">
+                        <div class="aspect-[1/1.4] bg-slate-50/50 backdrop-blur-sm rounded-xl mb-4 overflow-hidden relative border border-slate-200/50 flex flex-col shadow-inner">
                             <div class="w-1/3 h-full bg-slate-800 absolute left-0 top-0"></div>
-                            <div class="h-4 w-1/2 bg-slate-400 absolute left-[40%] top-8 rounded"></div>
-                            <div class="h-2 w-1/3 bg-orange-200 absolute left-[40%] top-14 rounded"></div>
-                            <div class="h-20 w-1/2 bg-white absolute right-4 top-24 rounded shadow-sm"></div>
+                            <div class="h-4 w-1/2 bg-slate-400 absolute left-[40%] top-8 rounded-full"></div>
+                            <div class="h-2 w-1/3 bg-orange-200 absolute left-[40%] top-14 rounded-full"></div>
+                            <div class="h-20 w-1/2 bg-white/90 backdrop-blur absolute right-4 top-24 rounded-lg shadow-sm border border-white/50"></div>
                         </div>
                         <h3 class="font-bold text-slate-800 text-lg">Moderne (Sans Photo)</h3>
                         <p class="text-sm text-slate-500">Design corporate minimaliste</p>
                     </div>
-                    <div onclick="startChat('classic-photo')" class="group cursor-pointer bg-white border-2 border-transparent hover:border-[#F97316] rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all relative">
-                        <div class="aspect-[1/1.4] bg-slate-50 rounded-xl mb-4 overflow-hidden relative border border-slate-200 p-4 flex flex-col items-center bg-white">
+                    <div onclick="startChat('classic-photo')" class="group cursor-pointer glass-card border-2 border-transparent hover:border-[#F97316] rounded-3xl p-5 shadow-sm hover:shadow-xl transition-all relative">
+                        <div class="aspect-[1/1.4] bg-slate-50/50 backdrop-blur-sm rounded-xl mb-4 overflow-hidden relative border border-slate-200/50 p-4 flex flex-col items-center bg-white shadow-inner">
                             <div class="w-12 h-12 border-2 border-slate-800 rounded-full mb-3 p-1"><div class="w-full h-full bg-slate-200 rounded-full"></div></div>
-                            <div class="h-3 w-3/4 bg-slate-800 rounded mb-2"></div>
+                            <div class="h-3 w-3/4 bg-slate-800 rounded-full mb-2"></div>
                             <div class="h-px w-full bg-slate-300 my-2"></div>
                             <div class="flex w-full gap-3 mt-2">
-                                <div class="w-1/3 h-20 bg-slate-100 border border-slate-200 rounded"></div>
-                                <div class="w-2/3 h-20 bg-slate-100 border border-slate-200 rounded"></div>
+                                <div class="w-1/3 h-20 bg-slate-100 rounded-lg"></div>
+                                <div class="w-2/3 h-20 bg-slate-100 rounded-lg"></div>
                             </div>
                         </div>
                         <h3 class="font-bold text-slate-800 text-lg">Classique (Avec Photo)</h3>
                         <p class="text-sm text-slate-500">Élégant et traditionnel</p>
                     </div>
-                    <div onclick="startChat('creative')" class="group cursor-pointer bg-white border-2 border-transparent hover:border-[#F97316] rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all relative">
-                        <div class="aspect-[1/1.4] bg-slate-50 rounded-xl mb-4 overflow-hidden relative border border-slate-200 bg-[#FAFAFA]">
-                            <div class="w-full h-1/5 bg-orange-500 absolute left-0 top-0"></div>
-                            <div class="h-6 w-3/4 bg-slate-900 absolute left-4 top-4 rounded"></div>
-                            <div class="absolute top-1/4 left-0 w-full p-4 grid gap-3">
-                                <div class="h-12 w-full bg-white shadow-sm border-l-4 border-orange-500 rounded-lg"></div>
-                                <div class="h-12 w-full bg-white shadow-sm border-l-4 border-orange-500 rounded-lg"></div>
+                    <div onclick="startChat('classic-nophoto')" class="group cursor-pointer glass-card border-2 border-transparent hover:border-[#F97316] rounded-3xl p-5 shadow-sm hover:shadow-xl transition-all relative">
+                        <div class="aspect-[1/1.4] bg-slate-50/50 backdrop-blur-sm rounded-xl mb-4 overflow-hidden relative border border-slate-200/50 p-4 flex flex-col items-center bg-white shadow-inner">
+                            <div class="h-4 w-1/2 bg-slate-800 rounded-full mt-4 mb-2"></div>
+                            <div class="h-px w-full bg-slate-300 my-4"></div>
+                            <div class="flex w-full gap-3">
+                                <div class="w-1/3 h-24 bg-slate-100 rounded-lg"></div>
+                                <div class="w-2/3 h-24 bg-slate-100 rounded-lg"></div>
                             </div>
                         </div>
-                        <h3 class="font-bold text-slate-800 text-lg">Créatif (Sans Photo)</h3>
-                        <p class="text-sm text-slate-500">Audacieux et contrasté</p>
+                        <h3 class="font-bold text-slate-800 text-lg">Classique (Sans Photo)</h3>
+                        <p class="text-sm text-slate-500">Universel et épuré</p>
                     </div>
                 `;
             }

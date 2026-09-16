@@ -55,7 +55,6 @@ class _AddTagsSheetState extends State<AddTagsSheet> {
         import_main.rootScaffoldMessengerKey.currentState?.showSnackBar(
           const SnackBar(
             content: Text('Tags mis à jour avec succès.'),
-            backgroundColor: Colors.green,
           ),
         );
       }

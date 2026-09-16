@@ -6,14 +6,14 @@ import { db } from "../lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 
 export function Dashboard() {
-  const { profile } = useAuthStore();
+  const { profile, activeClient } = useAuthStore();
   const { jobs, fetchJobs } = useJobStore();
   const [totalApplications, setTotalApplications] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     fetchJobs();
-  }, [fetchJobs]);
+  }, [fetchJobs, activeClient]);
 
   useEffect(() => {
     // Si aucune offre et pas déjà onboardé

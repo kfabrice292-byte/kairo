@@ -19,7 +19,8 @@ export default defineConfig({
         cvBuilder: resolve(__dirname, 'cv-builder.html'),
         letter: resolve(__dirname, 'letter.html'),
         opportunities: resolve(__dirname, 'opportunities.html'),
-        admin: resolve(__dirname, 'admin.html')
+        admin: resolve(__dirname, 'admin.html'),
+        kairo_pro: resolve(__dirname, 'kairo-pro.html')
       },
       output: {
         manualChunks(id) {

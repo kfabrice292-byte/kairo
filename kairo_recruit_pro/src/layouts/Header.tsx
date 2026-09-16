@@ -35,8 +35,25 @@ export function Header() {
 
   return (
     <header className="h-20 bg-white/60 backdrop-blur-xl z-20 border-b border-white flex items-center justify-between px-8 sticky top-0 shadow-sm">
-      <div className="flex items-center">
+      <div className="flex items-center space-x-4">
         <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">Espace {profile?.accountType === 'cabinet' ? 'Cabinet' : 'Entreprise'}</h2>
+        
+        {/* Multi-Agency Client Switcher */}
+        {profile?.accountType === 'cabinet' && (
+          <div className="ml-4 flex items-center bg-slate-100 rounded-lg px-3 py-1.5 border border-slate-200">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-2">Client :</span>
+            <select 
+              className="bg-transparent text-sm font-bold text-slate-800 focus:outline-none cursor-pointer"
+              value={useAuthStore(state => state.activeClient) || ''}
+              onChange={(e) => useAuthStore.getState().setActiveClient(e.target.value || null)}
+            >
+              <option value="">Tous les clients</option>
+              <option value="TechCorp">TechCorp</option>
+              <option value="Globex">Globex</option>
+              <option value="Acme Corp">Acme Corp</option>
+            </select>
+          </div>
+        )}
       </div>
       <div className="flex items-center space-x-6">
         
