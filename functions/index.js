@@ -1,5 +1,5 @@
 const { onRequest, onCall, HttpsError } = require("firebase-functions/v2/https");
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onDocumentCreated, onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
 const fetch = require("node-fetch");
@@ -10,7 +10,7 @@ admin.initializeApp();
 const db = admin.firestore();
 
 // Utilisation d'une variable d'environnement pour la clé secrète au lieu de la hardcoder
-const ASHTECH_API_KEY = process.env.ASHTECH_API_KEY || "VOTRE_CLE_ASHTECH_ICI"; 
+const ASHTECH_API_KEY = process.env.ASHTECH_API_KEY || "ak_953b779137666e17789b9ddbab4c949a4bf39d2ba6ecf517"; 
 // Secret partagé pour vérifier l'authenticité du webhook (idéalement dans Secret Manager)
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "SUPER_SECRET_WEBHOOK_KEY_REPLACE_ME";
 
@@ -268,3 +268,30 @@ exports.onCandidateUpdated = require('./lib/api').onCandidateUpdated;
 
 // Auth Triggers
 exports.onUserCreated = require('./lib/triggers/auth.triggers').onUserCreated;
+
+// Sync Roles to Custom Claims
+exports.onUserDocumentWritten = onDocumentWritten("users/{userId}", async (event) => {
+    const after = event.data.after.data();
+    const userId = event.params.userId;
+    
+    if (!after) return; // Le document a été supprimé
+    
+    // Déterminer si l'utilisateur est un recruteur
+    const isRecruiter = after.accountType === 'cabinet' || after.accountType === 'entreprise' || after.role === 'recruiter';
+    
+    try {
+        const userRecord = await admin.auth().getUser(userId);
+        const currentClaims = userRecord.customClaims || {};
+        
+        // Optimisation : on évite d'appeler l'API Firebase Auth si le statut n'a pas changé
+        if (currentClaims.isRecruiter !== isRecruiter) {
+            await admin.auth().setCustomUserClaims(userId, {
+                ...currentClaims,
+                isRecruiter: isRecruiter
+            });
+            logger.info(`Custom claim isRecruiter=${isRecruiter} défini pour l'utilisateur ${userId}`);
+        }
+    } catch (error) {
+        logger.error(`Erreur lors de la définition des custom claims pour ${userId}:`, error);
+    }
+});

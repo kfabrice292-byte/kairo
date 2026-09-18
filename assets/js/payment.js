@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         payNowBtn.addEventListener('click', async () => {
             const currentUser = Storage.getUser();
             if (!currentUser) {
-                alert("Utilisateur non connecté");
+                window.showToast("Utilisateur non connecté");
                 return;
             }
 
@@ -135,23 +135,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.disabled = true;
 
                 try {
-                    const CLOUD_FUNCTION_URL = "https://us-central1-kairo-522c2.cloudfunctions.net/initiateAshtechPayment"; 
+                    // Les fonctions onCall() Firebase attendent un format JSON spécifique: { "data": { ... } }
+                    const CLOUD_FUNCTION_URL = "https://us-central1-kairo-522c2.cloudfunctions.net/initiatePayment"; 
                     
                     const response = await fetch(CLOUD_FUNCTION_URL, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
-                            uid: currentUser.uid,
-                            type: "cv",
-                            phone: phone,
-                            operator: operator,
-                            country_code: country
+                            data: {
+                                uid: currentUser.uid,
+                                productId: "cv_export",
+                                phone: phone,
+                                operator: operator,
+                                country_code: country
+                            }
                         })
                     });
 
-                    const data = await response.json();
+                    // Les fonctions onCall() renvoient la réponse sous { "result": { ... } }
+                    const rawData = await response.json();
+                    const data = rawData.result ? rawData.result.data : rawData.data;
+                    const status = rawData.result ? rawData.result.status : response.status;
                     
-                    if (response.status === 202) {
+                    if (status === 202) {
                         if (data.flow === 'wave') {
                             modalContent.innerHTML = `
                                 <div class="p-6 text-center">
@@ -185,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             setTimeout(() => { downloadAllDocs(); }, 500);
                         });
                         
-                    } else if (response.status === 400 && data.error === 'otp_required') {
+                    } else if (status === 400 && data.error === 'otp_required') {
                         modalContent.innerHTML = `
                             <div class="p-6 text-center">
                                 <h3 class="text-xl font-bold text-slate-900 mb-2">Validation OTP</h3>
@@ -211,17 +217,22 @@ document.addEventListener('DOMContentLoaded', () => {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({
-                                        uid: currentUser.uid,
-                                        type: "cv",
-                                        phone: phone,
-                                        operator: operator,
-                                        country_code: country,
-                                        otp: otpVal,
-                                        reference: data.reference
+                                        data: {
+                                            uid: currentUser.uid,
+                                            productId: "cv_export",
+                                            phone: phone,
+                                            operator: operator,
+                                            country_code: country,
+                                            otp: otpVal,
+                                            reference: data.reference
+                                        }
                                     })
                                 });
-                                const otpData = await otpRes.json();
-                                if (otpRes.status === 202) {
+                                const rawOtpData = await otpRes.json();
+                                const otpData = rawOtpData.result ? rawOtpData.result.data : rawOtpData.data;
+                                const otpStatus = rawOtpData.result ? rawOtpData.result.status : otpRes.status;
+
+                                if (otpStatus === 202) {
                                     paymentModal.classList.remove('active');
                                     previewView.style.display = 'none';
                                     successView.style.display = 'block';
