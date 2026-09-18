@@ -42,7 +42,7 @@ exports.initiatePayment = onCall(async (request) => {
         // Ajouter un token dans l'URL pour valider le retour du webhook
         const notify_url = `https://us-central1-${process.env.GCLOUD_PROJECT}.cloudfunctions.net/ashtechWebhook?token=${WEBHOOK_SECRET}`;
 
-        const response = await fetch("https://ashtechpay.top/v1/collect", {
+        const response = await fetch("https://www.ashtechpay.com/v1/collect", {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${ASHTECH_API_KEY}`,
